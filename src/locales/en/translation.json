@@ -383,7 +383,7 @@
     "notFound": "Sorry, page not found!"
   },
   "forgotPassword": {
-    "description": "Enter your email address and we’ll send an verification code to reset your password",
+    "description": "Enter your email address and we’ll send a verification code to reset your password",
     "sendInstructions": "Send instructions",
     "successReset": "We've sent to your email address the reset link"
   },
