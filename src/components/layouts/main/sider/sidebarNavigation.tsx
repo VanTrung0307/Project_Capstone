@@ -1,17 +1,19 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
 import {
-  CompassOutlined,
+  BlockOutlined,
+  CalendarOutlined,
   DashboardOutlined,
   FormOutlined,
   HomeOutlined,
+  IdcardOutlined,
   LayoutOutlined,
   LineChartOutlined,
+  ShopOutlined,
   TableOutlined,
-  UserOutlined,
-  BlockOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import { ReactComponent as NftIcon } from '@app/assets/icons/nft-icon.svg';
+import React from 'react';
 
 export interface SidebarNavigationItem {
   title: string;
@@ -108,38 +110,68 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <TableOutlined />,
   },
   {
+    title: 'Player Profiles',
+    key: 'playerProfile',
+    url: '/player-profiles',
+    icon: <IdcardOutlined />,
+  },
+  {
+    title: 'Players',
+    key: 'players',
+    url: '/players',
+    icon: <UserOutlined />,
+  },
+  {
+    title: 'Rooms And Locations',
+    key: 'roomLocation',
+    url: '/rooms-location',
+    icon: <HomeOutlined />,
+  },
+  {
+    title: 'Events',
+    key: 'event',
+    url: '/events',
+    icon: <CalendarOutlined />,
+  },
+  {
+    title: 'Stores',
+    key: 'store',
+    url: '/stores',
+    icon: <ShopOutlined />,
+  },
+  {
     title: 'common.charts',
     key: 'charts',
     url: '/charts',
     icon: <LineChartOutlined />,
   },
-  {
-    title: 'common.maps',
-    key: 'maps',
-    icon: <CompassOutlined />,
-    children: [
-      {
-        title: 'common.googleMap',
-        key: 'google-maps',
-        url: '/maps/google-maps',
-      },
-      {
-        title: 'common.leafletMap',
-        key: 'leaflet-maps',
-        url: '/maps/leaflet-maps',
-      },
-      {
-        title: 'common.reactSimpleMaps',
-        key: 'react-simple-maps',
-        url: '/maps/react-simple-maps',
-      },
-      {
-        title: 'common.pigeonMaps',
-        key: 'pigeon-maps',
-        url: '/maps/pigeon-maps',
-      },
-    ],
-  },
+  // {
+  //   title: 'common.maps',
+  //   key: 'maps',
+  //   icon: <CompassOutlined />,
+  //   children: [
+  //     {
+  //       title: 'common.googleMap',
+  //       key: 'google-maps',
+  //       url: '/maps/google-maps',
+  //     },
+  //     {
+  //       title: 'common.leafletMap',
+  //       key: 'leaflet-maps',
+  //       url: '/maps/leaflet-maps',
+  //     },
+  //     {
+  //       title: 'common.reactSimpleMaps',
+  //       key: 'react-simple-maps',
+  //       url: '/maps/react-simple-maps',
+  //     },
+  //     {
+  //       title: 'common.pigeonMaps',
+  //       key: 'pigeon-maps',
+  //       url: '/maps/pigeon-maps',
+  //     },
+  //   ],
+  // },
   {
     title: 'common.pages',
     key: 'pages',
