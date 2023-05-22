@@ -17,6 +17,7 @@ import RequireAuth from '@app/components/router/RequireAuth';
 import { withLoading } from '@app/hocs/withLoading.hoc';
 import NftDashboardPage from '@app/pages/DashboardPages/NftDashboardPage';
 import MedicalDashboardPage from '@app/pages/DashboardPages/MedicalDashboardPage';
+import XavalorDashboardPage from '@app/pages/DashboardPages/XavalorDashboardPage';
 
 const NewsFeedPage = React.lazy(() => import('@app/pages/NewsFeedPage'));
 const KanbanPage = React.lazy(() => import('@app/pages/KanbanPage'));
@@ -63,6 +64,9 @@ const NotificationsUIPage = React.lazy(() => import('@app/pages/uiComponentsPage
 const Logout = React.lazy(() => import('./Logout'));
 
 // New Page for Project
+// const Dashboard = React.lazy(() => import('@app/pages/DashboardPages/XavalorDashboardPage'));
+export const XAVALOR_DASHBOARD_PATH = '/xavalor-dashboard';
+const Dashboard = withLoading(XavalorDashboardPage);
 const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
@@ -142,6 +146,7 @@ export const AppRouter: React.FC = () => {
           <Route path={NFT_DASHBOARD_PATH} element={protectedLayout}>
             <Route index element={<NftDashboard />} />
             <Route path={MEDICAL_DASHBOARD_PATH} element={<MedicalDashboard />} />
+            <Route path={XAVALOR_DASHBOARD_PATH} element={<Dashboard />} />
             <Route path="apps">
               <Route path="feed" element={<NewsFeed />} />
               <Route path="kanban" element={<Kanban />} />

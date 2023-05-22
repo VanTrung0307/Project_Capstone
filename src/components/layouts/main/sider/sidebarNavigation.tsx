@@ -38,6 +38,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <DashboardOutlined />,
   },
   {
+    title: 'Dashboard',
+    key: 'xavalor-dashboard',
+    url: '/xavalor-dashboard',
+    icon: <DashboardOutlined />,
+  },
+  {
     title: 'common.apps',
     key: 'apps',
     icon: <HomeOutlined />,
