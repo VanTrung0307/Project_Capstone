@@ -8,13 +8,14 @@ export const References: React.FC = () => {
     <S.ReferencesWrapper>
       <S.Text>
         Made by{' '}
-        <a href="https://altence.com" target="_blank" rel="noreferrer">
-          Altence{' '}
+        <a href="https://github.com/VanTrung0307/Project_Capstone" target="_blank" rel="noreferrer">
+          Xavalor Adventure Team{' '}
         </a>
-        in 2022 &copy;. Based on{' '}
+        in 2023 &copy;. 
+        {/* Based on{' '}
         <a href="https://ant.design/" target="_blank" rel="noreferrer">
           Ant-design.
-        </a>
+        </a> */}
       </S.Text>
       <S.Icons>
         <a href="https://github.com/altence/lightence-admin" target="_blank" rel="noreferrer">
