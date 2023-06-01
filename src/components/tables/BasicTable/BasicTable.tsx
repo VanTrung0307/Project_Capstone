@@ -110,7 +110,7 @@ export const BasicTable: React.FC = () => {
     {
       title: t('common.age'),
       dataIndex: 'age',
-      sorter: (a: BasicTableRow, b: BasicTableRow) => a.age - b.age,
+      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.age - b.age,
       showSorterTooltip: false,
     },
     {
@@ -120,7 +120,7 @@ export const BasicTable: React.FC = () => {
     {
       title: t('common.tags'),
       key: 'tags',
-      dataIndex: 'tags',
+      dataIndex: 'status',
       render: (tags: Tag[]) => (
         <Row gutter={[10, 10]}>
           {tags.map((tag: Tag) => {
