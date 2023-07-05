@@ -1,22 +1,20 @@
 /* eslint-disable prettier/prettier */
+import ForgotPasswordPage from '@app/pages/ForgotPasswordPage';
+import LockPage from '@app/pages/LockPage';
+import LoginPage from '@app/pages/LoginPage';
+import NewPasswordPage from '@app/pages/NewPasswordPage';
+import SecurityCodePage from '@app/pages/SecurityCodePage';
+import SignUpPage from '@app/pages/SignUpPage';
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 // no lazy loading for auth pages to avoid flickering
 const AuthLayout = React.lazy(() => import('@app/components/layouts/AuthLayout/AuthLayout'));
-import LoginPage from '@app/pages/LoginPage';
-import SignUpPage from '@app/pages/SignUpPage';
-import ForgotPasswordPage from '@app/pages/ForgotPasswordPage';
-import SecurityCodePage from '@app/pages/SecurityCodePage';
-import NewPasswordPage from '@app/pages/NewPasswordPage';
-import LockPage from '@app/pages/LockPage';
 
 import MainLayout from '@app/components/layouts/main/MainLayout/MainLayout';
 import ProfileLayout from '@app/components/profile/ProfileLayout';
 import RequireAuth from '@app/components/router/RequireAuth';
 import { withLoading } from '@app/hocs/withLoading.hoc';
-import NftDashboardPage from '@app/pages/DashboardPages/NftDashboardPage';
-import MedicalDashboardPage from '@app/pages/DashboardPages/MedicalDashboardPage';
 import XavalorDashboardPage from '@app/pages/DashboardPages/XavalorDashboardPage';
 
 const NewsFeedPage = React.lazy(() => import('@app/pages/NewsFeedPage'));
@@ -65,7 +63,7 @@ const Logout = React.lazy(() => import('./Logout'));
 
 // New Page for Project
 // const Dashboard = React.lazy(() => import('@app/pages/DashboardPages/XavalorDashboardPage'));
-export const XAVALOR_DASHBOARD_PATH = '/xavalor-dashboard';
+export const XAVALOR_DASHBOARD_PATH = '/';
 const Dashboard = withLoading(XavalorDashboardPage);
 const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
@@ -76,8 +74,8 @@ const Store = React.lazy(() => import('@app/pages/StorePage'));
 export const NFT_DASHBOARD_PATH = '/';
 export const MEDICAL_DASHBOARD_PATH = '/medical-dashboard';
 
-const MedicalDashboard = withLoading(MedicalDashboardPage);
-const NftDashboard = withLoading(NftDashboardPage);
+// const MedicalDashboard = withLoading(MedicalDashboardPage);
+// const NftDashboard = withLoading(NftDashboardPage);
 const NewsFeed = withLoading(NewsFeedPage);
 const Kanban = withLoading(KanbanPage);
 const AdvancedForm = withLoading(AdvancedFormsPage);
@@ -143,10 +141,10 @@ export const AppRouter: React.FC = () => {
     <Suspense fallback={<div>Loading...</div>}>
       <BrowserRouter>
         <Routes>
-          <Route path={NFT_DASHBOARD_PATH} element={protectedLayout}>
-            <Route index element={<NftDashboard />} />
-            <Route path={MEDICAL_DASHBOARD_PATH} element={<MedicalDashboard />} />
-            <Route path={XAVALOR_DASHBOARD_PATH} element={<Dashboard />} />
+          <Route path={XAVALOR_DASHBOARD_PATH} element={protectedLayout}>
+            <Route index element={<Dashboard />} />
+            {/* <Route path={MEDICAL_DASHBOARD_PATH} element={<MedicalDashboard />} />
+            <Route path={XAVALOR_DASHBOARD_PATH} element={<Dashboard />} /> */}
             <Route path="apps">
               <Route path="feed" element={<NewsFeed />} />
               <Route path="kanban" element={<Kanban />} />

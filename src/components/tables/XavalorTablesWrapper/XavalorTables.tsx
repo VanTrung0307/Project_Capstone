@@ -1,9 +1,7 @@
 /* eslint-disable prettier/prettier */
+import { XavalorTable } from '@app/components/tables/XavalorTable/XavalorTable';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { TreeTable } from '../TreeTable/TreeTable';
-import { XavalorTable } from '@app/components/tables/XavalorTable/XavalorTable';
-import { EditableTable } from '../editableTable/EditableTable';
 import * as S from './XavalorTables.styles';
 
 export const XavalorTables: React.FC = () => {
