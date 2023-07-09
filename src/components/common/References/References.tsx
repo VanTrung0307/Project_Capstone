@@ -9,7 +9,7 @@ export const References: React.FC = () => {
       <S.Text>
         Made by{' '}
         <a href="https://github.com/VanTrung0307/Project_Capstone" target="_blank" rel="noreferrer">
-          Xavalor Adventure Team{' '}
+          FPT_HCM Adventure Team{' '}
         </a>
         in 2023 &copy;. 
         {/* Based on{' '}

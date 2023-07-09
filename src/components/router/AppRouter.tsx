@@ -17,7 +17,7 @@ import RequireAuth from '@app/components/router/RequireAuth';
 import { withLoading } from '@app/hocs/withLoading.hoc';
 import NftDashboardPage from '@app/pages/DashboardPages/NftDashboardPage';
 import MedicalDashboardPage from '@app/pages/DashboardPages/MedicalDashboardPage';
-import XavalorDashboardPage from '@app/pages/DashboardPages/XavalorDashboardPage';
+import FPTHCMDashboardPage from '@app/pages/DashboardPages/FPT_HCMDashboardPage';
 
 const NewsFeedPage = React.lazy(() => import('@app/pages/NewsFeedPage'));
 const KanbanPage = React.lazy(() => import('@app/pages/KanbanPage'));
@@ -64,13 +64,21 @@ const NotificationsUIPage = React.lazy(() => import('@app/pages/uiComponentsPage
 const Logout = React.lazy(() => import('./Logout'));
 
 // New Page for Project
-// const Dashboard = React.lazy(() => import('@app/pages/DashboardPages/XavalorDashboardPage'));
-export const XAVALOR_DASHBOARD_PATH = '/xavalor-dashboard';
-const Dashboard = withLoading(XavalorDashboardPage);
+// const Dashboard = React.lazy(() => import('@app/pages/DashboardPages/FPTHCMrDashboardPage'));
+export const FPTHCM_DASHBOARD_PATH = '/fpthcm-dashboard';
+const Dashboard = withLoading(FPTHCMDashboardPage);
 const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
 const Event = React.lazy(() => import('@app/pages/EventPage'));
+const School = React.lazy(() => import('@app/pages/SchoolPage'));
+const Task = React.lazy(() => import('@app/pages/TaskPage'));
+const Major = React.lazy(() => import('@app/pages/MajorPage'));
+const QuestionBank = React.lazy(() => import('@app/pages/QuestionBankPage'));
+const NPC = React.lazy(() => import('@app/pages/TaskPage'));
+const Gift = React.lazy(() => import('@app/pages/NPCPage'));
+const Item = React.lazy(() => import('@app/pages/ItemPage'));
+const Rank = React.lazy(() => import('@app/pages/RankPage'));
 const Store = React.lazy(() => import('@app/pages/StorePage'));
 
 export const NFT_DASHBOARD_PATH = '/';
@@ -146,7 +154,7 @@ export const AppRouter: React.FC = () => {
           <Route path={NFT_DASHBOARD_PATH} element={protectedLayout}>
             <Route index element={<NftDashboard />} />
             <Route path={MEDICAL_DASHBOARD_PATH} element={<MedicalDashboard />} />
-            <Route path={XAVALOR_DASHBOARD_PATH} element={<Dashboard />} />
+            <Route path={FPTHCM_DASHBOARD_PATH} element={<Dashboard />} />
             <Route path="apps">
               <Route path="feed" element={<NewsFeed />} />
               <Route path="kanban" element={<Kanban />} />
@@ -159,6 +167,14 @@ export const AppRouter: React.FC = () => {
             <Route path="players" element={<Player />} />
             <Route path="rooms-location" element={<RoomVsLocation />} />
             <Route path="events" element={<Event />} />
+            <Route path="schools" element={<School />} />
+            <Route path="tasks" element={<Task />} />
+            <Route path="majors" element={<Major />} />
+            <Route path="questionbanks" element={<QuestionBank />} />
+            <Route path="npcs" element={<NPC />} />
+            <Route path="gifts" element={<Gift />} />
+            <Route path="items" element={<Item />} />
+            <Route path="ranks" element={<Rank />} />
             <Route path="stores" element={<Store />} />
             <Route path="charts" element={<Charts />} />
             {/* <Route path="maps">
