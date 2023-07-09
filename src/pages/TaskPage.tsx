@@ -5,16 +5,16 @@ import React, { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 
 
-const PlayerPage: React.FC = () => {
+const TaskPage: React.FC = () => {
   const { t } = useTranslation();
   return (
     <>
       <Suspense fallback={<div>Loading...</div>}>
-        <PageTitle>Player</PageTitle>
+        <PageTitle>Task</PageTitle>
         <FPTHCMTables />
       </Suspense>
     </>
   );
 };
 
-export default PlayerPage;
+export default TaskPage;

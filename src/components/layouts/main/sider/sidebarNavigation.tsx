@@ -1,16 +1,26 @@
 /* eslint-disable prettier/prettier */
 import {
+  AppstoreOutlined,
   BlockOutlined,
   CalendarOutlined,
+  ClockCircleOutlined,
   DashboardOutlined,
+  EnvironmentOutlined,
+  FileDoneOutlined,
   FormOutlined,
+  GiftOutlined,
   HomeOutlined,
   IdcardOutlined,
+  InboxOutlined,
   LayoutOutlined,
   LineChartOutlined,
+  QuestionCircleOutlined,
+  RobotOutlined,
+  ScheduleOutlined,
   ShopOutlined,
   TableOutlined,
-  UserOutlined
+  TrophyOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { ReactComponent as NftIcon } from '@app/assets/icons/nft-icon.svg';
 import React from 'react';
@@ -39,8 +49,8 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
   },
   {
     title: 'Dashboard',
-    key: 'xavalor-dashboard',
-    url: '/xavalor-dashboard',
+    key: 'fpthcm-dashboard',
+    url: '/fpthcm-dashboard',
     icon: <DashboardOutlined />,
   },
   {
@@ -128,16 +138,64 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <UserOutlined />,
   },
   {
+    title: 'Schools',
+    key: 'schools',
+    url: '/schools',
+    icon: <ClockCircleOutlined />,
+  },
+  {
     title: 'Rooms And Locations',
     key: 'roomLocation',
     url: '/rooms-location',
-    icon: <HomeOutlined />,
+    icon: <ScheduleOutlined />,
   },
   {
     title: 'Events',
     key: 'event',
     url: '/events',
     icon: <CalendarOutlined />,
+  },
+  {
+    title: 'Tasks',
+    key: 'task',
+    url: '/tasks',
+    icon: <FileDoneOutlined />,
+  },
+  {
+    title: 'Majors',
+    key: 'major',
+    url: '/majors',
+    icon: <AppstoreOutlined />,
+  },
+  {
+    title: 'QuestionBanks',
+    key: 'questionbanks',
+    url: '/questionbanks',
+    icon: <QuestionCircleOutlined />,
+  },
+  {
+    title: 'NPCs',
+    key: 'npc',
+    url: '/npcs',
+    icon: <RobotOutlined />,
+  },
+  {
+    title: 'Gifts',
+    key: 'gift',
+    url: '/gifts',
+    icon: <GiftOutlined />,
+  },
+  {
+    title: 'Items',
+    key: 'item',
+    url: '/items',
+    icon: <InboxOutlined />,
+  },
+  {
+    title: 'Ranks',
+    key: 'rank',
+    url: '/ranks',
+    icon: <TrophyOutlined />,
   },
   {
     title: 'Stores',

@@ -1,4 +1,4 @@
-# Xavalor Adventure
+# FPT_HCM Adventure
 React-powered **100% FREE** Admin Dashboard Template for building rich user interfaces significantly faster. For developers of all levels.
 <!-- <p align="center">
     <img src="./public/Lightence-screenshot.png" alt="Lightence Admin Template">
