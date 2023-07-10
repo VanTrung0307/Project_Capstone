@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { PageTitle } from '@app/components/common/PageTitle/PageTitle';
-import { FPTHCMTables } from '@app/components/tables/FPTHCMTablesWrapper/FPTHCMTables';
+import { TaskTables } from '@app/components/tables/FPTHCMTablesWrapper/TaskTables';
 import React, { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,7 +11,7 @@ const TaskPage: React.FC = () => {
     <>
       <Suspense fallback={<div>Loading...</div>}>
         <PageTitle>Task</PageTitle>
-        <FPTHCMTables />
+        <TaskTables />
       </Suspense>
     </>
   );

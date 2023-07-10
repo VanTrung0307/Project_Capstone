@@ -12,6 +12,7 @@ import * as S from './DashboardPage.styles';
 import { FPTHCMScreeningsCard } from '@app/components/medical-dashboard/fpthcmScreeningsCard/FPTHCMScreeningsCard/FPTHCMScreeningsCard';
 import { PlayerCard } from '@app/components/medical-dashboard/playerCard/PlayerCard';
 import { TaskCard } from '@app/components/medical-dashboard/TaskCard/TaskCard';
+import RankPage from '../RankPage';
 
 const FPT_HCMDashboardPage: React.FC = () => {
   const { isTablet, isDesktop } = useResponsive();
@@ -29,7 +30,7 @@ const FPT_HCMDashboardPage: React.FC = () => {
           </Col>
 
           <Col id="latest-screenings" span={24}>
-            <FPTHCMScreeningsCard />
+            <RankPage />
           </Col>
 
           <Col id="activity" xl={12}>

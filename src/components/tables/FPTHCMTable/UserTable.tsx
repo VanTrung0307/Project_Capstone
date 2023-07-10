@@ -6,7 +6,7 @@ import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/table.api';
+import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Usertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
@@ -22,7 +22,7 @@ const initialPagination: Pagination = {
   pageSize: 5,
 };
 
-export const FPTHCMTable: React.FC = () => {
+export const UserTable: React.FC = () => {
   const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
@@ -176,7 +176,9 @@ export const FPTHCMTable: React.FC = () => {
         name: values.name,
         email: values.email,
         phone: values.phone,
+        username: values.username,
         gender: values.gender,
+        schoolname: values.schoolname,
         country: values.country,
       };
 
@@ -193,7 +195,7 @@ export const FPTHCMTable: React.FC = () => {
 
   const columns: ColumnsType<BasicTableRow> = [
     {
-      title: t('common.name'),
+      title: t('Họ và Tên'),
       dataIndex: 'name',
       render: (text: string, record: BasicTableRow) => {
         const editable = isEditing(record);
@@ -264,9 +266,59 @@ export const FPTHCMTable: React.FC = () => {
       },
       // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
       showSorterTooltip: false,
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Phone'),
+      title: t('Tên đăng nhập'),
+      dataIndex: 'username',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'username'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a username' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
+      showSorterTooltip: false,
+    },
+    {
+      title: t('Số điện thoại'),
       dataIndex: 'phone',
       render: (text: string, record: BasicTableRow) => {
         const editable = isEditing(record);
@@ -287,9 +339,34 @@ export const FPTHCMTable: React.FC = () => {
           <span>{text}</span>
         );
       },
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Gender'),
+      title: t('Giới tính'),
       dataIndex: 'gender',
       render: (text: string, record: BasicTableRow) => {
         const editable = isEditing(record);
@@ -312,7 +389,7 @@ export const FPTHCMTable: React.FC = () => {
       },
     },
     {
-      title: t('Status'),
+      title: t('Trạng thái'),
       key: 'tags',
       dataIndex: 'status',
       render: (statuses: Tag[]) => (
@@ -352,7 +429,7 @@ export const FPTHCMTable: React.FC = () => {
       },
     },
     {
-      title: t('tables.actions'),
+      title: t('Chức năng'),
       dataIndex: 'actions',
       width: '15%',
       render: (text: string, record: BasicTableRow) => {

@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import {
+  AimOutlined,
   AppstoreOutlined,
   BlockOutlined,
   CalendarOutlined,
@@ -23,6 +24,8 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import React from 'react';
+import { IoSchoolOutline, IoLocationOutline } from "react-icons/io5";
+import { MdOutlineCategory } from "react-icons/md";
 
 export interface SidebarNavigationItem {
   title: string;
@@ -131,22 +134,28 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <IdcardOutlined />,
   },
   {
+    title: 'Users',
+    key: 'users',
+    url: '/users',
+    icon: <UserOutlined />,
+  },
+  {
     title: 'Players',
     key: 'players',
     url: '/players',
-    icon: <UserOutlined />,
+    icon: <AimOutlined />,
   },
   {
     title: 'Schools',
     key: 'schools',
     url: '/schools',
-    icon: <ClockCircleOutlined />,
+    icon: <IoSchoolOutline />,
   },
   {
     title: 'Rooms And Locations',
     key: 'roomLocation',
     url: '/rooms-location',
-    icon: <ScheduleOutlined />,
+    icon: <IoLocationOutline />,
   },
   {
     title: 'Events',
@@ -164,7 +173,7 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     title: 'Majors',
     key: 'major',
     url: '/majors',
-    icon: <AppstoreOutlined />,
+    icon: <MdOutlineCategory />,
   },
   {
     title: 'QuestionBanks',

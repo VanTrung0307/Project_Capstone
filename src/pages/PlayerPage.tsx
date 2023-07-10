@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { PageTitle } from '@app/components/common/PageTitle/PageTitle';
-import { FPTHCMTables } from '@app/components/tables/FPTHCMTablesWrapper/FPTHCMTables';
+import { PlayerTables } from '@app/components/tables/FPTHCMTablesWrapper/PlayerTables';
 import React, { Suspense } from 'react';
 
 
@@ -10,7 +10,7 @@ const PlayerPage: React.FC = () => {
     <>
       <Suspense fallback={<div>Loading...</div>}>
         <PageTitle>Player</PageTitle>
-        <FPTHCMTables />
+        <PlayerTables />
       </Suspense>
     </>
   );
