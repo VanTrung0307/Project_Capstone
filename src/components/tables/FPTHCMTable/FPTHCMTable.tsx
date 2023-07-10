@@ -3,7 +3,8 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { useMounted } from '@app/hooks/useMounted';
 import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Popconfirm, Row, Space, TablePaginationConfig } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { Option } from '@app/components/common/selects/Select/Select';
 import { ColumnsType } from 'antd/es/table';
 import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/table.api';
 import { Table } from 'components/common/Table/Table';
@@ -12,6 +13,9 @@ import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
+import * as S from 'components/forms/StepForm/StepForm.styles';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -96,7 +100,7 @@ export const FPTHCMTable: React.FC = () => {
 
   const buttonStyles: CSSProperties = {
     height: '30px',
-    width: '10px',
+    width: '60px', // Adjust the width to accommodate the text
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
@@ -105,12 +109,11 @@ export const FPTHCMTable: React.FC = () => {
     fontWeight: '400',
     color: '#fff',
     border: 'none',
-    padding: '4px 50px 0px 10px',
+    padding: '4px 10px', // Adjust the padding to position the text
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-    marginLeft: '50px',
-  };
+  };  
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -163,6 +166,31 @@ export const FPTHCMTable: React.FC = () => {
     setData(updatedData);
   };
 
+  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+
+  const handleModalOk = () => {
+    form.validateFields().then((values) => {
+      // Create a new data object from the form values
+      const newData = {
+        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        gender: values.gender,
+        country: values.country,
+      };
+
+      // Update the tableData state with the new data
+      setTableData((prevData) => ({
+        ...prevData,
+        data: [...prevData.data, newData],
+      }));
+
+      form.resetFields(); // Reset the form fields
+      setIsBasicModalOpen(false); // Close the modal
+    });
+  };
+
   const columns: ColumnsType<BasicTableRow> = [
     {
       title: t('common.name'),
@@ -196,16 +224,16 @@ export const FPTHCMTable: React.FC = () => {
 
         return (
           <div style={filterDropdownStyles} className="input-box">
-            <input
+            <Input
               type="text"
               placeholder="Search here..."
               value={selectedKeys[0]}
               onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
               style={inputStyles}
             />
-            <button onClick={handleSearch} className="button" style={buttonStyles}>
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
               Filter
-            </button>
+            </Button>
           </div>
         );
       },
@@ -358,7 +386,54 @@ export const FPTHCMTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
+      <Button
+        type="primary"
+        onClick={() => setIsBasicModalOpen(true)}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
+      >
+        Add Data
+      </Button>
+      <Modal
+        title={'Add Player'}
+        open={isBasicModalOpen}
+        onOk={handleModalOk}
+        onCancel={() => setIsBasicModalOpen(false)}
+      >
+        <S.FormContent>
+          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
+            <Input />
+          </BaseForm.Item>
+          <BaseForm.Item
+            name="email"
+            label={'Email'}
+            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+          >
+            <Input />
+          </BaseForm.Item>
+          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
+            <Input />
+          </BaseForm.Item>
+          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
+            <Input />
+          </BaseForm.Item>
+          <BaseForm.Item
+            name="country"
+            label={'Status'}
+            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
+          >
+            <Select placeholder={'Status'}>
+              <Option value="active">{'Đang hoạt động'}</Option>
+              <Option value="inactive">{'Không hoạt động'}</Option>
+            </Select>
+          </BaseForm.Item>
+        </S.FormContent>
+      </Modal>
       <Table
+        components={{
+          body: {
+            cell: EditableCell,
+          },
+        }}
         columns={columns}
         dataSource={tableData.data}
         pagination={tableData.pagination}

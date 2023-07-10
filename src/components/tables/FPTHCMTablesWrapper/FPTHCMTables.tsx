@@ -1,9 +1,7 @@
 /* eslint-disable prettier/prettier */
+import { FPTHCMTable } from '@app/components/tables/FPTHCMTable/FPTHCMTable';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { TreeTable } from '../TreeTable/TreeTable';
-import { FPTHCMTable } from '@app/components/tables/FPTHCMTable/FPTHCMTable';
-import { EditableTable } from '../editableTable/EditableTable';
 import * as S from './FPTHCMTables.styles';
 
 export const FPTHCMTables: React.FC = () => {
