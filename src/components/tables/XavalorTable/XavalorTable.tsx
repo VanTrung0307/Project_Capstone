@@ -1,20 +1,19 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
-import { useMounted } from '@app/hooks/useMounted';
-import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
+import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/table.api';
+import { BasicTableRow, Pagination, getBasicTableData } from 'api/table.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
+import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
-import * as S from 'components/forms/StepForm/StepForm.styles';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -113,7 +112,7 @@ export const XavalorTable: React.FC = () => {
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-  };  
+  };
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -191,31 +190,46 @@ export const XavalorTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+  const [players, setPlayers] = useState<Player[]>([]);
+  interface PlayerTableRow extends Player, BasicTableRow {}
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const players = await getPlayers(); // Call the getPlayers function from the Player API component
+      } catch (error) {
+        console.error('Error fetching players:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const playerColumns: ColumnsType<PlayerTableRow> = [
     {
       title: t('common.name'),
-      dataIndex: 'name',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'userId',
+      render: (text: string, record: PlayerTableRow) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof PlayerTableRow = 'userId'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.userId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              value={text}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: PlayerTableRow) =>
+        record.userId.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -242,45 +256,44 @@ export const XavalorTable: React.FC = () => {
     },
     {
       title: t('Email'),
-      dataIndex: 'email',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'totalPoint',
+      render: (text: number, record: PlayerTableRow) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'email'; // Define dataIndex here
+        const dataIndex: keyof PlayerTableRow = 'totalPoint'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.totalPoint}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a email' }]}
+            rules={[{ required: true, message: 'Please enter an email' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
       showSorterTooltip: false,
     },
     {
       title: t('Phone'),
-      dataIndex: 'phone',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'totalTime',
+      render: (text: number, record: PlayerTableRow) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'phone'; // Define dataIndex here
+        const dataIndex: keyof PlayerTableRow = 'totalTime'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.totalTime}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a phone' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
             />
           </Form.Item>
         ) : (
@@ -290,20 +303,20 @@ export const XavalorTable: React.FC = () => {
     },
     {
       title: t('Gender'),
-      dataIndex: 'gender',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'id',
+      render: (text: string, record: PlayerTableRow) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'gender'; // Define dataIndex here
+        const dataIndex: keyof PlayerTableRow = 'id'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.id}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a gender' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
             />
           </Form.Item>
         ) : (
@@ -311,57 +324,57 @@ export const XavalorTable: React.FC = () => {
         );
       },
     },
-    {
-      title: t('Status'),
-      key: 'tags',
-      dataIndex: 'status',
-      render: (statuses: Tag[]) => (
-        <Row gutter={[10, 10]}>
-          {statuses.map((status: Tag) => {
-            return (
-              <Col key={status.value}>
-                <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-              </Col>
-            );
-          })}
-        </Row>
-      ),
-      filterMode: 'tree',
-      filters: [
-        {
-          text: t('Status'),
-          value: 'status',
-          children: [
-            {
-              text: 'Đang hoạt động',
-              value: 'Đang hoạt động',
-            },
-            {
-              text: 'Không hoạt động',
-              value: 'Không hoạt động',
-            },
-          ],
-        },
-      ],
-      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-        if (record.status) {
-          const statusValues = record.status.map((status) => status.value);
-          return statusValues.includes(value.toString());
-        }
-        return false;
-      },
-    },
+    // {
+    //   title: t('Status'),
+    //   key: 'tags',
+    //   dataIndex: 'status',
+    //   render: (statuses: Tag[]) => (
+    //     <Row gutter={[10, 10]}>
+    //       {statuses.map((status: Tag) => {
+    //         return (
+    //           <Col key={status.value}>
+    //             <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
+    //           </Col>
+    //         );
+    //       })}
+    //     </Row>
+    //   ),
+    //   filterMode: 'tree',
+    //   filters: [
+    //     {
+    //       text: t('Status'),
+    //       value: 'status',
+    //       children: [
+    //         {
+    //           text: 'Đang hoạt động',
+    //           value: 'Đang hoạt động',
+    //         },
+    //         {
+    //           text: 'Không hoạt động',
+    //           value: 'Không hoạt động',
+    //         },
+    //       ],
+    //     },
+    //   ],
+    //   onFilter: (value: string | number | boolean, record: Player) => {
+    //     if (record.status) {
+    //       const statusValues = record.status.map((status) => status.value);
+    //       return statusValues.includes(value.toString());
+    //     }
+    //     return false;
+    //   },
+    // },
     {
       title: t('tables.actions'),
       dataIndex: 'actions',
       width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      render: (text: string, record: PlayerTableRow) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.userId)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -373,7 +386,7 @@ export const XavalorTable: React.FC = () => {
                 <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
                   {t('common.edit')}
                 </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
+                <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.userId))}>
                   {t('tables.delete')}
                 </Button>
               </>
@@ -434,8 +447,8 @@ export const XavalorTable: React.FC = () => {
             cell: EditableCell,
           },
         }}
-        columns={columns}
-        dataSource={tableData.data}
+        columns={playerColumns}
+        dataSource={players}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
