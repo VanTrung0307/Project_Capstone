@@ -1,12 +1,9 @@
 /* eslint-disable prettier/prettier */
 import {
   AimOutlined,
-  AppstoreOutlined,
   BlockOutlined,
   CalendarOutlined,
-  ClockCircleOutlined,
   DashboardOutlined,
-  EnvironmentOutlined,
   FileDoneOutlined,
   FormOutlined,
   GiftOutlined,
@@ -17,15 +14,14 @@ import {
   LineChartOutlined,
   QuestionCircleOutlined,
   RobotOutlined,
-  ScheduleOutlined,
   ShopOutlined,
   TableOutlined,
   TrophyOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import React from 'react';
-import { IoSchoolOutline, IoLocationOutline } from "react-icons/io5";
-import { MdOutlineCategory } from "react-icons/md";
+import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';
+import { MdOutlineCategory } from 'react-icons/md';
 
 export interface SidebarNavigationItem {
   title: string;

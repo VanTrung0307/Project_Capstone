@@ -1,20 +1,18 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
-import { useMounted } from '@app/hooks/useMounted';
-import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
+import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Schooltable.api';
+import { BasicTableRow, Pagination, getBasicTableData } from 'api/Schooltable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
+import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
-import * as S from 'components/forms/StepForm/StepForm.styles';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {

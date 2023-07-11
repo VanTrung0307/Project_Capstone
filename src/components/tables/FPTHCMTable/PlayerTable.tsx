@@ -1,20 +1,20 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
-import { useMounted } from '@app/hooks/useMounted';
-import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { User } from '@app/api/FPT_3DMAP_API/User';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
+import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Playertable.api';
+import { Pagination, PlayerTableRow, getBasicTableData } from 'api/Playertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
+import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
-import * as S from 'components/forms/StepForm/StepForm.styles';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -23,7 +23,7 @@ const initialPagination: Pagination = {
 };
 
 export const PlayerTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
+  const [tableData, setTableData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
@@ -54,7 +54,7 @@ export const PlayerTable: React.FC = () => {
   const handleDeleteRow = (rowId: number) => {
     setTableData({
       ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
+      data: tableData.data.filter((item) => Number(item.userId) !== rowId),
       pagination: {
         ...tableData.pagination,
         total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
@@ -113,13 +113,13 @@ export const PlayerTable: React.FC = () => {
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-  };  
+  };
 
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<Player[]>([]);
+  const isEditing = (record: Player) => record.userId === editingKey;
 
   const [form] = Form.useForm();
 
@@ -128,7 +128,7 @@ export const PlayerTable: React.FC = () => {
       await form.validateFields([key]);
       const row = form.getFieldsValue([key]);
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => key === item.id);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
@@ -151,14 +151,14 @@ export const PlayerTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<Player> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Player) => {
     const updatedData = data.map((record) => {
-      if (record.key === key) {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -172,11 +172,10 @@ export const PlayerTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        name: values.name,
-        nickname: values.nickname,
-        totalpoint: values.totalpoint,
-        totaltime: values.totaltime,
+        userId: values.userId,
+        totalPoint: 0,
+        totalTime: 0,
+        id: values.id,
       };
 
       // Update the tableData state with the new data
@@ -190,31 +189,46 @@ export const PlayerTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const users = await getPlayers();
+        setData(users);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const columns: ColumnsType<Player> = [
     {
       title: t('Tên học sinh đã tham gia'),
-      dataIndex: 'name',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'userId',
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof Player = 'userId'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.userId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Player) =>
+        record.userId.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -240,53 +254,53 @@ export const PlayerTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-        title: t('Biệt danh'),
-        dataIndex: 'nickname',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'nickname'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a nickname' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
+      title: t('Biệt danh'),
+      dataIndex: 'userId',
+      render: (text: string, record: Player) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Player = 'userId'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.userId}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a nickname' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
+    },
     {
-        title: t('Tổng điểm thưởng'),
-        dataIndex: 'totalpoint',
-        render: (text: number) => {
-            <span>{text}</span>
-        },
+      title: t('Tổng điểm thưởng'),
+      dataIndex: 'totalpoint',
+      render: (text: number) => {
+        <span>{text}</span>;
       },
+    },
     {
-        title: t('Tổng thời gian hoàn thành'),
-        dataIndex: 'totaltime',
-        render: (text: number) => {
-              <span>{text}</span>
-        },
+      title: t('Tổng thời gian hoàn thành'),
+      dataIndex: 'totaltime',
+      render: (text: number) => {
+        <span>{text}</span>;
       },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.userId)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -295,10 +309,14 @@ export const PlayerTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey !== ''}
+                  onClick={() => edit({ key: record.userId.toString() })}
+                >
                   {t('common.edit')}
                 </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
+                <Button type="default" danger onClick={() => handleDeleteRow(Number(record.userId))}>
                   {t('tables.delete')}
                 </Button>
               </>
