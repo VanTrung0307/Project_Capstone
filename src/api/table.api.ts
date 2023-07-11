@@ -235,7 +235,8 @@ export const getBasicTableData = (pagination: Pagination): Promise<BasicTableDat
         pagination: { ...pagination, total: 20 },
       });
     }, 1000);
-  });
+  }
+  );
 };
 
 export const getTreeTableData = (pagination: Pagination): Promise<TreeTableData> => {

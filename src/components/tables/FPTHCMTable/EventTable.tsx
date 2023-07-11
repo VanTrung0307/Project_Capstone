@@ -1,19 +1,20 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
+import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
+import { defineColorByPriority } from '@app/utils/utils';
+import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { Option } from '@app/components/common/selects/Select/Select';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, getBasicTableData } from 'api/table.api';
+import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Eventtable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
+import * as S from 'components/forms/StepForm/StepForm.styles';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -21,7 +22,7 @@ const initialPagination: Pagination = {
   pageSize: 5,
 };
 
-export const FPTHCMTable: React.FC = () => {
+export const EventTable: React.FC = () => {
   const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
@@ -112,7 +113,7 @@ export const FPTHCMTable: React.FC = () => {
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-  };
+  };  
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -173,10 +174,9 @@ export const FPTHCMTable: React.FC = () => {
       const newData = {
         key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
         name: values.name,
-        email: values.email,
-        phone: values.phone,
-        gender: values.gender,
-        country: values.country,
+        starttime: values.starttime,
+        endtime: values.endtime,
+        status: values.status,
       };
 
       // Update the tableData state with the new data
@@ -190,46 +190,31 @@ export const FPTHCMTable: React.FC = () => {
     });
   };
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  interface PlayerTableRow extends Player, BasicTableRow {}
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const players = await getPlayers(); // Call the getPlayers function from the Player API component
-      } catch (error) {
-        console.error('Error fetching players:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const playerColumns: ColumnsType<PlayerTableRow> = [
+  const columns: ColumnsType<BasicTableRow> = [
     {
-      title: t('common.name'),
-      dataIndex: 'userId',
-      render: (text: string, record: PlayerTableRow) => {
+      title: t('Tên sự kiện'),
+      dataIndex: 'name',
+      render: (text: string, record: BasicTableRow) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'userId'; // Define dataIndex here
+        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.userId}
+            key={record.key}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
-              value={text}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: PlayerTableRow) =>
-        record.userId.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -255,126 +240,150 @@ export const FPTHCMTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Email'),
-      dataIndex: 'totalPoint',
-      render: (text: number, record: PlayerTableRow) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'totalPoint'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.totalPoint}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter an email' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+        title: t('Thời gian bắt đầu'),
+        dataIndex: 'starttime',
+        render: (text: number, record: BasicTableRow) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof BasicTableRow = 'starttime'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.key}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a Start Time' }]}
+            >
+              <Input
+                value={record[dataIndex]}
+                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
+        },
+        filterMode: 'tree',
+        filters: [
+          {
+            text: t('Status'),
+            value: 'status',
+            children: [
+              {
+                text: 'Đang hoạt động',
+                value: 'Đang hoạt động',
+              },
+              {
+                text: 'Không hoạt động',
+                value: 'Không hoạt động',
+              },
+            ],
+          },
+        ],
+        onFilter: (value: string | number | boolean, record: BasicTableRow) => {
+          if (record.status) {
+            const statusValues = record.status.map((status) => status.value);
+            return statusValues.includes(value.toString());
+          }
+          return false;
+        },
       },
-      showSorterTooltip: false,
-    },
-    {
-      title: t('Phone'),
-      dataIndex: 'totalTime',
-      render: (text: number, record: PlayerTableRow) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'totalTime'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.totalTime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a phone' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      {
+        title: t('Thời gian kết thúc'),
+        dataIndex: 'endtime',
+        render: (text: number, record: BasicTableRow) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof BasicTableRow = 'endtime'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.key}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a End Time' }]}
+            >
+              <Input
+                value={record[dataIndex]}
+                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
+        },
+        filterMode: 'tree',
+        filters: [
+          {
+            text: t('Status'),
+            value: 'status',
+            children: [
+              {
+                text: 'Đang hoạt động',
+                value: 'Đang hoạt động',
+              },
+              {
+                text: 'Không hoạt động',
+                value: 'Không hoạt động',
+              },
+            ],
+          },
+        ],
+        onFilter: (value: string | number | boolean, record: BasicTableRow) => {
+          if (record.status) {
+            const statusValues = record.status.map((status) => status.value);
+            return statusValues.includes(value.toString());
+          }
+          return false;
+        },
       },
-    },
-    {
-      title: t('Gender'),
-      dataIndex: 'id',
-      render: (text: string, record: PlayerTableRow) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'id'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.id}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a gender' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      {
+        title: t('Trạng thái'),
+        key: 'tags',
+        dataIndex: 'status',
+        render: (statuses: Tag[]) => (
+          <Row gutter={[10, 10]}>
+            {statuses.map((status: Tag) => {
+              return (
+                <Col key={status.value}>
+                  <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
+                </Col>
+              );
+            })}
+          </Row>
+        ),
+        filterMode: 'tree',
+        filters: [
+          {
+            text: t('Status'),
+            value: 'status',
+            children: [
+              {
+                text: 'Đang hoạt động',
+                value: 'Đang hoạt động',
+              },
+              {
+                text: 'Không hoạt động',
+                value: 'Không hoạt động',
+              },
+            ],
+          },
+        ],
+        onFilter: (value: string | number | boolean, record: BasicTableRow) => {
+          if (record.status) {
+            const statusValues = record.status.map((status) => status.value);
+            return statusValues.includes(value.toString());
+          }
+          return false;
+        },
       },
-    },
-    // {
-    //   title: t('Status'),
-    //   key: 'tags',
-    //   dataIndex: 'status',
-    //   render: (statuses: Tag[]) => (
-    //     <Row gutter={[10, 10]}>
-    //       {statuses.map((status: Tag) => {
-    //         return (
-    //           <Col key={status.value}>
-    //             <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-    //           </Col>
-    //         );
-    //       })}
-    //     </Row>
-    //   ),
-    //   filterMode: 'tree',
-    //   filters: [
-    //     {
-    //       text: t('Status'),
-    //       value: 'status',
-    //       children: [
-    //         {
-    //           text: 'Đang hoạt động',
-    //           value: 'Đang hoạt động',
-    //         },
-    //         {
-    //           text: 'Không hoạt động',
-    //           value: 'Không hoạt động',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   onFilter: (value: string | number | boolean, record: Player) => {
-    //     if (record.status) {
-    //       const statusValues = record.status.map((status) => status.value);
-    //       return statusValues.includes(value.toString());
-    //     }
-    //     return false;
-    //   },
-    // },
     {
-      title: t('tables.actions'),
+      title: t('Chức năng'),
       dataIndex: 'actions',
       width: '15%',
-      render: (text: string, record: PlayerTableRow) => {
+      render: (text: string, record: BasicTableRow) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.userId)}>
+                <Button type="primary" onClick={() => save(record.key)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -386,7 +395,7 @@ export const FPTHCMTable: React.FC = () => {
                 <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
                   {t('common.edit')}
                 </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.userId))}>
+                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
                   {t('tables.delete')}
                 </Button>
               </>
@@ -447,8 +456,8 @@ export const FPTHCMTable: React.FC = () => {
             cell: EditableCell,
           },
         }}
-        columns={playerColumns}
-        dataSource={players}
+        columns={columns}
+        dataSource={tableData.data}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
