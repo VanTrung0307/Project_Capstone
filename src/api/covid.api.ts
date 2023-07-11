@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+
+import axios from "@app/utils/axios";
 
 interface Data {
   [key: string]: number;

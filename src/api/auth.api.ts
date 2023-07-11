@@ -2,6 +2,8 @@
 import { httpApi } from '@app/api/http.api';
 import './mocks/auth.api.mock';
 import { UserModel } from '@app/domain/UserModel';
+import { AxiosResponse } from 'axios';
+
 
 export interface AuthData {
   email: string;
@@ -38,16 +40,16 @@ export interface LoginResponse {
 }
 
 export const login = (loginPayload: LoginRequest): Promise<LoginResponse> =>
-  httpApi.post<LoginResponse>('login', { ...loginPayload }).then(({ data }) => data);
+  httpApi.post<LoginResponse>('login', { ...loginPayload }).then((response: AxiosResponse<LoginResponse>) => response.data);
 
 export const signUp = (signUpData: SignUpRequest): Promise<undefined> =>
-  httpApi.post<undefined>('signUp', { ...signUpData }).then(({ data }) => data);
+  httpApi.post<undefined>('signUp', { ...signUpData }).then((response: AxiosResponse<LoginResponse>) => response.data);
 
 export const resetPassword = (resetPasswordPayload: ResetPasswordRequest): Promise<undefined> =>
-  httpApi.post<undefined>('forgotPassword', { ...resetPasswordPayload }).then(({ data }) => data);
+  httpApi.post<undefined>('forgotPassword', { ...resetPasswordPayload }).then((response: AxiosResponse<LoginResponse>) => response.data);
 
 export const verifySecurityCode = (securityCodePayload: SecurityCodePayload): Promise<undefined> =>
-  httpApi.post<undefined>('verifySecurityCode', { ...securityCodePayload }).then(({ data }) => data);
+  httpApi.post<undefined>('verifySecurityCode', { ...securityCodePayload }).then((response: AxiosResponse<LoginResponse>) => response.data);
 
 export const setNewPassword = (newPasswordData: NewPasswordData): Promise<undefined> =>
-  httpApi.post<undefined>('setNewPassword', { ...newPasswordData }).then(({ data }) => data);
+  httpApi.post<undefined>('setNewPassword', { ...newPasswordData }).then((response: AxiosResponse<LoginResponse>) => response.data);
