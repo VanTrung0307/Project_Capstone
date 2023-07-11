@@ -1,11 +1,9 @@
 /* eslint-disable prettier/prettier */
-import React, { Suspense } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Tables } from '@app/components/tables/Tables/Tables';
 import { PageTitle } from '@app/components/common/PageTitle/PageTitle';
+import { Tables } from '@app/components/tables/Tables/Tables';
+import React, { Suspense } from 'react';
 
 const PlayerProfliePage: React.FC = () => {
-  const { t } = useTranslation();
   return (
     <>
       <Suspense fallback={<div>Loading...</div>}>

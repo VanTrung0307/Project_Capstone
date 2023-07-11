@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { User, getUsers } from '@app/api/FPT_3DMAP_API/User';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Usertable.api';
+import { Pagination, getBasicTableData } from 'api/Usertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -22,7 +22,7 @@ const initialPagination: Pagination = {
 };
 
 export const UserTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
+  const [tableData, setTableData] = useState<{ data: User[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
@@ -39,8 +39,8 @@ export const UserTable: React.FC = () => {
         }
       });
     },
-    [isMounted],
-  );
+    [isMounted]
+  );    
 
   useEffect(() => {
     fetch(initialPagination);
@@ -53,7 +53,7 @@ export const UserTable: React.FC = () => {
   const handleDeleteRow = (rowId: number) => {
     setTableData({
       ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
+      data: tableData.data.filter((item) => Number(item.id) !== rowId),
       pagination: {
         ...tableData.pagination,
         total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
@@ -117,8 +117,8 @@ export const UserTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<User[]>([]);
+  const isEditing = (record: User) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -127,7 +127,7 @@ export const UserTable: React.FC = () => {
       await form.validateFields([key]);
       const row = form.getFieldsValue([key]);
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => key === item.id);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
@@ -150,14 +150,14 @@ export const UserTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<User> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof User) => {
     const updatedData = data.map((record) => {
-      if (record.key === key) {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -170,68 +170,63 @@ export const UserTable: React.FC = () => {
   const handleModalOk = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
-      const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        name: values.name,
+      const newData: User = {
+        id: Date.now().toString(), // Generate a unique key for the new data
+        schoolId: '', // Add appropriate values for these properties
+        roleId: '',
         email: values.email,
-        phone: values.phone,
-        username: values.username,
+        password: values.password,
+        phoneNumber: values.phoneNumber,
         gender: values.gender,
-        schoolname: values.schoolname,
-        country: values.country,
+        status: values.status,
       };
-
       // Update the tableData state with the new data
       setTableData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
-
+  
       form.resetFields(); // Reset the form fields
       setIsBasicModalOpen(false); // Close the modal
     });
   };
-
-  const [players, setPlayers] = useState<Player[]>([]);
-  interface PlayerTableRow extends Player, BasicTableRow {}
+  
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        const players = await getPlayers(); // Call the getPlayers function from the Player API component
+        const users = await getUsers();
+        setData(users);
       } catch (error) {
-        console.error('Error fetching players:', error);
+        console.error('Error fetching users:', error);
       }
     };
 
-    fetchData();
+    fetchUserData();
   }, []);
 
-  const playerColumns: ColumnsType<PlayerTableRow> = [
+  const userColumns: ColumnsType<User> = [
     {
       title: t('Họ và Tên'),
-      dataIndex: 'name',
-      render: (text: string, record: PlayerTableRow) => {
+      dataIndex: 'email',
+      render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'userId'; // Define dataIndex here
+        const dataIndex: keyof User = 'email'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.userId}
+            key={record.email}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
-            <Input
-              value={text}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
-            />
+            <Input value={text} onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)} />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: PlayerTableRow) =>
-        record.userId.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: User) =>
+        record.email.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -258,20 +253,20 @@ export const UserTable: React.FC = () => {
     },
     {
       title: t('Email'),
-      dataIndex: 'totalPoint',
-      render: (text: number, record: PlayerTableRow) => {
+      dataIndex: 'email',
+      render: (text: number, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'totalPoint'; // Define dataIndex here
+        const dataIndex: keyof User = 'email'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.totalPoint}
+            key={record.email}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter an email' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
+              onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -279,8 +274,8 @@ export const UserTable: React.FC = () => {
         );
       },
       showSorterTooltip: false,
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: User) =>
+        record.email.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -307,53 +302,52 @@ export const UserTable: React.FC = () => {
     },
     {
       title: t('Tên đăng nhập'),
-      dataIndex: 'totalPoint',
-      render: (text: string, record: PlayerTableRow) => {
+      dataIndex: 'email',
+      render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'totalPoint'; // Define dataIndex here
+        const dataIndex: keyof User = 'email'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.totalPoint}
+            key={record.email}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a username' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.totalPoint, dataIndex as keyof BasicTableRow)}
+              onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
       showSorterTooltip: false,
     },
     {
       title: t('Số điện thoại'),
-      dataIndex: 'totalTime',
-      render: (text: string, record: PlayerTableRow) => {
+      dataIndex: 'phoneNumber',
+      render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'totalTime'; // Define dataIndex here
+        const dataIndex: keyof User = 'phoneNumber'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.totalTime}
+            key={record.phoneNumber}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a phone' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
+              onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: User) =>
+        record.phoneNumber.toString().toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -380,20 +374,20 @@ export const UserTable: React.FC = () => {
     },
     {
       title: t('Giới tính'),
-      dataIndex: 'id',
-      render: (text: string, record: PlayerTableRow) => {
+      dataIndex: 'gender',
+      render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof PlayerTableRow = 'id'; // Define dataIndex here
+        const dataIndex: keyof User = 'gender'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.id}
+            key={record.gender.toString()}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a gender' }]}
           >
             <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex as keyof BasicTableRow)}
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -445,13 +439,13 @@ export const UserTable: React.FC = () => {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '15%',
-      render: (text: string, record: PlayerTableRow) => {
+      render: (text: string, record: User) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.userId)}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -460,10 +454,10 @@ export const UserTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit({ ...record, key: record.id })}>
                   {t('common.edit')}
                 </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.userId))}>
+                <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.id))}>
                   {t('tables.delete')}
                 </Button>
               </>
@@ -524,8 +518,8 @@ export const UserTable: React.FC = () => {
             cell: EditableCell,
           },
         }}
-        columns={playerColumns}
-        dataSource={players}
+        columns={userColumns}
+        dataSource={tableData.data}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}

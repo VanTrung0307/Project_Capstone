@@ -1,13 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
 import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
-import { User } from '@app/api/FPT_3DMAP_API/User';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { Pagination, PlayerTableRow, getBasicTableData } from 'api/Playertable.api';
+import { Pagination, getBasicTableData } from 'api/Playertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -188,8 +187,6 @@ export const PlayerTable: React.FC = () => {
       setIsBasicModalOpen(false); // Close the modal
     });
   };
-
-
 
   useEffect(() => {
     const fetchUserData = async () => {

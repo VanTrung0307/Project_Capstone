@@ -6,7 +6,6 @@ const API_BASE_URL = 'https://localhost:44367/api/Users';
 export type User = {
   schoolId: string;
   roleId: string;
-  name: string;
   email: string;
   password: string;
   phoneNumber: number;

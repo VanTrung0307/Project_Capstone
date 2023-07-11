@@ -6,14 +6,15 @@ export interface Tag {
   priority: Priority;
 }
 
-export interface BasicTableRow {
-  key: number;
-  name: string;
+export interface UserTableRow {
+  schoolId: string;
+  roleId: string;
   email: string;
-  username: string;
-  phone: string;
-  gender: string;
-  status?: Tag[];
+  password: string;
+  phoneNumber: number;
+  gender: boolean;
+  status: string;
+  id: string;
 }
 
 export interface Pagination {
@@ -23,11 +24,11 @@ export interface Pagination {
 }
 
 export interface BasicTableData {
-  data: BasicTableRow[];
+  data: UserTableRow[];
   pagination: Pagination;
 }
 
-export interface TreeTableRow extends BasicTableRow {
+export interface TreeTableRow extends UserTableRow {
   children?: TreeTableRow[];
 }
 
@@ -36,7 +37,7 @@ export interface TreeTableData extends BasicTableData {
 }
 
 export interface EditableTableData extends BasicTableData {
-  data: BasicTableRow[];
+  data: UserTableRow[];
 }
 
 export const getBasicTableData = (pagination: Pagination): Promise<BasicTableData> => {
