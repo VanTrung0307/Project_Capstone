@@ -1,16 +1,13 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { User, getUsers } from '@app/api/FPT_3DMAP_API/User';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { User, getUsers, updateUser } from '@app/api/FPT_3DMAP_API/User';
+import { Form, Input, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { Pagination } from 'api/Usertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +25,6 @@ export const UserTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
-  console.log('data', tableData.data);
 
   const { t } = useTranslation();
 
@@ -99,29 +95,42 @@ export const UserTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<User[]>([]);
+  const [user, setUser] = useState<User[]>([]);
   const isEditing = (record: User) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
   const save = async (key: React.Key) => {
     try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
-      const newData = [...data];
+      const row = await form.validateFields();
+      const newData = [...user];
       const index = newData.findIndex((item) => key === item.id);
+
+      let item;
+
       if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
+        item = newData[index];
+        const updatedItem = {
           ...item,
           ...row,
-        });
-        setData(newData);
-        setEditingKey('');
+        };
+        newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey('');
+      }
+
+      setUser(newData);
+      setEditingKey(0);
+
+      try {
+        await updateUser(key.toString(), row);
+        console.log('User data updated successfully');
+      } catch (error) {
+        console.error('Error updating user data:', error);
+        if (index > -1 && item) {
+          newData.splice(index, 1, item);
+          setUser(newData);
+        }
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -138,55 +147,57 @@ export const UserTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof User) => {
-    const updatedData = data.map((record) => {
+    const updatedData = user.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setUser(updatedData);
   };
 
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
-
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData: User = {
-        id: '', // Generate a unique key for the new data
-        schoolId: '', // Add appropriate values for these properties
-        roleId: '',
-        email: values.email,
-        password: values.password,
-        phoneNumber: values.phoneNumber,
-        gender: values.gender,
-        status: values.status,
-        fullname: values.fullname,
-        username: values.username,
-      };
-      // Update the tableData state with the new data
-      setTableData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, newData],
-      }));
-
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+  const reloadTable = async () => {
+    try {
+      const users = await getUsers(); // Fetch the updated user data
+      setUser(users); // Update the user state with the fetched data
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
   };
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const users = await getUsers();
-        setData(users);
+        const fetchedUsers = await getUsers();
+        setUser(fetchedUsers);
+        console.log('userdata', fetchedUsers);
+  
+        const userToUpdate = fetchedUsers.find((e) => e.id);
+  
+        if (userToUpdate) {
+          const updatedUserData: User = {
+            ...userToUpdate,
+            email: '',
+            password: '',
+            phoneNumber: 0,
+            gender: true,
+            fullname: '',
+            username: '',
+          };
+  
+          const updatedUser = await updateUser(userToUpdate.id, updatedUserData);
+          console.log('User updated successfully:', updatedUser);
+        } else {
+          console.log('User not found.');
+        }
       } catch (error) {
         console.error('Error fetching users:', error);
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
 
   const userColumns: ColumnsType<User> = [
     {
@@ -213,7 +224,7 @@ export const UserTable: React.FC = () => {
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -388,7 +399,7 @@ export const UserTable: React.FC = () => {
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.id)}>
+                <Button type="primary" onClick={() => save(record.id.toString())}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -397,7 +408,11 @@ export const UserTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit({ ...record, key: record.id })}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey === record.id}
+                  onClick={() => edit({ ...record, key: record.id })}
+                >
                   {t('common.edit')}
                 </Button>
                 <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.id))}>
@@ -412,49 +427,8 @@ export const UserTable: React.FC = () => {
   ];
 
   return (
-    <Form form={form} component={false}>
-      <Button
-        type="primary"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
-      >
-        Add Data
-      </Button>
-      <Modal
-        title={'Add Player'}
-        open={isBasicModalOpen}
-        onOk={handleModalOk}
-        onCancel={() => setIsBasicModalOpen(false)}
-      >
-        <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
-          >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
-            </Select>
-          </BaseForm.Item>
-        </S.FormContent>
-      </Modal>
+    <Form form={form}>
+      <Button type="primary" icon={<ReloadOutlined />} onClick={reloadTable} />
       <Table
         components={{
           body: {
@@ -462,7 +436,7 @@ export const UserTable: React.FC = () => {
           },
         }}
         columns={userColumns}
-        dataSource={tableData.data}
+        dataSource={user}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}

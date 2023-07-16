@@ -16,10 +16,14 @@ export type User = {
   id: string;
 };
 
+export type UserList = {
+  data: User[];
+};
+
 export const getUsers = async () => {
   try {
-    const response = await axios.get<User[]>(API_BASE_URL);
-    return response.data;
+    const response = await axios.get<UserList>(API_BASE_URL);
+    return response.data.data;
   } catch (error) {
     console.error('Error fetching players:', error);
     throw error;
@@ -36,7 +40,7 @@ export const getUserById = async (userId: string) => {
   }
 };
 
-export const createPlayer = async (userData: User) => {
+export const createUser = async (userData: User) => {
   try {
     const response = await axios.post<User>(API_BASE_URL, userData);
     return response.data;
@@ -46,9 +50,9 @@ export const createPlayer = async (userData: User) => {
   }
 };
 
-export const updatePlayer = async (userId: string, userData: User) => {
+export const updateUser = async (id: string, userData: User) => {
   try {
-    const response = await axios.put<User>(`${API_BASE_URL}/${userId}`, userData);
+    const response = await axios.put<User>(`${API_BASE_URL}/${id}`, userData);
     return response.data;
   } catch (error) {
     console.error('Error updating player:', error);
