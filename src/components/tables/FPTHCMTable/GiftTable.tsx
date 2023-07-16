@@ -1,20 +1,15 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
-import { useMounted } from '@app/hooks/useMounted';
-import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/Gifttable.api';
+import { BasicTableRow, Pagination } from 'api/Gifttable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { DefaultRecordType, Key } from 'rc-table/lib/interface';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -29,27 +24,6 @@ export const GiftTable: React.FC = () => {
     loading: false,
   });
   const { t } = useTranslation();
-  const { isMounted } = useMounted();
-
-  const fetch = useCallback(
-    (pagination: Pagination) => {
-      setTableData((tableData) => ({ ...tableData, loading: true }));
-      getBasicTableData(pagination).then((res) => {
-        if (isMounted.current) {
-          setTableData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
-    },
-    [isMounted],
-  );
-
-  useEffect(() => {
-    fetch(initialPagination);
-  }, [fetch]);
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-  };
 
   const handleDeleteRow = (rowId: number) => {
     setTableData({
@@ -73,49 +47,6 @@ export const GiftTable: React.FC = () => {
       console.log(selected, selectedRows);
     },
   };
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };  
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<BasicTableRow[]>([]);
@@ -213,76 +144,76 @@ export const GiftTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      },
+    },
     {
-        title: t('Thứ hạng được nhận'),
-        dataIndex: 'ranknumber',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'ranknumber'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a Rank Number' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        },
-      {
-        title: t('Số điểm thưởng tương ứng'),
-        dataIndex: 'price',
-        render: (text: number, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'price'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a Price' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        },
-      {
-        title: t('Mô tả cách nhận thưởng'),
-        dataIndex: 'description',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'description'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter Description' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-       },
+      title: t('Thứ hạng được nhận'),
+      dataIndex: 'ranknumber',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'ranknumber'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a Rank Number' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Số điểm thưởng tương ứng'),
+      dataIndex: 'price',
+      render: (text: number, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'price'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a Price' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Mô tả cách nhận thưởng'),
+      dataIndex: 'description',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'description'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter Description' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -371,7 +302,6 @@ export const GiftTable: React.FC = () => {
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
-        onChange={handleTableChange}
         scroll={{ x: 800 }}
         bordered
       />

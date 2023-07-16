@@ -1,14 +1,13 @@
 /* eslint-disable prettier/prettier */
-import React, { useEffect, useState } from 'react';
-import { Header } from '../../../header/Header';
-import MainSider from '../sider/MainSider/MainSider';
-import MainContent from '../MainContent/MainContent';
-import { MainHeader } from '../MainHeader/MainHeader';
-import * as S from './MainLayout.styles';
-import { Outlet, useLocation } from 'react-router-dom';
 import { MEDICAL_DASHBOARD_PATH, NFT_DASHBOARD_PATH } from '@app/components/router/AppRouter';
 import { useResponsive } from '@app/hooks/useResponsive';
-import { References } from '@app/components/common/References/References';
+import React, { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Header } from '../../../header/Header';
+import MainContent from '../MainContent/MainContent';
+import { MainHeader } from '../MainHeader/MainHeader';
+import MainSider from '../sider/MainSider/MainSider';
+import * as S from './MainLayout.styles';
 
 const MainLayout: React.FC = () => {
   const [isTwoColumnsLayout, setIsTwoColumnsLayout] = useState(true);

@@ -3,15 +3,14 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
+import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { Pagination, getBasicTableData } from 'api/Playertable.api';
+import { Pagination } from 'api/Playertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -28,27 +27,6 @@ export const PlayerTable: React.FC = () => {
     loading: false,
   });
   const { t } = useTranslation();
-  const { isMounted } = useMounted();
-
-  const fetch = useCallback(
-    (pagination: Pagination) => {
-      setTableData((tableData) => ({ ...tableData, loading: true }));
-      getBasicTableData(pagination).then((res) => {
-        if (isMounted.current) {
-          setTableData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
-    },
-    [isMounted],
-  );
-
-  useEffect(() => {
-    fetch(initialPagination);
-  }, [fetch]);
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-  };
 
   const handleDeleteRow = (rowId: number) => {
     setTableData({
@@ -379,7 +357,6 @@ export const PlayerTable: React.FC = () => {
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
-        onChange={handleTableChange}
         scroll={{ x: 800 }}
         bordered
       />

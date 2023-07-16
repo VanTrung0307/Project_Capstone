@@ -2,15 +2,14 @@
 import { SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
+import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, getBasicTableData } from 'api/Schooltable.api';
+import { BasicTableRow, Pagination } from 'api/Schooltable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -27,27 +26,6 @@ export const SchoolTable: React.FC = () => {
     loading: false,
   });
   const { t } = useTranslation();
-  const { isMounted } = useMounted();
-
-  const fetch = useCallback(
-    (pagination: Pagination) => {
-      setTableData((tableData) => ({ ...tableData, loading: true }));
-      getBasicTableData(pagination).then((res) => {
-        if (isMounted.current) {
-          setTableData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
-    },
-    [isMounted],
-  );
-
-  useEffect(() => {
-    fetch(initialPagination);
-  }, [fetch]);
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-  };
 
   const handleDeleteRow = (rowId: number) => {
     setTableData({
@@ -111,7 +89,7 @@ export const SchoolTable: React.FC = () => {
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-  };  
+  };
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -238,76 +216,28 @@ export const SchoolTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-        title: t('Email'),
-        dataIndex: 'email',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'email'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a email' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-          record.name.toLowerCase().includes(value.toString().toLowerCase()),
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-          const handleSearch = () => {
-            confirm();
-            setSearchValue(selectedKeys[0].toString());
-          };
-  
-          return (
-            <div style={filterDropdownStyles} className="input-box">
-              <Input
-                type="text"
-                placeholder="Search here..."
-                value={selectedKeys[0]}
-                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-                style={inputStyles}
-              />
-              <Button onClick={handleSearch} className="button" style={buttonStyles}>
-                Filter
-              </Button>
-            </div>
-          );
-        },
-        filterIcon: () => <SearchOutlined />,
-        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      title: t('Email'),
+      dataIndex: 'email',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'email'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a email' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
-      {
-        title: t('Số điện thoại'),
-        dataIndex: 'phone',
-        render: (text: number, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'phone'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a phone' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
         record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
@@ -332,30 +262,78 @@ export const SchoolTable: React.FC = () => {
       },
       filterIcon: () => <SearchOutlined />,
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Số điện thoại'),
+      dataIndex: 'phone',
+      render: (text: number, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'phone'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a phone' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
-      {
-        title: t('Địa chỉ nhà trường'),
-        dataIndex: 'address',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'address'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a address' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-       },
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Địa chỉ nhà trường'),
+      dataIndex: 'address',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'address'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a address' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -444,7 +422,6 @@ export const SchoolTable: React.FC = () => {
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
-        onChange={handleTableChange}
         scroll={{ x: 800 }}
         bordered
       />

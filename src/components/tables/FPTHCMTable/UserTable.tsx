@@ -1,17 +1,18 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
 import { User, getUsers } from '@app/api/FPT_3DMAP_API/User';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, TablePaginationConfig } from 'antd';
+import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { Pagination, getBasicTableData } from 'api/Usertable.api';
+import { Pagination } from 'api/Usertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -27,28 +28,9 @@ export const UserTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  console.log('data', tableData.data);
+
   const { t } = useTranslation();
-  const { isMounted } = useMounted();
-
-  const fetch = useCallback(
-    (pagination: Pagination) => {
-      setTableData((tableData) => ({ ...tableData, loading: true }));
-      getBasicTableData(pagination).then((res) => {
-        if (isMounted.current) {
-          setTableData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
-    },
-    [isMounted]
-  );    
-
-  useEffect(() => {
-    fetch(initialPagination);
-  }, [fetch]);
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-  };
 
   const handleDeleteRow = (rowId: number) => {
     setTableData({
@@ -171,7 +153,7 @@ export const UserTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData: User = {
-        id: Date.now().toString(), // Generate a unique key for the new data
+        id: '', // Generate a unique key for the new data
         schoolId: '', // Add appropriate values for these properties
         roleId: '',
         email: values.email,
@@ -179,18 +161,19 @@ export const UserTable: React.FC = () => {
         phoneNumber: values.phoneNumber,
         gender: values.gender,
         status: values.status,
+        fullname: values.fullname,
+        username: values.username,
       };
       // Update the tableData state with the new data
       setTableData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
-  
+
       form.resetFields(); // Reset the form fields
       setIsBasicModalOpen(false); // Close the modal
     });
   };
-  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -208,25 +191,25 @@ export const UserTable: React.FC = () => {
   const userColumns: ColumnsType<User> = [
     {
       title: t('Họ và Tên'),
-      dataIndex: 'email',
+      dataIndex: 'fullname',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'email'; // Define dataIndex here
+        const dataIndex: keyof User = 'fullname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.email}
+            key={record.fullname}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
-            <Input value={text} onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)} />
+            <Input value={text} onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)} />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
       onFilter: (value: string | number | boolean, record: User) =>
-        record.email.toLowerCase().includes(value.toString().toLowerCase()),
+        record.fullname.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -302,20 +285,20 @@ export const UserTable: React.FC = () => {
     },
     {
       title: t('Tên đăng nhập'),
-      dataIndex: 'email',
+      dataIndex: 'username',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'email'; // Define dataIndex here
+        const dataIndex: keyof User = 'username'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.email}
+            key={record.username}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a username' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.username, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -395,46 +378,6 @@ export const UserTable: React.FC = () => {
         );
       },
     },
-    // {
-    //   title: t('Status'),
-    //   key: 'tags',
-    //   dataIndex: 'status',
-    //   render: (statuses: Tag[]) => (
-    //     <Row gutter={[10, 10]}>
-    //       {statuses.map((status: Tag) => {
-    //         return (
-    //           <Col key={status.value}>
-    //             <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-    //           </Col>
-    //         );
-    //       })}
-    //     </Row>
-    //   ),
-    //   filterMode: 'tree',
-    //   filters: [
-    //     {
-    //       text: t('Status'),
-    //       value: 'status',
-    //       children: [
-    //         {
-    //           text: 'Đang hoạt động',
-    //           value: 'Đang hoạt động',
-    //         },
-    //         {
-    //           text: 'Không hoạt động',
-    //           value: 'Không hoạt động',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   onFilter: (value: string | number | boolean, record: Player) => {
-    //     if (record.status) {
-    //       const statusValues = record.status.map((status) => status.value);
-    //       return statusValues.includes(value.toString());
-    //     }
-    //     return false;
-    //   },
-    // },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -523,7 +466,6 @@ export const UserTable: React.FC = () => {
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
-        onChange={handleTableChange}
         scroll={{ x: 800 }}
         bordered
       />

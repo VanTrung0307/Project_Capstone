@@ -28,7 +28,7 @@ export type BadRequest = {
   instance: string;
 };
 
-const API_BASE_URL = 'https://localhost:44367/api/Accounts/';
+const API_BASE_URL = 'http://anhkiet-001-site1.htempurl.com/api/Accounts/';
 
 const handleSuccess = (response: AxiosResponse) => {
   return {

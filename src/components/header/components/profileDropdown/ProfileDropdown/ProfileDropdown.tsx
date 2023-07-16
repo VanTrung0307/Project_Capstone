@@ -1,14 +1,13 @@
 /* eslint-disable prettier/prettier */
 import { Popover } from '@app/components/common/Popover/Popover';
 import { useAppSelector } from '@app/hooks/reduxHooks';
-import { useResponsive } from '@app/hooks/useResponsive';
 import { Avatar, Col, Row } from 'antd';
 import React from 'react';
 import { ProfileOverlay } from '../ProfileOverlay/ProfileOverlay';
 import * as S from './ProfileDropdown.styles';
 
 export const ProfileDropdown: React.FC = () => {
-  const { isTablet } = useResponsive();
+  // const { isTablet } = useResponsive();
 
   const user = useAppSelector((state) => state.user.user);
 

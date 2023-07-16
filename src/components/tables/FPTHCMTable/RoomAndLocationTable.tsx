@@ -1,20 +1,19 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
-import { useMounted } from '@app/hooks/useMounted';
-import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space, TablePaginationConfig } from 'antd';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
+import { defineColorByPriority } from '@app/utils/utils';
+import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag, getBasicTableData } from 'api/RoomAndLocationtable.api';
+import { BasicTableRow, Pagination, Tag } from 'api/RoomAndLocationtable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
+import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
-import * as S from 'components/forms/StepForm/StepForm.styles';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -29,27 +28,6 @@ export const RoomAndLocationTable: React.FC = () => {
     loading: false,
   });
   const { t } = useTranslation();
-  const { isMounted } = useMounted();
-
-  const fetch = useCallback(
-    (pagination: Pagination) => {
-      setTableData((tableData) => ({ ...tableData, loading: true }));
-      getBasicTableData(pagination).then((res) => {
-        if (isMounted.current) {
-          setTableData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
-    },
-    [isMounted],
-  );
-
-  useEffect(() => {
-    fetch(initialPagination);
-  }, [fetch]);
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-  };
 
   const handleDeleteRow = (rowId: number) => {
     setTableData({
@@ -113,7 +91,7 @@ export const RoomAndLocationTable: React.FC = () => {
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
-  };  
+  };
 
   const [searchValue, setSearchValue] = useState('');
 
@@ -241,189 +219,189 @@ export const RoomAndLocationTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-        title: t('Tọa độ Y'),
-        dataIndex: 'y',
-        render: (text: number, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'y'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a coordinate y' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-          record.name.toLowerCase().includes(value.toString().toLowerCase()),
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-          const handleSearch = () => {
-            confirm();
-            setSearchValue(selectedKeys[0].toString());
-          };
-  
-          return (
-            <div style={filterDropdownStyles} className="input-box">
-              <Input
-                type="text"
-                placeholder="Search here..."
-                value={selectedKeys[0]}
-                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-                style={inputStyles}
-              />
-              <Button onClick={handleSearch} className="button" style={buttonStyles}>
-                Filter
-              </Button>
-            </div>
-          );
-        },
-        filterIcon: () => <SearchOutlined />,
-        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      title: t('Tọa độ Y'),
+      dataIndex: 'y',
+      render: (text: number, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'y'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a coordinate y' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
-      {
-        title: t('Tọa độ Z'),
-        dataIndex: 'z',
-        render: (text: number, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'z'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a coordinate z' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-          record.name.toLowerCase().includes(value.toString().toLowerCase()),
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-          const handleSearch = () => {
-            confirm();
-            setSearchValue(selectedKeys[0].toString());
-          };
-  
-          return (
-            <div style={filterDropdownStyles} className="input-box">
-              <Input
-                type="text"
-                placeholder="Search here..."
-                value={selectedKeys[0]}
-                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-                style={inputStyles}
-              />
-              <Button onClick={handleSearch} className="button" style={buttonStyles}>
-                Filter
-              </Button>
-            </div>
-          );
-        },
-        filterIcon: () => <SearchOutlined />,
-        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
       },
-      {
-        title: t('Tên địa điểm'),
-        dataIndex: 'name',
-        render: (text: string, record: BasicTableRow) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.key}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a name' }]}
-            >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
-        onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-          record.name.toLowerCase().includes(value.toString().toLowerCase()),
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-          const handleSearch = () => {
-            confirm();
-            setSearchValue(selectedKeys[0].toString());
-          };
-  
-          return (
-            <div style={filterDropdownStyles} className="input-box">
-              <Input
-                type="text"
-                placeholder="Search here..."
-                value={selectedKeys[0]}
-                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-                style={inputStyles}
-              />
-              <Button onClick={handleSearch} className="button" style={buttonStyles}>
-                Filter
-              </Button>
-            </div>
-          );
-        },
-        filterIcon: () => <SearchOutlined />,
-        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Tọa độ Z'),
+      dataIndex: 'z',
+      render: (text: number, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'z'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a coordinate z' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
-      {
-        title: t('Trạng thái'),
-        key: 'tags',
-        dataIndex: 'status',
-        render: (statuses: Tag[]) => (
-          <Row gutter={[10, 10]}>
-            {statuses.map((status: Tag) => {
-              return (
-                <Col key={status.value}>
-                  <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-                </Col>
-              );
-            })}
-          </Row>
-        ),
-        filterMode: 'tree',
-        filters: [
-          {
-            text: t('Status'),
-            value: 'status',
-            children: [
-              {
-                text: 'Đang hoạt động',
-                value: 'Đang hoạt động',
-              },
-              {
-                text: 'Không hoạt động',
-                value: 'Không hoạt động',
-              },
-            ],
-          },
-        ],
-        onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-          if (record.status) {
-            const statusValues = record.status.map((status) => status.value);
-            return statusValues.includes(value.toString());
-          }
-          return false;
-        },
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
       },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Tên địa điểm'),
+      dataIndex: 'name',
+      render: (text: string, record: BasicTableRow) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.key}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a name' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Trạng thái'),
+      key: 'tags',
+      dataIndex: 'status',
+      render: (statuses: Tag[]) => (
+        <Row gutter={[10, 10]}>
+          {statuses.map((status: Tag) => {
+            return (
+              <Col key={status.value}>
+                <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
+              </Col>
+            );
+          })}
+        </Row>
+      ),
+      filterMode: 'tree',
+      filters: [
+        {
+          text: t('Status'),
+          value: 'status',
+          children: [
+            {
+              text: 'Đang hoạt động',
+              value: 'Đang hoạt động',
+            },
+            {
+              text: 'Không hoạt động',
+              value: 'Không hoạt động',
+            },
+          ],
+        },
+      ],
+      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
+        if (record.status) {
+          const statusValues = record.status.map((status) => status.value);
+          return statusValues.includes(value.toString());
+        }
+        return false;
+      },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -512,7 +490,6 @@ export const RoomAndLocationTable: React.FC = () => {
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
-        onChange={handleTableChange}
         scroll={{ x: 800 }}
         bordered
       />

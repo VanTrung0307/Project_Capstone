@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
 
-const API_BASE_URL = 'https://localhost:44367/api/Players';
+const API_BASE_URL = 'http://anhkiet-001-site1.htempurl.com/api/Players';
 
 export type Player = {
   userId: string;

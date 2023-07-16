@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
 
-const API_BASE_URL = 'https://localhost:44367/api/Users';
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users`;
 
 export type User = {
   schoolId: string;
@@ -11,6 +11,8 @@ export type User = {
   phoneNumber: number;
   gender: boolean;
   status: string;
+  fullname: string;
+  username: string;
   id: string;
 };
 

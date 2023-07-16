@@ -16,54 +16,53 @@ import { SocialLinksItem } from '@app/components/profile/profileCard/profileForm
 import { WebsiteItem } from '@app/components/profile/profileCard/profileFormNav/nav/PersonalInfo/WebsiteItem/WebsiteItem';
 import { ZipcodeItem } from '@app/components/profile/profileCard/profileFormNav/nav/PersonalInfo/ZipcodeItem/ZipcodeItem';
 import { notificationController } from '@app/controllers/notificationController';
-import { useAppSelector } from '@app/hooks/reduxHooks';
 import { PaymentCard } from '@app/interfaces/interfaces';
 import { Col, Row } from 'antd';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-interface PersonalInfoFormValues {
-  birthday?: string;
-  lastName: string;
-  country?: string;
-  website: string;
-  city?: string;
-  address2: string;
-  nickName: string;
-  address1: string;
-  sex?: string;
-  facebook: string;
-  language?: string;
-  linkedin: string;
-  zipcode: string;
-  firstName: string;
-  twitter: string;
-  phone: string;
-  email: string;
-}
+// interface PersonalInfoFormValues {
+//   birthday?: string;
+//   lastName: string;
+//   country?: string;
+//   website: string;
+//   city?: string;
+//   address2: string;
+//   nickName: string;
+//   address1: string;
+//   sex?: string;
+//   facebook: string;
+//   language?: string;
+//   linkedin: string;
+//   zipcode: string;
+//   firstName: string;
+//   twitter: string;
+//   phone: string;
+//   email: string;
+// }
 
-const initialPersonalInfoValues: PersonalInfoFormValues = {
-  firstName: '',
-  lastName: '',
-  nickName: '',
-  sex: undefined,
-  birthday: undefined,
-  language: undefined,
-  phone: '',
-  email: '',
-  country: undefined,
-  city: undefined,
-  address1: '',
-  address2: '',
-  zipcode: '',
-  website: '',
-  twitter: '',
-  linkedin: '',
-  facebook: '',
-};
+// const initialPersonalInfoValues: PersonalInfoFormValues = {
+//   firstName: '',
+//   lastName: '',
+//   nickName: '',
+//   sex: undefined,
+//   birthday: undefined,
+//   language: undefined,
+//   phone: '',
+//   email: '',
+//   country: undefined,
+//   city: undefined,
+//   address1: '',
+//   address2: '',
+//   zipcode: '',
+//   website: '',
+//   twitter: '',
+//   linkedin: '',
+//   facebook: '',
+// };
 
 export const PersonalInfo: React.FC = () => {
-  const user = useAppSelector((state) => state.user.user);
+  // const user = useAppSelector((state) => state.user.user);
 
   const [isFieldsChanged, setFieldsChanged] = useState(false);
   const [isLoading, setLoading] = useState(false);

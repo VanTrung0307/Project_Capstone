@@ -1,12 +1,9 @@
 /* eslint-disable prettier/prettier */
+import { RightOutlined } from '@ant-design/icons';
+import LogoImg from '@app/components/layouts/main/sider/logo-img/Logo.png';
+import { useResponsive } from 'hooks/useResponsive';
 import React from 'react';
 import * as S from './MainSider/MainSider.styles';
-import { RightOutlined } from '@ant-design/icons';
-import { useResponsive } from 'hooks/useResponsive';
-import logo from 'assets/logo.png';
-import logoDark from 'assets/logo-dark.png';
-import { useAppSelector } from '@app/hooks/reduxHooks';
-import LogoImg from '@app/components/layouts/main/sider/logo-img/Logo.png'
 
 interface SiderLogoProps {
   isSiderCollapsed: boolean;
@@ -15,7 +12,7 @@ interface SiderLogoProps {
 export const SiderLogo: React.FC<SiderLogoProps> = ({ isSiderCollapsed, toggleSider }) => {
   const { tabletOnly } = useResponsive();
 
-  const theme = useAppSelector((state) => state.theme.theme);
+  // const theme = useAppSelector((state) => state.theme.theme);
 
   // const img = theme === 'dark' ? logoDark : logo;
   const img = LogoImg;
