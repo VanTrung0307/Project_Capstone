@@ -168,33 +168,13 @@ export const UserTable: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const fetchedUsers = await getUsers();
-        setUser(fetchedUsers);
-        console.log('userdata', fetchedUsers);
-  
-        const userToUpdate = fetchedUsers.find((e) => e.id);
-  
-        if (userToUpdate) {
-          const updatedUserData: User = {
-            ...userToUpdate,
-            email: '',
-            password: '',
-            phoneNumber: 0,
-            gender: true,
-            fullname: '',
-            username: '',
-          };
-  
-          const updatedUser = await updateUser(userToUpdate.id, updatedUserData);
-          console.log('User updated successfully:', updatedUser);
-        } else {
-          console.log('User not found.');
-        }
+        const users = await getUsers();
+        setUser(users);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
     };
-  
+
     fetchUserData();
   }, []);
   
