@@ -4,12 +4,12 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination } from 'api/Ranktable.api';
+import { Rank, getRanks, updateRank, Pagination } from '@app/api/FPT_3DMAP_API/Rank';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -20,23 +20,23 @@ const initialPagination: Pagination = {
 };
 
 export const RankTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
+  const [tableData, setTableData] = useState<{ data: Rank[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
   const { t } = useTranslation();
 
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
+  // const handleDeleteRow = (rowId: number) => {
+  //   setTableData({
+  //     ...tableData,
+  //     data: tableData.data.filter((item) => item.id !== rowId),
+  //     pagination: {
+  //       ...tableData.pagination,
+  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
+  //     },
+  //   });
+  // };
 
   const rowSelection = {
     onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
@@ -94,29 +94,42 @@ export const RankTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<Rank[]>([]);
+  const isEditing = (record: Rank) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
   const save = async (key: React.Key) => {
     try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
+      const row = await form.validateFields();
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => key === item.id);
+
+      let item;
+
       if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
+        item = newData[index];
+        const updatedItem = {
           ...item,
           ...row,
-        });
-        setData(newData);
-        setEditingKey('');
+        };
+        newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey('');
+      }
+
+      setData(newData);
+      setEditingKey(0);
+
+      try {
+        await updateRank(key.toString(), row);
+        console.log('Rank data updated successfully');
+      } catch (error) {
+        console.error('Error updating Rank data:', error);
+        if (index > -1 && item) {
+          newData.splice(index, 1, item);
+          setData(newData);
+        }
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -127,14 +140,14 @@ export const RankTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<Rank> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Rank) => {
     const updatedData = data.map((record) => {
-      if (record.key === key) {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -142,16 +155,30 @@ export const RankTable: React.FC = () => {
     setData(updatedData);
   };
 
+  useEffect(() => {
+    const fetchRankData = async () => {
+      try {
+        const ranks = await getRanks();
+        setData(ranks);
+      } catch (error) {
+        console.error('Error fetching ranks:', error);
+      }
+    };
+    fetchRankData();
+  }, []);
+
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
   const handleModalOk = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        ranknumber: values.ranknumber,
-        playername: values.playername,
-        eventname: values.eventname,
+        name: values.name,
+        playerName: values.playerName,
+        place: values.place,
+        eventName: values.eventName,
+        status: values.status,
+        id: values.id,
       };
 
       // Update the tableData state with the new data
@@ -165,162 +192,185 @@ export const RankTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+  const columns: ColumnsType<Rank> = [
+    {
+      title: t('Tên bảng xếp hạng'),
+      dataIndex: 'name',
+      render: (text: string, record: Rank) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Rank = 'name'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.name}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a name' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+      onFilter: (value: string | number | boolean, record: Rank) =>
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Tên người chơi'),
+      dataIndex: 'playerName',
+      render: (text: string, record: Rank) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Rank = 'playerName'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.playerName}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a playerName' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.playerName, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+      onFilter: (value: string | number | boolean, record: Rank) =>
+        record.playerName.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0].toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Sự kiện'),
+      dataIndex: 'eventName',
+      render: (text: string, record: Rank) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Rank = 'eventName'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.eventName}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a eventName' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.eventName, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
     {
       title: t('Thứ hạng'),
-      dataIndex: 'ranknumber',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'place',
+      width: '8%',
+      render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'ranknumber'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'place'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.place}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Rank Number' }]}
+            rules={[{ required: true, message: 'Please enter a place' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.place, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.ranknumber.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Tên học sinh'),
-      dataIndex: 'playername',
-      render: (text: string, record: BasicTableRow) => {
+      title: t('Trạng thái'),
+      dataIndex: 'status',
+      width: '8%',
+      render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'playername'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'status'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Player Name' }]}
+            rules={[{ required: true, message: 'Please enter a status' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.playername.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
-    },
-    {
-      title: t('Tại sự kiện'),
-      dataIndex: 'eventname',
-      render: (text: string, record: BasicTableRow) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'eventname'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.key}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Event Name' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.eventname.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
-    },
+      },  
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: string, record: Rank) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -329,11 +379,12 @@ export const RankTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey === record.id}
+                  onClick={() => edit({ ...record, key: record.id })}
+                >
                   {t('common.edit')}
-                </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
-                  {t('tables.delete')}
                 </Button>
               </>
             )}
@@ -394,7 +445,7 @@ export const RankTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={tableData.data}
+        dataSource={data}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}

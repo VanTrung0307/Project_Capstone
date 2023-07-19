@@ -4,4 +4,6 @@ export enum Priority {
   LOW,
   MEDIUM,
   HIGH,
+  ACTIVE,
+  INACTIVE,
 }

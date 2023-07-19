@@ -101,6 +101,10 @@ export const defineColorByPriority = (priority: Priority): string => {
       return 'var(--warning-color)';
     case Priority.HIGH:
       return 'var(--error-color)';
+    case Priority.ACTIVE:
+      return 'var(--success-color)';
+      case Priority.INACTIVE:
+      return 'var(--error-color)';
     default:
       return 'var(--success-color)';
   }

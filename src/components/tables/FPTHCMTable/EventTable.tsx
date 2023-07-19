@@ -6,12 +6,12 @@ import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/p
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag } from 'api/Eventtable.api';
+import { Event, getEvents, updateEvent, Pagination } from '@app/api/FPT_3DMAP_API/Event';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -22,23 +22,23 @@ const initialPagination: Pagination = {
 };
 
 export const EventTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
+  const [tableData, setTableData] = useState<{ data: Event[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
   const { t } = useTranslation();
 
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
+  // const handleDeleteRow = (rowId: number) => {
+  //   setTableData({
+  //     ...tableData,
+  //     data: tableData.data.filter((item) => item.key !== rowId),
+  //     pagination: {
+  //       ...tableData.pagination,
+  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
+  //     },
+  //   });
+  // };
 
   const rowSelection = {
     onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
@@ -96,8 +96,8 @@ export const EventTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<Event[]>([]);
+  const isEditing = (record: Event) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -106,7 +106,7 @@ export const EventTable: React.FC = () => {
       await form.validateFields([key]);
       const row = form.getFieldsValue([key]);
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => key === item.id);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
@@ -129,14 +129,14 @@ export const EventTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<Event> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Event) => {
     const updatedData = data.map((record) => {
-      if (record.key === key) {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -144,17 +144,30 @@ export const EventTable: React.FC = () => {
     setData(updatedData);
   };
 
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const events = await getEvents();
+        setData(events);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+    fetchEvent();
+  }, []);
+
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
   const handleModalOk = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        name: values.name,
-        starttime: values.starttime,
-        endtime: values.endtime,
+        eventName: values.eventName,
+        rankName: values.rankName,
+        startTime: 0,
+        endTime: 0,
         status: values.status,
+        id: values.id,
       };
 
       // Update the tableData state with the new data
@@ -168,31 +181,31 @@ export const EventTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+  const columns: ColumnsType<Event> = [
     {
       title: t('Tên sự kiện'),
-      dataIndex: 'name',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'eventName',
+      render: (text: string, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof Event = 'eventName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.eventName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Please enter a eventName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.eventName, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Event) =>
+        record.eventName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -219,149 +232,109 @@ export const EventTable: React.FC = () => {
     },
     {
       title: t('Thời gian bắt đầu'),
-      dataIndex: 'starttime',
-      render: (text: number, record: BasicTableRow) => {
+      dataIndex: 'startTime',
+      render: (text: number, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'starttime'; // Define dataIndex here
+        const dataIndex: keyof Event = 'startTime'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.startTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Start Time' }]}
+            rules={[{ required: true, message: 'Please enter a startTime' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.startTime, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      filterMode: 'tree',
-      filters: [
-        {
-          text: t('Status'),
-          value: 'status',
-          children: [
-            {
-              text: 'Đang hoạt động',
-              value: 'Đang hoạt động',
-            },
-            {
-              text: 'Không hoạt động',
-              value: 'Không hoạt động',
-            },
-          ],
-        },
-      ],
-      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-        if (record.status) {
-          const statusValues = record.status.map((status) => status.value);
-          return statusValues.includes(value.toString());
-        }
-        return false;
       },
-    },
     {
       title: t('Thời gian kết thúc'),
-      dataIndex: 'endtime',
-      render: (text: number, record: BasicTableRow) => {
+      dataIndex: 'endTime',
+      render: (text: number, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'endtime'; // Define dataIndex here
+        const dataIndex: keyof Event = 'endTime'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.endTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a End Time' }]}
+            rules={[{ required: true, message: 'Please enter a endTime' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      filterMode: 'tree',
-      filters: [
-        {
-          text: t('Status'),
-          value: 'status',
-          children: [
-            {
-              text: 'Đang hoạt động',
-              value: 'Đang hoạt động',
-            },
-            {
-              text: 'Không hoạt động',
-              value: 'Không hoạt động',
-            },
-          ],
-        },
-      ],
-      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-        if (record.status) {
-          const statusValues = record.status.map((status) => status.value);
-          return statusValues.includes(value.toString());
-        }
-        return false;
       },
-    },
-    {
-      title: t('Trạng thái'),
-      key: 'tags',
-      dataIndex: 'status',
-      render: (statuses: Tag[]) => (
-        <Row gutter={[10, 10]}>
-          {statuses.map((status: Tag) => {
-            return (
-              <Col key={status.value}>
-                <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-              </Col>
-            );
-          })}
-        </Row>
-      ),
-      filterMode: 'tree',
-      filters: [
-        {
-          text: t('Status'),
-          value: 'status',
-          children: [
-            {
-              text: 'Đang hoạt động',
-              value: 'Đang hoạt động',
-            },
-            {
-              text: 'Không hoạt động',
-              value: 'Không hoạt động',
-            },
-          ],
+      {
+        title: t('Tên Rank'),
+        dataIndex: 'rankName',
+        width: '8%',
+        render: (text: string, record: Event) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof Event = 'rankName'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.rankName}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a rankName' }]}
+            >
+              <Input
+                value={record[dataIndex].toString()}
+                onChange={(e) => handleInputChange(e.target.value, record.rankName, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
         },
-      ],
-      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-        if (record.status) {
-          const statusValues = record.status.map((status) => status.value);
-          return statusValues.includes(value.toString());
-        }
-        return false;
       },
-    },
+      {
+        title: t('Trạng thái'),
+        dataIndex: 'status',
+        width: '8%',
+        render: (text: string, record: Event) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof Event = 'status'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.status}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a status' }]}
+            >
+              <Input
+                value={record[dataIndex].toString()}
+                onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
+        },
+      },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: string, record: Event) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -370,11 +343,12 @@ export const EventTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey === record.id}
+                  onClick={() => edit({ ...record, key: record.id })}
+                >
                   {t('common.edit')}
-                </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
-                  {t('tables.delete')}
                 </Button>
               </>
             )}
@@ -435,7 +409,7 @@ export const EventTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={tableData.data}
+        dataSource={data}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}

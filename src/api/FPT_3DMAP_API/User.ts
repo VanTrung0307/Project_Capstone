@@ -1,7 +1,13 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+// import { Priority } from '@app/constants/enums/priorities';
 
-const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users`;
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users/users/listUser-schoolname`;
+
+// export interface Tag {
+//   status: string;
+//   priority: Priority;
+// }
 
 export type User = {
   schoolId: string;
@@ -10,9 +16,10 @@ export type User = {
   password: string;
   phoneNumber: number;
   gender: boolean;
-  status: string;
   fullname: string;
   username: string;
+  // status?: Tag[];
+  status: string, 
   id: string;
 };
 
@@ -20,12 +27,23 @@ export type UserList = {
   data: User[];
 };
 
+export interface Pagination {
+  current?: number;
+  pageSize?: number;
+  total?: number;
+}
+
+export interface PaginationData {
+  data: User[];
+  pagination: Pagination;
+}
+
 export const getUsers = async () => {
   try {
     const response = await axios.get<UserList>(API_BASE_URL);
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching players:', error);
+    console.error('Error fetching users:', error);
     throw error;
   }
 };
@@ -35,7 +53,7 @@ export const getUserById = async (userId: string) => {
     const response = await axios.get<User>(`${API_BASE_URL}/${userId}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching player:', error);
+    console.error('Error fetching user:', error);
     throw error;
   }
 };

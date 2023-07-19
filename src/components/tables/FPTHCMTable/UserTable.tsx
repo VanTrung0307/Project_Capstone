@@ -2,10 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
-import { User, getUsers, updateUser } from '@app/api/FPT_3DMAP_API/User';
+import { User, getUsers, updateUser, Pagination } from '@app/api/FPT_3DMAP_API/User';
 import { Form, Input, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { Pagination } from 'api/Usertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
@@ -28,16 +27,16 @@ export const UserTable: React.FC = () => {
 
   const { t } = useTranslation();
 
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => Number(item.id) !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
+  // const handleDeleteRow = (rowId: number) => {
+  //   setTableData({
+  //     ...tableData,
+  //     data: tableData.data.filter((item) => Number(item.id) !== rowId),
+  //     pagination: {
+  //       ...tableData.pagination,
+  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
+  //     },
+  //   });
+  // };
 
   const rowSelection = {
     onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
@@ -156,15 +155,6 @@ export const UserTable: React.FC = () => {
     setUser(updatedData);
   };
 
-  const reloadTable = async () => {
-    try {
-      const users = await getUsers(); // Fetch the updated user data
-      setUser(users); // Update the user state with the fetched data
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-  };
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -174,7 +164,6 @@ export const UserTable: React.FC = () => {
         console.error('Error fetching users:', error);
       }
     };
-
     fetchUserData();
   }, []);
   
@@ -299,9 +288,57 @@ export const UserTable: React.FC = () => {
       showSorterTooltip: false,
     },
     {
-      title: t('Số điện thoại'),
-      dataIndex: 'phoneNumber',
+      title: t('Tên trường'),
+      dataIndex: 'schoolId',
       render: (text: string, record: User) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof User = 'schoolId'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.gender.toString()}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a schoolName' }]}
+          >
+            <Input
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Giới tính'),
+      dataIndex: 'gender',
+      width: '8%',
+      render: (text: string, record: User) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof User = 'gender'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.gender.toString()}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a gender' }]}
+          >
+            <Input
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Điện thoại'),
+      dataIndex: 'phoneNumber',
+      width: '8%',
+      render: (text: number, record: User) => {
         const editable = isEditing(record);
         const dataIndex: keyof User = 'phoneNumber'; // Define dataIndex here
         return editable ? (
@@ -309,7 +346,7 @@ export const UserTable: React.FC = () => {
             key={record.phoneNumber}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a phone' }]}
+            rules={[{ required: true, message: 'Please enter a phoneNumber' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -347,21 +384,22 @@ export const UserTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Giới tính'),
-      dataIndex: 'gender',
+      title: t('Trạng thái'),
+      dataIndex: 'status',
+      width: '8%',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'gender'; // Define dataIndex here
+        const dataIndex: keyof User = 'status'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.gender.toString()}
+            key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a gender' }]}
+            rules={[{ required: true, message: 'Please enter a status' }]}
           >
             <Input
               value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -372,7 +410,7 @@ export const UserTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
+      width: '8%',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
         return (
@@ -395,9 +433,6 @@ export const UserTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(parseInt(record.id))}>
-                  {t('tables.delete')}
-                </Button>
               </>
             )}
           </Space>
@@ -408,7 +443,6 @@ export const UserTable: React.FC = () => {
 
   return (
     <Form form={form}>
-      <Button type="primary" icon={<ReloadOutlined />} onClick={reloadTable} />
       <Table
         components={{
           body: {

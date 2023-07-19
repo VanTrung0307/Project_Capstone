@@ -6,12 +6,12 @@ import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/p
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination, Tag } from 'api/Tasktable.api';
+import { Task, getTasks, updateTask, Pagination } from '@app/api/FPT_3DMAP_API/Task';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
@@ -22,23 +22,23 @@ const initialPagination: Pagination = {
 };
 
 export const TaskTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
+  const [tableData, setTableData] = useState<{ data: Task[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
   const { t } = useTranslation();
 
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
+  // const handleDeleteRow = (rowId: number) => {
+  //   setTableData({
+  //     ...tableData,
+  //     data: tableData.data.filter((item) => item.key !== rowId),
+  //     pagination: {
+  //       ...tableData.pagination,
+  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
+  //     },
+  //   });
+  // };
 
   const rowSelection = {
     onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
@@ -96,29 +96,42 @@ export const TaskTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<Task[]>([]);
+  const isEditing = (record: Task) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
   const save = async (key: React.Key) => {
     try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
+      const row = await form.validateFields();
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => key === item.id);
+
+      let item;
+
       if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
+        item = newData[index];
+        const updatedItem = {
           ...item,
           ...row,
-        });
-        setData(newData);
-        setEditingKey('');
+        };
+        newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey('');
+      }
+
+      setData(newData);
+      setEditingKey(0);
+
+      try {
+        await updateTask(key.toString(), row);
+        console.log('Task data updated successfully');
+      } catch (error) {
+        console.error('Error updating Task data:', error);
+        if (index > -1 && item) {
+          newData.splice(index, 1, item);
+          setData(newData);
+        }
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -129,14 +142,14 @@ export const TaskTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<Task> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Task) => {
     const updatedData = data.map((record) => {
-      if (record.key === key) {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -144,23 +157,35 @@ export const TaskTable: React.FC = () => {
     setData(updatedData);
   };
 
+  useEffect(() => {
+    const fetchTaskData = async () => {
+      try {
+        const tasks = await getTasks();
+        setData(tasks);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+    fetchTaskData();
+  }, []);
+
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
   const handleModalOk = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        name: values.name,
-        locationname: values.locationname,
-        npcname: values.npcname,
-        majorname: values.majorname,
+        activityName: values.activityName,
+        locationName: values.locationName,
+        npcName: values.npcName,
+        majorName: values.majorName,
         type: values.type,
-        point: values.point,
-        endtime: values.endtime,
-        timeoutamount: values.timeoutamount,
-        isrequireitem: values.isrequireitem,
+        point: 0,
+        endTime: 0,
+        timeOutAmount: 0,
+        isRequireitem: values.isrequireitem,
         status: values.status,
+        id: values.id,
       };
 
       // Update the tableData state with the new data
@@ -174,31 +199,31 @@ export const TaskTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+  const columns: ColumnsType<Task> = [
     {
       title: t('Tên nhiệm vụ'),
-      dataIndex: 'name',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'activityName',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof Task = 'activityName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.activityName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Please enter a activityName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.activityName, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Task) =>
+        record.activityName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -224,21 +249,21 @@ export const TaskTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Tên địa điểm'),
-      dataIndex: 'locationname',
-      render: (text: string, record: BasicTableRow) => {
+      title: t('Địa điểm'),
+      dataIndex: 'locationName',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'locationname'; // Define dataIndex here
+        const dataIndex: keyof Task = 'locationName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.locationName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a locationname' }]}
+            rules={[{ required: true, message: 'Please enter a locationName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -249,21 +274,21 @@ export const TaskTable: React.FC = () => {
       showSorterTooltip: false,
     },
     {
-      title: t('Tên NPC có sứ mệnh'),
-      dataIndex: 'npcname',
-      render: (text: string, record: BasicTableRow) => {
+      title: t('Tên NPC'),
+      dataIndex: 'npcName',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'npcname'; // Define dataIndex here
+        const dataIndex: keyof Task = 'npcName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.npcName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a npcname' }]}
+            rules={[{ required: true, message: 'Please enter a npcName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.npcName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -274,21 +299,21 @@ export const TaskTable: React.FC = () => {
       showSorterTooltip: false,
     },
     {
-      title: t('Tên Ngành đã giao nhiệm vụ'),
-      dataIndex: 'majorname',
-      render: (text: string, record: BasicTableRow) => {
+      title: t('Tên Ngành'),
+      dataIndex: 'majorName',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'majorname'; // Define dataIndex here
+        const dataIndex: keyof Task = 'majorName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.majorName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a majorname' }]}
+            rules={[{ required: true, message: 'Please enter a majorName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.majorName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -299,19 +324,20 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Loại nhiệm vụ'),
       dataIndex: 'type',
-      render: (text: string, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'type'; // Define dataIndex here
+        const dataIndex: keyof Task = 'type'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.type}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a type' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -320,21 +346,22 @@ export const TaskTable: React.FC = () => {
       },
     },
     {
-      title: t('Điểm thưởng tương ứng'),
+      title: t('Điểm thưởng'),
       dataIndex: 'point',
-      render: (text: number, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: number, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'point'; // Define dataIndex here
+        const dataIndex: keyof Task = 'point'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.point}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a point' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -343,67 +370,94 @@ export const TaskTable: React.FC = () => {
       },
     },
     {
-      title: t('Có thời gian kết thúc?'),
-      dataIndex: 'endtime',
-      render: (text: number, record: BasicTableRow) => {
+      title: t('Giới hạn Check in?'),
+      dataIndex: 'endTime',
+      width: '8%',
+      render: (text: number, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'endtime'; // Define dataIndex here
+        const dataIndex: keyof Task = 'endTime'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.endTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a End Time' }]}
+            rules={[{ required: true, message: 'Please enter a endTime' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== null ? text : "Không có"}</span>
         );
       },
     },
     {
-      title: t('Thời gian đợi để làm lại nhiệm vụ'),
-      dataIndex: 'timeoutamount',
-      render: (text: number, record: BasicTableRow) => {
+      title: t('Thời gian làm lại'),
+      dataIndex: 'timeOutAmount',
+      width: '8%',
+      render: (text: number, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'timeoutamount'; // Define dataIndex here
+        const dataIndex: keyof Task = 'timeOutAmount'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.timeOutAmount}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a timeoutamount' }]}
+            rules={[{ required: true, message: 'Please enter a timeOutAmount' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.timeOutAmount, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== null ? text : "Không có"}</span>
         );
       },
     },
     {
       title: t('Có yêu cầu vật phẩm?'),
-      dataIndex: 'isrequireitem',
-      render: (text: number, record: BasicTableRow) => {
+      dataIndex: 'isRequireitem',
+      width: '8%',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'isrequireitem'; // Define dataIndex here
+        const dataIndex: keyof Task = 'isRequireitem'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.isRequireitem}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a isrequireitem' }]}
+            rules={[{ required: true, message: 'Please enter a isRequireitem' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.isRequireitem, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text !== null ? text : "Không có"}</span>
+        );
+      },
+    },
+    {
+      title: t('Trạng thái'),
+      dataIndex: 'status',
+      width: '8%',
+      render: (text: string, record: Task) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Task = 'status'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.status}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a status' }]}
+          >
+            <Input
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -412,56 +466,16 @@ export const TaskTable: React.FC = () => {
       },
     },
     {
-      title: t('Trạng thái'),
-      key: 'tags',
-      dataIndex: 'status',
-      render: (statuses: Tag[]) => (
-        <Row gutter={[10, 10]}>
-          {statuses.map((status: Tag) => {
-            return (
-              <Col key={status.value}>
-                <Status color={defineColorByPriority(status.priority)} text={status.value.toUpperCase()} />
-              </Col>
-            );
-          })}
-        </Row>
-      ),
-      filterMode: 'tree',
-      filters: [
-        {
-          text: t('Status'),
-          value: 'status',
-          children: [
-            {
-              text: 'Đang hoạt động',
-              value: 'Đang hoạt động',
-            },
-            {
-              text: 'Không hoạt động',
-              value: 'Không hoạt động',
-            },
-          ],
-        },
-      ],
-      onFilter: (value: string | number | boolean, record: BasicTableRow) => {
-        if (record.status) {
-          const statusValues = record.status.map((status) => status.value);
-          return statusValues.includes(value.toString());
-        }
-        return false;
-      },
-    },
-    {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -470,11 +484,12 @@ export const TaskTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey === record.id}
+                  onClick={() => edit({ ...record, key: record.id })}
+                >
                   {t('common.edit')}
-                </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
-                  {t('tables.delete')}
                 </Button>
               </>
             )}
@@ -535,7 +550,7 @@ export const TaskTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={tableData.data}
+        dataSource={data}
         pagination={tableData.pagination}
         rowSelection={{ ...rowSelection }}
         loading={tableData.loading}
