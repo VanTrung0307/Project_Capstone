@@ -3,52 +3,25 @@ import { SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Form, Input, Modal, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { School, updateSchool, getSchools, Pagination } from '@app/api/FPT_3DMAP_API/School';
+import { School, updateSchool, getPaginatedSchools, Pagination } from '@app/api/FPT_3DMAP_API/School';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const SchoolTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: School[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => Number(item.id) !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -94,7 +67,12 @@ export const SchoolTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<School[]>([]);
+  const [data, setData] = useState<{ data: School[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
   const isEditing = (record: School) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -102,7 +80,7 @@ export const SchoolTable: React.FC = () => {
   const save = async (key: React.Key) => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
       let item;
@@ -118,7 +96,7 @@ export const SchoolTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData(newData);
+      setData((prevData) => ({ ...prevData, data: newData}));
       setEditingKey(0);
 
       try {
@@ -128,7 +106,7 @@ export const SchoolTable: React.FC = () => {
         console.error('Error updating school data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData(newData);
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -146,26 +124,37 @@ export const SchoolTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof School) => {
-    const updatedData = data.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedSchools(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
   useEffect(() => {
-    const fetchSchoolData = async () => {
-      try {
-        const schools = await getSchools();
-        setData(schools);
-      } catch (error) {
-        console.error('Error fetching schools:', error);
-      }
-    };
-    fetchSchoolData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
@@ -173,7 +162,7 @@ export const SchoolTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        schoolName: values.schoolName,
+        name: values.name,
         phoneNumber: 0,
         email: values.email,
         address: values.address,
@@ -182,7 +171,7 @@ export const SchoolTable: React.FC = () => {
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -195,20 +184,20 @@ export const SchoolTable: React.FC = () => {
   const columns: ColumnsType<School> = [
     {
       title: t('Tên trường'),
-      dataIndex: 'schoolName',
+      dataIndex: 'name',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'schoolName'; // Define dataIndex here
+        const dataIndex: keyof School = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.schoolName}
+            key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a schoolName' }]}
+            rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.schoolName, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -216,7 +205,7 @@ export const SchoolTable: React.FC = () => {
         );
       },
       onFilter: (value: string | number | boolean, record: School) =>
-        record.schoolName.toLowerCase().includes(value.toString().toLowerCase()),
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -420,10 +409,13 @@ export const SchoolTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

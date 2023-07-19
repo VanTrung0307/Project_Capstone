@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Schools`;
 
 export type School = {
-  schoolName: string;
+  name: string;
   phoneNumber: number;
   email: string;
   address: string;
@@ -23,16 +23,45 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: SchoolList;
+  data: School[];
   pagination: Pagination;
 }
 
-export const getSchools = async () => {
+// export const getSchools = async () => {
+//   try {
+//     const response = await axios.get<SchoolList>(API_BASE_URL);
+//     return response.data.data;
+//   } catch (error) {
+//     console.error('Error fetching schools:', error);
+//     throw error;
+//   }
+// };
+
+export const getPaginatedSchools = async (pagination: Pagination) => {
   try {
     const response = await axios.get<SchoolList>(API_BASE_URL);
-    return response.data.data;
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching schools:', error);
+    console.error('Error fetching paginated schools:', error);
     throw error;
   }
 };

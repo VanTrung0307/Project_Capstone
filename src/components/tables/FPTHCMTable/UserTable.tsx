@@ -1,54 +1,26 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
-import { User, getUsers, updateUser, Pagination } from '@app/api/FPT_3DMAP_API/User';
+import { SearchOutlined } from '@ant-design/icons';
+import { User, getPaginatedUsers, updateUser, Pagination } from '@app/api/FPT_3DMAP_API/User';
 import { Form, Input, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const UserTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: User[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
 
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => Number(item.id) !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -94,7 +66,12 @@ export const UserTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [user, setUser] = useState<User[]>([]);
+  const [data, setData] = useState<{ data: User[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
   const isEditing = (record: User) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -102,7 +79,7 @@ export const UserTable: React.FC = () => {
   const save = async (key: React.Key) => {
     try {
       const row = await form.validateFields();
-      const newData = [...user];
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
       let item;
@@ -118,17 +95,17 @@ export const UserTable: React.FC = () => {
         newData.push(row);
       }
 
-      setUser(newData);
+      setData((prevData) => ({ ...prevData, data: newData}));
       setEditingKey(0);
 
       try {
         await updateUser(key.toString(), row);
         console.log('User data updated successfully');
       } catch (error) {
-        console.error('Error updating user data:', error);
+        console.error('Error updating User data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setUser(newData);
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -146,29 +123,40 @@ export const UserTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof User) => {
-    const updatedData = user.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setUser(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedUsers(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const users = await getUsers();
-        setUser(users);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-    fetchUserData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
   
 
-  const userColumns: ColumnsType<User> = [
+  const columns: ColumnsType<User> = [
     {
       title: t('Họ và Tên'),
       dataIndex: 'fullname',
@@ -242,7 +230,7 @@ export const UserTable: React.FC = () => {
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -289,20 +277,20 @@ export const UserTable: React.FC = () => {
     },
     {
       title: t('Tên trường'),
-      dataIndex: 'schoolId',
+      dataIndex: 'schoolname',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'schoolId'; // Define dataIndex here
+        const dataIndex: keyof User = 'schoolname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.gender.toString()}
+            key={record.schoolname}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a schoolName' }]}
+            rules={[{ required: true, message: 'Please enter a schoolname' }]}
           >
             <Input
               value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.schoolname, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -449,11 +437,14 @@ export const UserTable: React.FC = () => {
             cell: EditableCell,
           },
         }}
-        columns={userColumns}
-        dataSource={user}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        columns={columns}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />
