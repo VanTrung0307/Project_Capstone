@@ -4,9 +4,10 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Gifts`;
 
 export type Gift = {
-  giftName: string;
+  name: string;
   decription: string;
   price: number;
+  rankName: string;
   place: string;
   status: string;
   id: string;
@@ -23,16 +24,35 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: GiftList;
+  data: Gift[];
   pagination: Pagination;
 }
 
-export const getGifts = async () => {
+export const getPaginatedGifts = async (pagination: Pagination) => {
   try {
     const response = await axios.get<GiftList>(API_BASE_URL);
-    return response.data.data;
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching gifts:', error);
+    console.error('Error fetching paginated schools:', error);
     throw error;
   }
 };

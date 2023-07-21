@@ -71,6 +71,17 @@ export const PlayerTable: React.FC = () => {
     loading: false,
   });
 
+  const formatDateTime = (isoDateTime: number) => {
+    const dateTime = new Date(isoDateTime);
+    const year = dateTime.getFullYear();
+    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  };
+
   const isEditing = (record: Player) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -238,7 +249,7 @@ export const PlayerTable: React.FC = () => {
           >
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{formatDateTime(record.createdAt)}</span>
         );
       },
     },

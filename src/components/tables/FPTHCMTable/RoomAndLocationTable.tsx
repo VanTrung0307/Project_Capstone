@@ -15,10 +15,11 @@ import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
+import { Loading } from '@app/components/common/Loading';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const RoomAndLocationTable: React.FC = () => {
@@ -98,17 +99,19 @@ export const RoomAndLocationTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData((prevData) => ({ ...prevData, data: newData}));
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateRoomLocation(key.toString(), row);
-        console.log('School data updated successfully');
+        console.log('Room location data updated successfully');
       } catch (error) {
-        console.error('Error updating school data:', error);
+        console.error('Error updating room location data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {

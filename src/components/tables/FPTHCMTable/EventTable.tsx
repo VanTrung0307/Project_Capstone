@@ -5,52 +5,25 @@ import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { Event, getEvents, updateEvent, Pagination } from '@app/api/FPT_3DMAP_API/Event';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Event, getPaginatedEvents, updateEvent, Pagination } from '@app/api/FPT_3DMAP_API/Event';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const EventTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: Event[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+  
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => item.key !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -96,29 +69,60 @@ export const EventTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<Event[]>([]);
+  const [data, setData] = useState<{ data: Event[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
+  const formatDateTime = (isoDateTime: number) => {
+    const dateTime = new Date(isoDateTime);
+    const year = dateTime.getFullYear();
+    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  };
+
   const isEditing = (record: Event) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
   const save = async (key: React.Key) => {
     try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
-      const newData = [...data];
+      const row = await form.validateFields();
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
+
+      let item;
+
       if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
+        item = newData[index];
+        const updatedItem = {
           ...item,
           ...row,
-        });
-        setData(newData);
-        setEditingKey('');
+        };
+        newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey('');
+      }
+
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
+        await updateEvent(key.toString(), row);
+        console.log('Event data updated successfully');
+      } catch (error) {
+        console.error('Error updating Event data:', error);
+        if (index > -1 && item) {
+          newData.splice(index, 1, item);
+          setData((prevData) => ({ ...prevData, data: newData}));
+        }
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -129,32 +133,69 @@ export const EventTable: React.FC = () => {
     setEditingKey('');
   };
 
+  // const edit = (record: Partial<Event> & { key: React.Key }) => {
+  //   form.setFieldsValue(record);
+  //   setEditingKey(record.key);
+  // };
+
   const edit = (record: Partial<Event> & { key: React.Key }) => {
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
+    const unformattedRecord = data.data.find((item) => item.id === record.id);
+    if (unformattedRecord) {
+      form.setFieldsValue({
+        ...unformattedRecord,
+        startTime: formatDateTime(unformattedRecord.startTime), // Format the startTime field
+        endTime: formatDateTime(unformattedRecord.endTime), // Format the endTime field
+      });
+      setEditingKey(record.key);
+    }
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Event) => {
-    const updatedData = data.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
-  useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const events = await getEvents();
-        setData(events);
-      } catch (error) {
-        console.error('Error fetching events:', error);
+  const { isMounted } = useMounted();
+
+  // const fetch = useCallback(
+  //   (pagination: Pagination) => {
+  //     setData((tableData) => ({ ...tableData, loading: true }));
+  //     getPaginatedEvents(pagination).then((res) => {
+  //       if (isMounted.current) {
+  //         setData({ data: res.data, pagination: res.pagination, loading: false });
+  //       }
+  //     });
+  //   },
+  //   [isMounted],
+  // );
+
+  const fetch = useCallback((pagination: Pagination) => {
+    setData((tableData) => ({ ...tableData, loading: true }));
+    getPaginatedEvents(pagination).then((res) => {
+      if (isMounted.current) {
+        const formattedEvents = res.data.map((event) => ({
+          ...event,
+          startTimeFormatted: formatDateTime(event.startTime), // Store formatted startTime
+          endTimeFormatted: formatDateTime(event.endTime), // Store formatted endTime
+        }));
+        setData({ data: formattedEvents, pagination: res.pagination, loading: false });
       }
-    };
-    fetchEvent();
-  }, []);
+    });
+  }, [isMounted]);
+
+  useEffect(() => {
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
@@ -162,8 +203,7 @@ export const EventTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        eventName: values.eventName,
-        rankName: values.rankName,
+        name: values.name,
         startTime: 0,
         endTime: 0,
         status: values.status,
@@ -171,7 +211,7 @@ export const EventTable: React.FC = () => {
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -184,20 +224,20 @@ export const EventTable: React.FC = () => {
   const columns: ColumnsType<Event> = [
     {
       title: t('Tên sự kiện'),
-      dataIndex: 'eventName',
+      dataIndex: 'name',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'eventName'; // Define dataIndex here
+        const dataIndex: keyof Event = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.eventName}
+            key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a eventName' }]}
+            rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.eventName, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -205,11 +245,11 @@ export const EventTable: React.FC = () => {
         );
       },
       onFilter: (value: string | number | boolean, record: Event) =>
-        record.eventName.toLowerCase().includes(value.toString().toLowerCase()),
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -249,7 +289,7 @@ export const EventTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{formatDateTime(record.startTime)}</span>
         );
       },
       },
@@ -272,33 +312,9 @@ export const EventTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{formatDateTime(record.endTime)}</span>
         );
       },
-      },
-      {
-        title: t('Tên Rank'),
-        dataIndex: 'rankName',
-        width: '8%',
-        render: (text: string, record: Event) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof Event = 'rankName'; // Define dataIndex here
-          return editable ? (
-            <Form.Item
-              key={record.rankName}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a rankName' }]}
-            >
-              <Input
-                value={record[dataIndex].toString()}
-                onChange={(e) => handleInputChange(e.target.value, record.rankName, dataIndex)}
-              />
-            </Form.Item>
-          ) : (
-            <span>{text}</span>
-          );
-        },
       },
       {
         title: t('Trạng thái'),
@@ -409,10 +425,13 @@ export const EventTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

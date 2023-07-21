@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
-import { StringLiteral } from 'typescript';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Major`;
 
@@ -22,16 +21,35 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: MajorList;
+  data: Major[];
   pagination: Pagination;
 }
 
-export const getMajors = async () => {
+export const getPaginatedMajors = async (pagination: Pagination) => {
   try {
     const response = await axios.get<MajorList>(API_BASE_URL);
-    return response.data.data;
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching major:', error);
+    console.error('Error fetching paginated majors:', error);
     throw error;
   }
 };

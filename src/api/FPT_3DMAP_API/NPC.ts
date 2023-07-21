@@ -4,9 +4,8 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Npcs`;
 
 export type Npc = {
-  npcName: string;
+  name: string;
   introduce: string;
-  questionName: string;
   status: string;
   id: string;
 };
@@ -22,26 +21,35 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: NpcList;
+  data: Npc[];
   pagination: Pagination;
 }
 
-export const getNpcs = async () => {
+export const getPaginatedNpcs = async (pagination: Pagination) => {
   try {
     const response = await axios.get<NpcList>(API_BASE_URL);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching npcs:', error);
-    throw error;
-  }
-};
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
 
-export const getNpcById = async (npcId: string) => {
-  try {
-    const response = await axios.get<Npc>(`${API_BASE_URL}/${npcId}`);
-    return response.data;
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching npc:', error);
+    console.error('Error fetching paginated npcs:', error);
     throw error;
   }
 };

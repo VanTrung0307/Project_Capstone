@@ -95,10 +95,12 @@ export const UserTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData((prevData) => ({ ...prevData, data: newData}));
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateUser(key.toString(), row);
         console.log('User data updated successfully');
       } catch (error) {

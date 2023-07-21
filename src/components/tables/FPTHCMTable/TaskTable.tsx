@@ -5,16 +5,16 @@ import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { Task, getTasks, updateTask, Pagination } from '@app/api/FPT_3DMAP_API/Task';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Task, getPaginatedTasks, updateTask, Pagination } from '@app/api/FPT_3DMAP_API/Task';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -22,35 +22,8 @@ const initialPagination: Pagination = {
 };
 
 export const TaskTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: Task[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => item.key !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -96,7 +69,12 @@ export const TaskTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<Task[]>([]);
+  const [data, setData] = useState<{ data: Task[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
   const isEditing = (record: Task) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -104,7 +82,7 @@ export const TaskTable: React.FC = () => {
   const save = async (key: React.Key) => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
       let item;
@@ -120,17 +98,19 @@ export const TaskTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData(newData);
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateTask(key.toString(), row);
         console.log('Task data updated successfully');
       } catch (error) {
         console.error('Error updating Task data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData(newData);
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -148,26 +128,37 @@ export const TaskTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Task) => {
-    const updatedData = data.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedTasks(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
   useEffect(() => {
-    const fetchTaskData = async () => {
-      try {
-        const tasks = await getTasks();
-        setData(tasks);
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-      }
-    };
-    fetchTaskData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
@@ -175,21 +166,21 @@ export const TaskTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        activityName: values.activityName,
+        name: values.name,
         locationName: values.locationName,
         npcName: values.npcName,
         majorName: values.majorName,
         type: values.type,
         point: 0,
-        endTime: 0,
+        durationCheckin: 0,
         timeOutAmount: 0,
-        isRequireitem: values.isrequireitem,
+        isRequireitem: values.isRequireitem,
         status: values.status,
         id: values.id,
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -202,20 +193,20 @@ export const TaskTable: React.FC = () => {
   const columns: ColumnsType<Task> = [
     {
       title: t('Tên nhiệm vụ'),
-      dataIndex: 'activityName',
+      dataIndex: 'name',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'activityName'; // Define dataIndex here
+        const dataIndex: keyof Task = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.activityName}
+            key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a activityName' }]}
+            rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.activityName, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -223,11 +214,11 @@ export const TaskTable: React.FC = () => {
         );
       },
       onFilter: (value: string | number | boolean, record: Task) =>
-        record.activityName.toLowerCase().includes(value.toString().toLowerCase()),
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -371,21 +362,21 @@ export const TaskTable: React.FC = () => {
     },
     {
       title: t('Giới hạn Check in?'),
-      dataIndex: 'endTime',
+      dataIndex: 'durationCheckin',
       width: '8%',
       render: (text: number, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'endTime'; // Define dataIndex here
+        const dataIndex: keyof Task = 'durationCheckin'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.endTime}
+            key={record.durationCheckin}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a endTime' }]}
+            rules={[{ required: true, message: 'Please enter a durationCheckin' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.durationCheckin, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -421,14 +412,14 @@ export const TaskTable: React.FC = () => {
       title: t('Có yêu cầu vật phẩm?'),
       dataIndex: 'isRequireitem',
       width: '8%',
-      render: (text: string, record: Task) => {
+      render: (text: boolean, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'isRequireitem'; // Define dataIndex here
         return editable ? (
           <Form.Item
             key={record.isRequireitem}
             name={dataIndex}
-            initialValue={text}
+            initialValue={text ? 'true' : 'false'}
             rules={[{ required: true, message: 'Please enter a isRequireitem' }]}
           >
             <Input
@@ -437,7 +428,7 @@ export const TaskTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : "Không có"}</span>
+          <span>{text !== false ? text : "Không có"}</span>
         );
       },
     },
@@ -550,10 +541,13 @@ export const TaskTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

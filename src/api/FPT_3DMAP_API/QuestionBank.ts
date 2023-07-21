@@ -4,9 +4,9 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Questions`;
 
 export type Question = {
-  questionName: string;
+  name: string;
   majorName: string;
-  isRight: string;
+  answerName: string;
   status: string;
   id: string;
 };
@@ -22,16 +22,35 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: QuestionList;
+  data: Question[];
   pagination: Pagination;
 }
 
-export const getQuestions = async () => {
+export const getPaginatedQuestions = async (pagination: Pagination) => {
   try {
     const response = await axios.get<QuestionList>(API_BASE_URL);
-    return response.data.data;
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching questions:', error);
+    console.error('Error fetching paginated questions:', error);
     throw error;
   }
 };

@@ -5,52 +5,25 @@ import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { Npc, getNpcs, updateNpc, Pagination } from '@app/api/FPT_3DMAP_API/NPC';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Npc, getPaginatedNpcs, updateNpc, Pagination } from '@app/api/FPT_3DMAP_API/NPC';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const NPCTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: Npc[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => item.key !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -96,7 +69,12 @@ export const NPCTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<Npc[]>([]);
+  const [data, setData] = useState<{ data: Npc[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
   const isEditing = (record: Npc) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -104,7 +82,7 @@ export const NPCTable: React.FC = () => {
   const save = async (key: React.Key) => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
       let item;
@@ -120,17 +98,19 @@ export const NPCTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData(newData);
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateNpc(key.toString(), row);
         console.log('Npc data updated successfully');
       } catch (error) {
         console.error('Error updating Npc data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData(newData);
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -148,26 +128,37 @@ export const NPCTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Npc) => {
-    const updatedData = data.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedNpcs(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
   useEffect(() => {
-    const fetchNpcData = async () => {
-      try {
-        const npcs = await getNpcs();
-        setData(npcs);
-      } catch (error) {
-        console.error('Error fetching npcs:', error);
-      }
-    };
-    fetchNpcData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
@@ -175,15 +166,14 @@ export const NPCTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        npcName: values.npcName,
+        name: values.name,
         introduce: values.introduce,
-        questionName: values.questionName,
         status: values.status,
         id: values.id,
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -196,20 +186,20 @@ export const NPCTable: React.FC = () => {
   const columns: ColumnsType<Npc> = [
     {
       title: t('Tên NPC'),
-      dataIndex: 'npcName',
+      dataIndex: 'name',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Npc = 'npcName'; // Define dataIndex here
+        const dataIndex: keyof Npc = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.npcName}
+            key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a npcName' }]}
+            rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.npcName, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -217,7 +207,7 @@ export const NPCTable: React.FC = () => {
         );
       },
       onFilter: (value: string | number | boolean, record: Npc) =>
-        record.npcName.toLowerCase().includes(value.toString().toLowerCase()),
+        record.name.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -258,29 +248,6 @@ export const NPCTable: React.FC = () => {
             <Input
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Câu hỏi được nhận'),
-      dataIndex: 'questionName',
-      render: (text: string, record: Npc) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Npc = 'questionName'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.questionName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a questionName' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.questionName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -397,10 +364,13 @@ export const NPCTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

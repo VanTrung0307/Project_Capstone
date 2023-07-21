@@ -2,53 +2,27 @@
 import { SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { Item, getItems, updateItem, Pagination } from '@app/api/FPT_3DMAP_API/Item';
+import { Avatar, Form, Input, Modal, Select, Space } from 'antd';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Item, getPaginatedItems, updateItem, Pagination } from '@app/api/FPT_3DMAP_API/Item';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const ItemTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: Item[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+
   const { t } = useTranslation();
-
-  // const handleDeleteRow = (rowId: number) => {
-  //   setTableData({
-  //     ...tableData,
-  //     data: tableData.data.filter((item) => item.key !== rowId),
-  //     pagination: {
-  //       ...tableData.pagination,
-  //       total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-  //     },
-  //   });
-  // };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -91,10 +65,21 @@ export const ItemTable: React.FC = () => {
     cursor: 'pointer',
   };
 
+  const imageWithNameStyles: CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  };
+
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<Item[]>([]);
+  const [data, setData] = useState<{ data: Item[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
   const isEditing = (record: Item) => record.id === editingKey;
 
   const [form] = Form.useForm();
@@ -102,7 +87,7 @@ export const ItemTable: React.FC = () => {
   const save = async (key: React.Key) => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
+      const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
       let item;
@@ -118,17 +103,19 @@ export const ItemTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData(newData);
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateItem(key.toString(), row);
-        console.log('RoomLocation data updated successfully');
+        console.log('Item data updated successfully');
       } catch (error) {
-        console.error('Error updating RoomLocation data:', error);
+        console.error('Error updating Item data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData(newData);
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -146,26 +133,37 @@ export const ItemTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Item) => {
-    const updatedData = data.map((record) => {
+    const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedItems(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
   useEffect(() => {
-    const fetchItemData = async () => {
-      try {
-        const items = await getItems();
-        setData(items);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      }
-    };
-    fetchItemData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
@@ -184,7 +182,7 @@ export const ItemTable: React.FC = () => {
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -214,7 +212,11 @@ export const ItemTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          // <span>{text}</span>
+          <span style={imageWithNameStyles}>
+            <Avatar src={record.description} alt="Hình ảnh" />
+              {text}
+          </span>
         );
       },
       onFilter: (value: string | number | boolean, record: Item) =>
@@ -222,7 +224,7 @@ export const ItemTable: React.FC = () => {
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -269,6 +271,7 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Mô tả'),
       dataIndex: 'description',
+      width: "20%",
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'description'; // Define dataIndex here
@@ -446,10 +449,13 @@ export const ItemTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

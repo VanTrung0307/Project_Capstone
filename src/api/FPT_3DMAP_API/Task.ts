@@ -7,8 +7,8 @@ export type Task = {
   locationName: string;
   majorName: string;
   npcName: string;
-  activityName: string
-  endTime: number;
+  name: string
+  durationCheckin: number;
   isRequireitem: string; //boolean
   timeOutAmount: number;
   type: string;
@@ -28,16 +28,35 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: TaskList;
+  data: Task[];
   pagination: Pagination;
 }
 
-export const getTasks = async () => {
+export const getPaginatedTasks = async (pagination: Pagination) => {
   try {
     const response = await axios.get<TaskList>(API_BASE_URL);
-    return response.data.data;
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching task:', error);
+    console.error('Error fetching paginated tasks:', error);
     throw error;
   }
 };

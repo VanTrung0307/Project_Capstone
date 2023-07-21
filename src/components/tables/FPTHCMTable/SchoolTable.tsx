@@ -96,10 +96,12 @@ export const SchoolTable: React.FC = () => {
         newData.push(row);
       }
 
-      setData((prevData) => ({ ...prevData, data: newData}));
-      setEditingKey(0);
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
 
       try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
         console.log('School data updated successfully');
       } catch (error) {
@@ -241,7 +243,6 @@ export const SchoolTable: React.FC = () => {
             key={record.email}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a email' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -264,7 +265,6 @@ export const SchoolTable: React.FC = () => {
             key={record.address}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a address' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -288,7 +288,6 @@ export const SchoolTable: React.FC = () => {
             key={record.phoneNumber}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a phoneNumber' }]}
           >
             <Input
               value={record[dataIndex]}
