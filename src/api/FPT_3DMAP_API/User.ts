@@ -1,18 +1,25 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+// import { Priority } from '@app/constants/enums/priorities';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users`;
 
+// export interface Tag {
+//   status: string;
+//   priority: Priority;
+// }
+
 export type User = {
-  schoolId: string;
+  schoolname: string;
   roleId: string;
   email: string;
   password: string;
   phoneNumber: number;
-  gender: boolean;
-  status: string;
+  gender: string;
   fullname: string;
   username: string;
+  // status?: Tag[];
+  status: string, 
   id: string;
 };
 
@@ -20,22 +27,42 @@ export type UserList = {
   data: User[];
 };
 
-export const getUsers = async () => {
+export interface Pagination {
+  current?: number;
+  pageSize?: number;
+  total?: number;
+}
+
+export interface PaginationData {
+  data: User[];
+  pagination: Pagination;
+}
+
+export const getPaginatedUsers = async (pagination: Pagination) => {
   try {
     const response = await axios.get<UserList>(API_BASE_URL);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching players:', error);
-    throw error;
-  }
-};
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
 
-export const getUserById = async (userId: string) => {
-  try {
-    const response = await axios.get<User>(`${API_BASE_URL}/${userId}`);
-    return response.data;
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Simulate a delay of 1 second using setTimeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
   } catch (error) {
-    console.error('Error fetching player:', error);
+    console.error('Error fetching paginated users:', error);
     throw error;
   }
 };

@@ -1,55 +1,25 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Player, getPlayers } from '@app/api/FPT_3DMAP_API/Player';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { Form, Input } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { Pagination } from 'api/Playertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const PlayerTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+  
   const { t } = useTranslation();
-
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => Number(item.userId) !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -95,119 +65,70 @@ export const PlayerTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<Player[]>([]);
-  const isEditing = (record: Player) => record.userId === editingKey;
+  const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
+  const formatDateTime = (isoDateTime: number) => {
+    const dateTime = new Date(isoDateTime);
+    const year = dateTime.getFullYear();
+    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  };
+
+  const isEditing = (record: Player) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
-  const save = async (key: React.Key) => {
-    try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.id);
-      if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-        });
-        setData(newData);
-        setEditingKey('');
-      } else {
-        newData.push(row);
-        setData(newData);
-        setEditingKey('');
-      }
-    } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
-    }
-  };
+  const { isMounted } = useMounted();
 
-  const cancel = () => {
-    setEditingKey('');
-  };
-
-  const edit = (record: Partial<Player> & { key: React.Key }) => {
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
-  };
-
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Player) => {
-    const updatedData = data.map((record) => {
-      if (record.id === key) {
-        return { ...record, [dataIndex]: value };
-      }
-      return record;
-    });
-    setData(updatedData);
-  };
-
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
-
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
-        userId: values.userId,
-        totalPoint: 0,
-        totalTime: 0,
-        id: values.id,
-      };
-
-      // Update the tableData state with the new data
-      setTableData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, newData],
-      }));
-
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
-  };
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedPlayers(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const users = await getPlayers();
-        setData(users);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+    fetch(initialPagination);
+  }, [fetch]);
 
   const columns: ColumnsType<Player> = [
     {
       title: t('Tên học sinh đã tham gia'),
-      dataIndex: 'userId',
+      dataIndex: 'fullname',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'userId'; // Define dataIndex here
+        const dataIndex: keyof Player = 'fullname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.userId}
+            key={record.fullname}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Please enter a fullname' }]}
           >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex)}
-            />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
       onFilter: (value: string | number | boolean, record: Player) =>
-        record.userId.toLowerCase().includes(value.toString().toLowerCase()),
+        record.fullname.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (
@@ -230,21 +151,62 @@ export const PlayerTable: React.FC = () => {
     },
     {
       title: t('Biệt danh'),
-      dataIndex: 'userId',
+      dataIndex: 'nickname',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'userId'; // Define dataIndex here
+        const dataIndex: keyof Player = 'nickname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.userId}
+            key={record.nickname}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a nickname' }]}
           >
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+      onFilter: (value: string | number | boolean, record: Player) =>
+        record.nickname.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0]?.toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
             <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.userId, dataIndex)}
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
             />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Tổng điểm thưởng'),
+      dataIndex: 'totalPoint',
+      width: '10%',
+      render: (text: number, record: Player) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Player = 'totalPoint'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.totalPoint}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a totalPoint' }]}
+          >
           </Form.Item>
         ) : (
           <span>{text}</span>
@@ -252,51 +214,42 @@ export const PlayerTable: React.FC = () => {
       },
     },
     {
-      title: t('Tổng điểm thưởng'),
-      dataIndex: 'totalpoint',
-      render: (text: number) => {
-        <span>{text}</span>;
-      },
-    },
-    {
       title: t('Tổng thời gian hoàn thành'),
-      dataIndex: 'totaltime',
-      render: (text: number) => {
-        <span>{text}</span>;
+      dataIndex: 'totalTime',
+      width: '10%',
+      render: (text: number, record: Player) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Player = 'totalTime'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.totalTime}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a totalTime' }]}
+          >
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
       },
     },
     {
-      title: t('Chức năng'),
-      dataIndex: 'actions',
+      title: t('Thời điểm đã tạo'),
+      dataIndex: 'createdAt',
       width: '15%',
-      render: (text: string, record: Player) => {
+      render: (text: number, record: Player) => {
         const editable = isEditing(record);
-        return (
-          <Space>
-            {editable ? (
-              <>
-                <Button type="primary" onClick={() => save(record.userId)}>
-                  {t('common.save')}
-                </Button>
-                <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  type="ghost"
-                  disabled={editingKey !== ''}
-                  onClick={() => edit({ key: record.userId.toString() })}
-                >
-                  {t('common.edit')}
-                </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(Number(record.userId))}>
-                  {t('tables.delete')}
-                </Button>
-              </>
-            )}
-          </Space>
+        const dataIndex: keyof Player = 'createdAt'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.createdAt}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Please enter a createdAt' }]}
+          >
+          </Form.Item>
+        ) : (
+          <span>{formatDateTime(record.createdAt)}</span>
         );
       },
     },
@@ -304,48 +257,6 @@ export const PlayerTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Button
-        type="primary"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
-      >
-        Add Data
-      </Button>
-      <Modal
-        title={'Add Player'}
-        open={isBasicModalOpen}
-        onOk={handleModalOk}
-        onCancel={() => setIsBasicModalOpen(false)}
-      >
-        <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
-          >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
-            </Select>
-          </BaseForm.Item>
-        </S.FormContent>
-      </Modal>
       <Table
         components={{
           body: {
@@ -353,10 +264,9 @@ export const PlayerTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={tableData.data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={data.pagination}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />

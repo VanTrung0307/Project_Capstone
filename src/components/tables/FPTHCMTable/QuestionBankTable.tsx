@@ -3,16 +3,17 @@ import { SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Form, Input, Modal, Select, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { BasicTableRow, Pagination } from 'api/QuestionBanktable.api';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Question, getPaginatedQuestions, updateQuestion, Pagination } from '@app/api/FPT_3DMAP_API/QuestionBank';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -20,35 +21,8 @@ const initialPagination: Pagination = {
 };
 
 export const QuestionBankTable: React.FC = () => {
-  const [tableData, setTableData] = useState<{ data: BasicTableRow[]; pagination: Pagination; loading: boolean }>({
-    data: [],
-    pagination: initialPagination,
-    loading: false,
-  });
+
   const { t } = useTranslation();
-
-  const handleDeleteRow = (rowId: number) => {
-    setTableData({
-      ...tableData,
-      data: tableData.data.filter((item) => item.key !== rowId),
-      pagination: {
-        ...tableData.pagination,
-        total: tableData.pagination.total ? tableData.pagination.total - 1 : tableData.pagination.total,
-      },
-    });
-  };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: Key[], selectedRows: DefaultRecordType[]) => {
-      console.log(selectedRowKeys, selectedRows);
-    },
-    onSelect: (record: DefaultRecordType, selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected: boolean, selectedRows: DefaultRecordType[]) => {
-      console.log(selected, selectedRows);
-    },
-  };
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -94,29 +68,49 @@ export const QuestionBankTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<BasicTableRow[]>([]);
-  const isEditing = (record: BasicTableRow) => record.key === editingKey;
+  const [data, setData] = useState<{ data: Question[]; pagination: Pagination; loading: boolean }>({
+    data: [],
+    pagination: initialPagination,
+    loading: false,
+  });
+
+  const isEditing = (record: Question) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
   const save = async (key: React.Key) => {
     try {
-      await form.validateFields([key]);
-      const row = form.getFieldsValue([key]);
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const row = await form.validateFields();
+      const newData = [...data.data];
+      const index = newData.findIndex((item) => key === item.id);
+
+      let item;
+
       if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
+        item = newData[index];
+        const updatedItem = {
           ...item,
           ...row,
-        });
-        setData(newData);
-        setEditingKey('');
+        };
+        newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey('');
+      }
+
+      setData((prevData) => ({ ...prevData, loading: true }));
+      setEditingKey('');
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setData({ ...data, data: newData, loading: false });
+        await updateQuestion(key.toString(), row);
+        console.log('Question data updated successfully');
+      } catch (error) {
+        console.error('Error updating Question data:', error);
+        if (index > -1 && item) {
+          newData.splice(index, 1, item);
+          setData((prevData) => ({ ...prevData, data: newData}));
+        }
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -127,19 +121,42 @@ export const QuestionBankTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<BasicTableRow> & { key: React.Key }) => {
+  const edit = (record: Partial<Question> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof BasicTableRow) => {
-    const updatedData = data.map((record) => {
-      if (record.key === key) {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Question) => {
+    const updatedData = data.data.map((record) => {
+      if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData(updatedData);
+    setData((prevData) => ({ ...prevData, data: updatedData}));
+  };
+
+  const { isMounted } = useMounted();
+
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedQuestions(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
+
+  useEffect(() => {
+    fetch(initialPagination);
+  }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
   };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
@@ -148,15 +165,15 @@ export const QuestionBankTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
-        majorname: values.majorname,
+        majorName: values.majorName,
         name: values.name,
-        answer: values.answer,
-        is_right: values.is_right,
+        status: values.status,
+        answerName: values.answerName,
+        id: values.id,
       };
 
       // Update the tableData state with the new data
-      setTableData((prevData) => ({
+      setData((prevData) => ({
         ...prevData,
         data: [...prevData.data, newData],
       }));
@@ -166,23 +183,23 @@ export const QuestionBankTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<BasicTableRow> = [
+  const columns: ColumnsType<Question> = [
     {
       title: t('Tên câu hỏi'),
       dataIndex: 'name',
-      render: (text: string, record: BasicTableRow) => {
+      render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof Question = 'name'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Question Name' }]}
+            rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -192,28 +209,28 @@ export const QuestionBankTable: React.FC = () => {
     },
     {
       title: t('Tên ngành'),
-      dataIndex: 'majorname',
-      render: (text: string, record: BasicTableRow) => {
+      dataIndex: 'majorName',
+      render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'majorname'; // Define dataIndex here
+        const dataIndex: keyof Question = 'majorName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.majorName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Major Name' }]}
+            rules={[{ required: true, message: 'Please enter a majorName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.majorName, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: BasicTableRow) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Question) =>
+        record.majorName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -239,21 +256,21 @@ export const QuestionBankTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Danh sách câu trả lời'),
-      dataIndex: 'answer',
-      render: (text: string, record: BasicTableRow) => {
+      title: t('Câu trả lời đúng'),
+      dataIndex: 'answerName',
+      render: (text: number, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'answer'; // Define dataIndex here
+        const dataIndex: keyof Question = 'answerName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.answerName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Answer' }]}
+            rules={[{ required: true, message: 'Please enter a answerName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -262,21 +279,22 @@ export const QuestionBankTable: React.FC = () => {
       },
     },
     {
-      title: t('Câu trả lời đúng'),
-      dataIndex: 'is_right',
-      render: (text: number, record: BasicTableRow) => {
+      title: t('Trạng thái'),
+      dataIndex: 'status',
+      width: '8%',
+      render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof BasicTableRow = 'name'; // Define dataIndex here
+        const dataIndex: keyof Question = 'status'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.key}
+            key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Right Answer' }]}
+            rules={[{ required: true, message: 'Please enter a status' }]}
           >
             <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.key, dataIndex)}
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -287,14 +305,14 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
-      render: (text: string, record: BasicTableRow) => {
+      width: '8%',
+      render: (text: string, record: Question) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.key)}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -303,11 +321,12 @@ export const QuestionBankTable: React.FC = () => {
               </>
             ) : (
               <>
-                <Button type="ghost" disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <Button
+                  type="ghost"
+                  disabled={editingKey === record.id}
+                  onClick={() => edit({ ...record, key: record.id })}
+                >
                   {t('common.edit')}
-                </Button>
-                <Button type="default" danger onClick={() => handleDeleteRow(record.key)}>
-                  {t('tables.delete')}
                 </Button>
               </>
             )}
@@ -368,10 +387,13 @@ export const QuestionBankTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={tableData.data}
-        pagination={tableData.pagination}
-        rowSelection={{ ...rowSelection }}
-        loading={tableData.loading}
+        dataSource={data.data}
+        pagination={{
+          ...data.pagination,
+          onChange: cancel,
+        }}
+        onChange={handleTableChange}
+        loading={data.loading}
         scroll={{ x: 800 }}
         bordered
       />
