@@ -1,19 +1,18 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
+import { Pagination, Question, getPaginatedQuestions, updateQuestion } from '@app/api/FPT_3DMAP_API/QuestionBank';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Question, getPaginatedQuestions, updateQuestion, Pagination } from '@app/api/FPT_3DMAP_API/QuestionBank';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,

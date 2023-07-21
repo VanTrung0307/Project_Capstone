@@ -1,19 +1,18 @@
 /* eslint-disable prettier/prettier */
+import { SearchOutlined } from '@ant-design/icons';
+import { Gift, Pagination, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Gift, getPaginatedGifts, updateGift, Pagination } from '@app/api/FPT_3DMAP_API/Gift';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
-import { SearchOutlined } from '@ant-design/icons';
 import { CSSProperties } from 'styled-components';
-import { useMounted } from '@app/hooks/useMounted';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,

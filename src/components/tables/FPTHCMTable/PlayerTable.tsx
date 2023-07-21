@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SearchOutlined } from '@ant-design/icons';
 import { Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
 import { Form, Input } from 'antd';
