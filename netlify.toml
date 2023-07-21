@@ -1,3 +1,0 @@
-[build]
-  command = "yarn buildThemes && craco build"
-  node_version = "16.x"

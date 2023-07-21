@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { SearchOutlined } from '@ant-design/icons';
 import { Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { Pagination } from 'api/Playertable.api';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -19,7 +19,6 @@ const initialPagination: Pagination = {
 };
 
 export const PlayerTable: React.FC = () => {
-  
   const { t } = useTranslation();
 
   const filterDropdownStyles: CSSProperties = {
@@ -118,8 +117,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a fullname' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{text}</span>
         );
@@ -162,8 +160,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a nickname' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{text}</span>
         );
@@ -207,8 +204,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a totalPoint' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{text}</span>
         );
@@ -227,8 +223,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a totalTime' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{text}</span>
         );
@@ -247,8 +242,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a createdAt' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{formatDateTime(record.createdAt)}</span>
         );
