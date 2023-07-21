@@ -92,6 +92,16 @@ export const MajorTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -242,6 +252,7 @@ export const MajorTable: React.FC = () => {
             key={record.description}
             name={dataIndex}
             initialValue={text}
+            rules={[{ required: false, message: 'Please enter a status' }]}
           >
             <Input
               value={record[dataIndex]}

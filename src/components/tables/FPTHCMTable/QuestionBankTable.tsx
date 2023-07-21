@@ -17,7 +17,7 @@ import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const QuestionBankTable: React.FC = () => {
@@ -92,6 +92,16 @@ export const QuestionBankTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Question:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);

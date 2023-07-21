@@ -104,6 +104,16 @@ export const EventTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Item:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);

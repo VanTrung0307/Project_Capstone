@@ -94,6 +94,16 @@ export const RoomAndLocationTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Room&Location:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -156,9 +166,18 @@ export const RoomAndLocationTable: React.FC = () => {
     fetch(initialPagination);
   }, [fetch]);
 
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-    cancel();
+  const handleTableChange = (pagination: TablePaginationConfig, filters: Record<string, any>, sorter: any) => {
+    const { current, pageSize } = pagination;
+    const paginationParams: Pagination = { current, pageSize };
+
+    // Cập nhật giá trị searchValue khi người dùng thay đổi ô tìm kiếm
+    if (filters.locationName) {
+      setSearchValue(filters.locationName[0]);
+    } else {
+      setSearchValue('');
+    }
+
+    fetch(paginationParams);
   };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
@@ -256,54 +275,54 @@ export const RoomAndLocationTable: React.FC = () => {
         );
       },
       },
-    {
-      title: t('Tên địa điểm'),
-      dataIndex: 'locationName',
-      render: (text: string, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'locationName'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.locationName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a locationName' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      {
+        title: t('Tên trường'),
+        dataIndex: 'locationName',
+        render: (text: string, record: RoomLocation) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof RoomLocation = 'locationName'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.locationName}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a locationName' }]}
+            >
+              <Input
+                value={record[dataIndex]}
+                onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
+        },
+        onFilter: (value: string | number | boolean, record: RoomLocation) =>
+          record.locationName.toLowerCase().includes(value.toString().toLowerCase()),
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+          const handleSearch = () => {
+            confirm();
+            setSearchValue(selectedKeys[0]?.toString());
+          };
+  
+          return (
+            <div style={filterDropdownStyles} className="input-box">
+              <Input
+                type="text"
+                placeholder="Search here..."
+                value={selectedKeys[0]}
+                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+                style={inputStyles}
+              />
+              <Button onClick={handleSearch} className="button" style={buttonStyles}>
+                Filter
+              </Button>
+            </div>
+          );
+        },
+        filterIcon: () => <SearchOutlined />,
+        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
       },
-      onFilter: (value: string | number | boolean, record: RoomLocation) =>
-        record.locationName.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
-    },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',

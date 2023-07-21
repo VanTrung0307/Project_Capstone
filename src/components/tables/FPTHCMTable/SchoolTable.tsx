@@ -16,7 +16,7 @@ import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 10,
+  pageSize: 1,
 };
 
 export const SchoolTable: React.FC = () => {
@@ -91,6 +91,16 @@ export const SchoolTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -211,7 +221,7 @@ export const SchoolTable: React.FC = () => {
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
-          setSearchValue(selectedKeys[0].toString());
+          setSearchValue(selectedKeys[0]?.toString());
         };
 
         return (

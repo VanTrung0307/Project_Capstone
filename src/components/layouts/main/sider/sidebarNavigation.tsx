@@ -22,6 +22,7 @@ import {
 import React from 'react';
 import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';
 import { MdOutlineCategory } from 'react-icons/md';
+import { RiQuestionAnswerLine } from 'react-icons/ri'
 
 export interface SidebarNavigationItem {
   title: string;
@@ -123,12 +124,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     url: '/data-tables',
     icon: <TableOutlined />,
   },
-  {
-    title: 'Player Profiles',
-    key: 'playerProfile',
-    url: '/player-profiles',
-    icon: <IdcardOutlined />,
-  },
+  // {
+  //   title: 'Player Profiles',
+  //   key: 'playerProfile',
+  //   url: '/player-profiles',
+  //   icon: <IdcardOutlined />,
+  // },
   {
     title: 'Users',
     key: 'users',
@@ -176,6 +177,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     key: 'questionbanks',
     url: '/questionbanks',
     icon: <QuestionCircleOutlined />,
+  },
+  {
+    title: 'Answers',
+    key: 'answers',
+    url: '/answers',
+    icon: <RiQuestionAnswerLine />,
   },
   {
     title: 'NPCs',

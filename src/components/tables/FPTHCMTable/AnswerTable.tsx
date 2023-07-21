@@ -3,7 +3,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Gift, getPaginatedGifts, updateGift, Pagination } from '@app/api/FPT_3DMAP_API/Gift';
+import { Answer, getPaginatedAnswers, updateAnswer, Pagination } from '@app/api/FPT_3DMAP_API/Answer';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -17,11 +17,11 @@ import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
-export const GiftTable: React.FC = () => {
- 
+export const AnswerTable: React.FC = () => {
+
   const { t } = useTranslation();
 
   const filterDropdownStyles: CSSProperties = {
@@ -68,13 +68,13 @@ export const GiftTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Gift[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: Answer[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: Gift) => record.id === editingKey;
+  const isEditing = (record: Answer) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -100,7 +100,7 @@ export const GiftTable: React.FC = () => {
           }
         });
 
-        console.log("Updated null Gift:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log("Updated null Answer:", updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -113,10 +113,10 @@ export const GiftTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateGift(key.toString(), row);
-        console.log('Gift data updated successfully');
+        await updateAnswer(key.toString(), row);
+        console.log('Answer data updated successfully');
       } catch (error) {
-        console.error('Error updating Gift data:', error);
+        console.error('Error updating Answer data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData}));
@@ -131,12 +131,12 @@ export const GiftTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<Gift> & { key: React.Key }) => {
+  const edit = (record: Partial<Answer> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Gift) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Answer) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -151,7 +151,7 @@ export const GiftTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedGifts(pagination).then((res) => {
+      getPaginatedAnswers(pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
@@ -175,12 +175,8 @@ export const GiftTable: React.FC = () => {
     form.validateFields().then((values) => {
       // Create a new data object from the form values
       const newData = {
-        name: values.name,
-        decription: values.decription,
-        rankName: values.rankName,
-        price: values.price,
-        place: values.place,
-        status: values.status,
+        answerName: values.answerName,
+        isRight: values.isRight,
         id: values.id,
       };
 
@@ -195,31 +191,31 @@ export const GiftTable: React.FC = () => {
     });
   };
 
-  const columns: ColumnsType<Gift> = [
+  const columns: ColumnsType<Answer> = [
     {
-      title: t('Tên quà tặng'),
-      dataIndex: 'name',
-      render: (text: string, record: Gift) => {
+      title: t('Tên ngành'),
+      dataIndex: 'answerName',
+      render: (text: string, record: Answer) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'name'; // Define dataIndex here
+        const dataIndex: keyof Answer = 'answerName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.name}
+            key={record.answerName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a giftName' }]}
+            rules={[{ required: true, message: 'Please enter a answerName' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Gift) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Answer) =>
+        record.answerName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -245,126 +241,58 @@ export const GiftTable: React.FC = () => {
       filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Thứ hạng được nhận'),
-      dataIndex: 'place',
-      render: (text: string, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'place'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.place}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a place' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.place, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+        title: t('Câu hỏi đúng'),
+        dataIndex: 'isRight',
+        render: (text: boolean, record: Answer) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof Answer = 'isRight'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.id}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Please enter a true or false' }]}
+            >
+              {/* <Input
+                value={record[dataIndex]}
+                onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
+              /> */}
+            </Form.Item>
+          ) : (
+            <span>{text !== true ? 'Câu trả lời sai' : 'Câu trả lời đúng'}</span>
+          );
+        },
+        onFilter: (value: string | number | boolean, record: Answer) =>
+          record.answerName.toLowerCase().includes(value.toString().toLowerCase()),
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+          const handleSearch = () => {
+            confirm();
+            setSearchValue(selectedKeys[0]?.toString());
+          };
+  
+          return (
+            <div style={filterDropdownStyles} className="input-box">
+              <Input
+                type="text"
+                placeholder="Search here..."
+                value={selectedKeys[0]}
+                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+                style={inputStyles}
+              />
+              <Button onClick={handleSearch} className="button" style={buttonStyles}>
+                Filter
+              </Button>
+            </div>
+          );
+        },
+        filterIcon: () => <SearchOutlined />,
+        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
       },
-    },
-    {
-      title: t('Tên bảng xếp hạng'),
-      dataIndex: 'rankName',
-      render: (text: string, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'rankName'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.rankName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a rankName' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.rankName, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Số điểm thưởng tương ứng'),
-      dataIndex: 'price',
-      render: (text: number, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'price'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.price}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a price' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.price, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Mô tả cách nhận thưởng'),
-      dataIndex: 'decription',
-      render: (text: string, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'decription'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.decription}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter decription' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.decription, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Trạng thái'),
-      dataIndex: 'status',
-      width: '8%',
-      render: (text: string, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'status'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.status}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
-          >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '8%',
-      render: (text: string, record: Gift) => {
+      render: (text: string, record: Answer) => {
         const editable = isEditing(record);
         return (
           <Space>
