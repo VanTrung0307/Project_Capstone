@@ -1,9 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { Player, getPaginatedPlayers, Pagination } from '@app/api/FPT_3DMAP_API/Player';
 import { Form, Input } from 'antd';
-import { ColumnsType } from 'antd/es/table';
-import { Pagination } from 'api/Playertable.api';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import React, { useEffect, useState, useCallback } from 'react';
@@ -103,6 +102,10 @@ export const PlayerTable: React.FC = () => {
   useEffect(() => {
     fetch(initialPagination);
   }, [fetch]);
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+  };
 
   const columns: ColumnsType<Player> = [
     {
@@ -266,6 +269,7 @@ export const PlayerTable: React.FC = () => {
         columns={columns}
         dataSource={data.data}
         pagination={data.pagination}
+        onChange={handleTableChange}
         loading={data.loading}
         scroll={{ x: 800 }}
         bordered
