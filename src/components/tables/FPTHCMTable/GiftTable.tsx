@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Gift, getPaginatedGifts, updateGift, Pagination } from '@app/api/FPT_3DMAP_API/Gift';
 import { Table } from 'components/common/Table/Table';
@@ -289,6 +289,31 @@ export const GiftTable: React.FC = () => {
           <span>{text}</span>
         );
       },
+      onFilter: (value: string | number | boolean, record: Gift) =>
+        record.rankName.toLowerCase().includes(value.toString().toLowerCase()),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
+        const handleSearch = () => {
+          confirm();
+          setSearchValue(selectedKeys[0]?.toString());
+        };
+
+        return (
+          <div style={filterDropdownStyles} className="input-box">
+            <Input
+              type="text"
+              placeholder="Search here..."
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
+              style={inputStyles}
+            />
+            <Button onClick={handleSearch} className="button" style={buttonStyles}>
+              Filter
+            </Button>
+          </div>
+        );
+      },
+      filterIcon: () => <SearchOutlined />,
+      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Số điểm thưởng tương ứng'),
@@ -356,7 +381,7 @@ export const GiftTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== "INACTIVE" ? <Tag color="#2db7f5">ACTIVE</Tag> : <Tag color="#f50">INACTIVE</Tag>}</span>
         );
       },
     },

@@ -193,7 +193,7 @@ export const AnswerTable: React.FC = () => {
 
   const columns: ColumnsType<Answer> = [
     {
-      title: t('Tên ngành'),
+      title: t('Tên câu hỏi'),
       dataIndex: 'answerName',
       render: (text: string, record: Answer) => {
         const editable = isEditing(record);
@@ -243,7 +243,7 @@ export const AnswerTable: React.FC = () => {
     {
         title: t('Câu hỏi đúng'),
         dataIndex: 'isRight',
-        render: (text: boolean, record: Answer) => {
+        render: (text: string, record: Answer) => {
           const editable = isEditing(record);
           const dataIndex: keyof Answer = 'isRight'; // Define dataIndex here
           return editable ? (
@@ -253,41 +253,16 @@ export const AnswerTable: React.FC = () => {
               initialValue={text}
               rules={[{ required: true, message: 'Please enter a true or false' }]}
             >
-              {/* <Input
+              <Input
                 value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
-              /> */}
+                onChange={(e) => handleInputChange(e.target.value, record.isRight, dataIndex)}
+              />
             </Form.Item>
           ) : (
-            <span>{text !== true ? 'Câu trả lời sai' : 'Câu trả lời đúng'}</span>
+            <span>{text !== "true" ? "SAI" : "ĐÚNG"}</span>
           );
         },
-        onFilter: (value: string | number | boolean, record: Answer) =>
-          record.answerName.toLowerCase().includes(value.toString().toLowerCase()),
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-          const handleSearch = () => {
-            confirm();
-            setSearchValue(selectedKeys[0]?.toString());
-          };
-  
-          return (
-            <div style={filterDropdownStyles} className="input-box">
-              <Input
-                type="text"
-                placeholder="Search here..."
-                value={selectedKeys[0]}
-                onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-                style={inputStyles}
-              />
-              <Button onClick={handleSearch} className="button" style={buttonStyles}>
-                Filter
-              </Button>
-            </div>
-          );
         },
-        filterIcon: () => <SearchOutlined />,
-        filtered: searchValue !== '', // Apply filtering if searchValue is not empty
-      },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',

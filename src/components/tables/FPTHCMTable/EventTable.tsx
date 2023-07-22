@@ -4,7 +4,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
-import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Event, getPaginatedEvents, updateEvent, Pagination } from '@app/api/FPT_3DMAP_API/Event';
 import { Table } from 'components/common/Table/Table';
@@ -346,7 +346,7 @@ export const EventTable: React.FC = () => {
               />
             </Form.Item>
           ) : (
-            <span>{text}</span>
+            <span>{text !== "INACTIVE" ? <Tag color="#2db7f5">ACTIVE</Tag> : <Tag color="#f50">INACTIVE</Tag>}</span>
           );
         },
       },

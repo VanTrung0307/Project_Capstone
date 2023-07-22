@@ -187,6 +187,8 @@ export const ItemTable: React.FC = () => {
         description: values.description,
         type: values.type,
         limitExchange: values.limitExchange,
+        quantity: 0,
+        imageUrl: values.imageUrl,
         status: values.status,
         id: values.id,
       };
@@ -330,23 +332,23 @@ export const ItemTable: React.FC = () => {
       title: t('Giới hạn'),
       dataIndex: 'limitExchange',
       width: '8%',
-      render: (text: number, record: Item) => {
+      render: (text: boolean, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'limitExchange'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.limitExchange}
+            key={record.id}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a limitExchange' }]}
           >
             <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.limitExchange, dataIndex)}
+              value={record[dataIndex].toString()}
+              onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text ? "Có giới hạn" : "Không giới hạn"}</span>
         );
       },
     },

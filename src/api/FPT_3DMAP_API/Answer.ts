@@ -5,7 +5,7 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Answers`;
 
 export type Answer = {
   answerName: string;
-  isRight: boolean;
+  isRight: string;
   id: string
 };
 
@@ -73,12 +73,12 @@ export const createAnswer = async (answerData: Answer) => {
   }
 };
 
-export const updateAnswer = async (eventId: string, eventData: Answer) => {
+export const updateAnswer = async (answerId: string, answerData: Answer) => {
   try {
-    const response = await axios.put<Answer>(`${API_BASE_URL}/${eventId}`, eventData);
+    const response = await axios.put<Answer>(`${API_BASE_URL}/${answerId}`, answerData);
     return response.data;
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('Error updating answer:', error);
     throw error;
   }
 };

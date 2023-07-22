@@ -64,6 +64,16 @@ export const createNpc = async (npcData: Npc) => {
   }
 };
 
+export const getNpcById = async (npcId: string) => {
+  try {
+    const response = await axios.get<Npc>(`${API_BASE_URL}/${npcId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching npc:', error);
+    throw error;
+  }
+};
+
 export const updateNpc = async (npcId: string, npcData: Npc) => {
   try {
     const response = await axios.put<Npc>(`${API_BASE_URL}/${npcId}`, npcData);
