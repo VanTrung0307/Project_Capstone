@@ -8,7 +8,9 @@ export type Item = {
   price: number;
   description: string;
   type: string;
-  limitExchange: string //boolean
+  limitExchange: boolean; //boolean
+  quantity: number;
+  imageUrl: string;
   status: string;
   id: string;
 };
