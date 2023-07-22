@@ -11,6 +11,7 @@ import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
 
+
 const initialPagination: Pagination = {
   current: 1,
   pageSize: 10,

@@ -1,19 +1,18 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
+import { Item, Pagination, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Avatar, Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Item, getPaginatedItems, updateItem, Pagination } from '@app/api/FPT_3DMAP_API/Item';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -21,7 +20,6 @@ const initialPagination: Pagination = {
 };
 
 export const ItemTable: React.FC = () => {
-
   const { t } = useTranslation();
 
   const filterDropdownStyles: CSSProperties = {
@@ -101,12 +99,12 @@ export const ItemTable: React.FC = () => {
 
         // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Item:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Item:', updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -125,7 +123,7 @@ export const ItemTable: React.FC = () => {
         console.error('Error updating Item data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -149,7 +147,7 @@ export const ItemTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -227,7 +225,7 @@ export const ItemTable: React.FC = () => {
           // <span>{text}</span>
           <span style={imageWithNameStyles}>
             <Avatar src={record.description} alt="Hình ảnh" />
-              {text}
+            {text}
           </span>
         );
       },
@@ -283,7 +281,7 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Mô tả'),
       dataIndex: 'description',
-      width: "20%",
+      width: '20%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'description'; // Define dataIndex here
@@ -334,21 +332,33 @@ export const ItemTable: React.FC = () => {
       width: '8%',
       render: (text: boolean, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'limitExchange'; // Define dataIndex here
+        const dataIndex: keyof Item = 'limitExchange';
+
+        const selectOptions = [
+          { value: true, label: 'Có giới hạn' },
+          { value: false, label: 'Không giới hạn' },
+        ];
+
         return editable ? (
           <Form.Item
             key={record.id}
             name={dataIndex}
-            initialValue={text}
+            initialValue={text.toString()}
             rules={[{ required: true, message: 'Please enter a limitExchange' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value.toString(), record.limitExchange.toString(), dataIndex)}
+            >
+              {selectOptions.map((option) => (
+                <Option key={option.value.toString()} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text ? "Có giới hạn" : "Không giới hạn"}</span>
+          <span>{text === true ? 'Có giới hạn' : 'Không giới hạn'}</span>
         );
       },
     },
@@ -358,7 +368,7 @@ export const ItemTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'status'; // Define dataIndex here
+        const dataIndex: keyof Item = 'status';
         return editable ? (
           <Form.Item
             key={record.status}

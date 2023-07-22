@@ -56,7 +56,7 @@ export const getPaginatedNpcs = async (pagination: Pagination) => {
 
 export const createNpc = async (npcData: Npc) => {
   try {
-    const response = await axios.post<Npc>(API_BASE_URL, npcData);
+    const response = await axios.post<Npc>(`${API_BASE_URL}/npc`, npcData);
     return response.data;
   } catch (error) {
     console.error('Error creating npc:', error);
