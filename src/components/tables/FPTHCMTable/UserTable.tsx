@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Pagination, User, updateUser } from '@app/api/FPT_3DMAP_API/User';
-import { useMounted } from '@app/hooks/useMounted';
+import { User, getPaginatedUsers, updateUser, Pagination } from '@app/api/FPT_3DMAP_API/User';
 import { Form, Input, Space } from 'antd';
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -19,6 +19,7 @@ const initialPagination: Pagination = {
 };
 
 export const UserTable: React.FC = () => {
+
   const { t } = useTranslation();
 
   const filterDropdownStyles: CSSProperties = {
@@ -106,7 +107,7 @@ export const UserTable: React.FC = () => {
         console.error('Error updating User data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
+          setData((prevData) => ({ ...prevData, data: newData}));
         }
       }
     } catch (errInfo) {
@@ -130,31 +131,32 @@ export const UserTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData }));
+    setData((prevData) => ({ ...prevData, data: updatedData}));
   };
 
   const { isMounted } = useMounted();
 
-  // const fetch = useCallback(
-  //   (pagination: Pagination) => {
-  //     setData((tableData) => ({ ...tableData, loading: true }));
-  //     getPaginatedUsers(pagination).then((res) => {
-  //       if (isMounted.current) {
-  //         setData({ data: res.data, pagination: res.pagination, loading: false });
-  //       }
-  //     });
-  //   },
-  //   [isMounted],
-  // );
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedUsers(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
 
-  // useEffect(() => {
-  //   fetch(initialPagination);
-  // }, [fetch]);
+  useEffect(() => {
+    fetch(initialPagination);
+  }, [fetch]);
 
-  // const handleTableChange = (pagination: TablePaginationConfig) => {
-  //   fetch(pagination);
-  //   cancel();
-  // };
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetch(pagination);
+    cancel();
+  };
+  
 
   const columns: ColumnsType<User> = [
     {
@@ -443,7 +445,7 @@ export const UserTable: React.FC = () => {
           ...data.pagination,
           onChange: cancel,
         }}
-        // onChange={handleTableChange}
+        onChange={handleTableChange}
         loading={data.loading}
         scroll={{ x: 800 }}
         bordered
