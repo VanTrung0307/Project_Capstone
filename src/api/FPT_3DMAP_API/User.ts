@@ -38,30 +38,12 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedUsers = async (pagination: Pagination) => {
+export const getPaginatedUsers = async () => {
   try {
     const response = await axios.get<UserList>(API_BASE_URL);
-    const data = response.data.data;
-    const { current = 1, pageSize = 5 } = pagination;
-    const total = data.length;
-
-    const startIndex = (current - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, total);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const paginatedData = data.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedData,
-      pagination: {
-        current,
-        pageSize,
-        total,
-      },
-    };
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching paginated users:', error);
+    console.error('Error fetching players:', error);
     throw error;
   }
 };
