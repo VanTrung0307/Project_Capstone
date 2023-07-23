@@ -37,10 +37,16 @@ export const getPaginatedRoomLocations = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -68,7 +74,7 @@ export const getRoomLocationById = async (roomlocationId: string) => {
 
 export const createRoomLocation = async (roomlocationData: RoomLocation) => {
   try {
-    const response = await axios.post<RoomLocation>(API_BASE_URL, roomlocationData);
+    const response = await axios.post<RoomLocation>(`${API_BASE_URL}/location`, roomlocationData);
     return response.data;
   } catch (error) {
     console.error('Error creating roomlocation:', error);

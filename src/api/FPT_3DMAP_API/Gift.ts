@@ -7,6 +7,7 @@ export type Gift = {
   name: string;
   decription: string;
   price: number;
+  rankId: string;
   rankName: string;
   place: string;
   status: string;
@@ -38,10 +39,16 @@ export const getPaginatedGifts = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -69,7 +76,7 @@ export const getGiftById = async (giftId: string) => {
 
 export const createGift = async (giftData: Gift) => {
   try {
-    const response = await axios.post<Gift>(API_BASE_URL, giftData);
+    const response = await axios.post<Gift>(`${API_BASE_URL}/gift`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error creating gift:', error);

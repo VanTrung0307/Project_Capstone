@@ -35,10 +35,16 @@ export const getPaginatedMajors = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -66,7 +72,7 @@ export const getMajorById = async (majorId: string) => {
 
 export const createMajor = async (majorData: Major) => {
   try {
-    const response = await axios.post<Major>(API_BASE_URL, majorData);
+    const response = await axios.post<Major>(`${API_BASE_URL}/major`, majorData);
     return response.data;
   } catch (error) {
     console.error('Error creating major:', error);

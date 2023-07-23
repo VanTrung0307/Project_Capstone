@@ -34,10 +34,16 @@ export const getPaginatedAnswers = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -65,7 +71,7 @@ export const getAnswerById = async (answerId: string) => {
 
 export const createAnswer = async (answerData: Answer) => {
   try {
-    const response = await axios.post<Answer>(API_BASE_URL, answerData);
+    const response = await axios.post<Answer>(`${API_BASE_URL}/answer`, answerData);
     return response.data;
   } catch (error) {
     console.error('Error creating answer:', error);

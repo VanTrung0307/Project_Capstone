@@ -9,7 +9,7 @@ export const AnswerTables: React.FC = () => {
   return (
     <>
       <S.FPTHCMTablesWrapper>
-        <S.Card id="basic-table" title={t('Bảng câu hỏi')} padding="1.25rem 1.25rem 0">
+        <S.Card id="basic-table" title={t('Bảng câu trả lời')} padding="1.25rem 1.25rem 0">
           <AnswerTable />
         </S.Card>
       </S.FPTHCMTablesWrapper>

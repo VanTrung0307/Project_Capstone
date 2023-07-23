@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Event, getPaginatedEvents, updateEvent, Pagination } from '@app/api/FPT_3DMAP_API/Event';
+import { Event, getPaginatedEvents, updateEvent, Pagination, createEvent } from '@app/api/FPT_3DMAP_API/Event';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -75,16 +75,16 @@ export const EventTable: React.FC = () => {
     loading: false,
   });
 
-  const formatDateTime = (isoDateTime: number) => {
-    const dateTime = new Date(isoDateTime);
-    const year = dateTime.getFullYear();
-    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
-    const day = String(dateTime.getDate()).padStart(2, '0');
-    const hours = String(dateTime.getHours()).padStart(2, '0');
-    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
-    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
-    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
-  };
+  // const formatDateTime = (isoDateTime: number) => {
+  //   const dateTime = new Date(isoDateTime);
+  //   const year = dateTime.getFullYear();
+  //   const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+  //   const day = String(dateTime.getDate()).padStart(2, '0');
+  //   const hours = String(dateTime.getHours()).padStart(2, '0');
+  //   const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+  //   const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+  //   return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  // };
 
   const isEditing = (record: Event) => record.id === editingKey;
 
@@ -104,16 +104,6 @@ export const EventTable: React.FC = () => {
           ...item,
           ...row,
         };
-
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
-        Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
-            updatedItem[field] = null;
-          }
-        });
-
-        console.log("Updated null Item:", updatedItem); // Kiểm tra giá trị trước khi gọi API
-
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -143,22 +133,22 @@ export const EventTable: React.FC = () => {
     setEditingKey('');
   };
 
-  // const edit = (record: Partial<Event> & { key: React.Key }) => {
-  //   form.setFieldsValue(record);
-  //   setEditingKey(record.key);
-  // };
-
   const edit = (record: Partial<Event> & { key: React.Key }) => {
-    const unformattedRecord = data.data.find((item) => item.id === record.id);
-    if (unformattedRecord) {
-      form.setFieldsValue({
-        ...unformattedRecord,
-        startTime: formatDateTime(unformattedRecord.startTime), // Format the startTime field
-        endTime: formatDateTime(unformattedRecord.endTime), // Format the endTime field
-      });
-      setEditingKey(record.key);
-    }
+    form.setFieldsValue(record);
+    setEditingKey(record.key);
   };
+
+  // const edit = (record: Partial<Event> & { key: React.Key }) => {
+  //   const unformattedRecord = data.data.find((item) => item.id === record.id);
+  //   if (unformattedRecord) {
+  //     form.setFieldsValue({
+  //       ...unformattedRecord,
+  //       startTime: formatDateTime(unformattedRecord.startTime), // Format the startTime field
+  //       endTime: formatDateTime(unformattedRecord.endTime), // Format the endTime field
+  //     });
+  //     setEditingKey(record.key);
+  //   }
+  // };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Event) => {
     const updatedData = data.data.map((record) => {
@@ -172,31 +162,31 @@ export const EventTable: React.FC = () => {
 
   const { isMounted } = useMounted();
 
-  // const fetch = useCallback(
-  //   (pagination: Pagination) => {
-  //     setData((tableData) => ({ ...tableData, loading: true }));
-  //     getPaginatedEvents(pagination).then((res) => {
-  //       if (isMounted.current) {
-  //         setData({ data: res.data, pagination: res.pagination, loading: false });
-  //       }
-  //     });
-  //   },
-  //   [isMounted],
-  // );
+  const fetch = useCallback(
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: true }));
+      getPaginatedEvents(pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
+    },
+    [isMounted],
+  );
 
-  const fetch = useCallback((pagination: Pagination) => {
-    setData((tableData) => ({ ...tableData, loading: true }));
-    getPaginatedEvents(pagination).then((res) => {
-      if (isMounted.current) {
-        const formattedEvents = res.data.map((event) => ({
-          ...event,
-          startTimeFormatted: formatDateTime(event.startTime), // Store formatted startTime
-          endTimeFormatted: formatDateTime(event.endTime), // Store formatted endTime
-        }));
-        setData({ data: formattedEvents, pagination: res.pagination, loading: false });
-      }
-    });
-  }, [isMounted]);
+  // const fetch = useCallback((pagination: Pagination) => {
+  //   setData((tableData) => ({ ...tableData, loading: true }));
+  //   getPaginatedEvents(pagination).then((res) => {
+  //     if (isMounted.current) {
+  //       const formattedEvents = res.data.map((event) => ({
+  //         ...event,
+  //         startTimeFormatted: formatDateTime(event.startTime), // Store formatted startTime
+  //         endTimeFormatted: formatDateTime(event.endTime), // Store formatted endTime
+  //       }));
+  //       setData({ data: formattedEvents, pagination: res.pagination, loading: false });
+  //     }
+  //   });
+  // }, [isMounted]);
 
   useEffect(() => {
     fetch(initialPagination);
@@ -209,10 +199,11 @@ export const EventTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Event = {
         name: values.name,
         startTime: 0,
         endTime: 0,
@@ -220,15 +211,30 @@ export const EventTable: React.FC = () => {
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdEvent = await createEvent(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdEvent],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Event data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedEvents(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating event data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Event> = [
@@ -246,6 +252,7 @@ export const EventTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -254,31 +261,6 @@ export const EventTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Event) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Thời gian bắt đầu'),
@@ -291,7 +273,7 @@ export const EventTable: React.FC = () => {
             key={record.startTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a startTime' }]}
+            rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -299,7 +281,8 @@ export const EventTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{formatDateTime(record.startTime)}</span>
+          // <span>{formatDateTime(record.startTime)}</span>
+          <span>{text}</span>
         );
       },
       },
@@ -314,7 +297,7 @@ export const EventTable: React.FC = () => {
             key={record.endTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a endTime' }]}
+            rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -322,7 +305,8 @@ export const EventTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{formatDateTime(record.endTime)}</span>
+          // <span>{formatDateTime(record.endTime)}</span>
+          <span>{text}</span>
         );
       },
       },
@@ -333,20 +317,30 @@ export const EventTable: React.FC = () => {
         render: (text: string, record: Event) => {
           const editable = isEditing(record);
           const dataIndex: keyof Event = 'status'; // Define dataIndex here
+
+          const statusOptions = ['ACTIVE', 'INACTIVE'];
+
           return editable ? (
             <Form.Item
               key={record.status}
               name={dataIndex}
               initialValue={text}
-              rules={[{ required: true, message: 'Please enter a status' }]}
+              rules={[{ required: true, message: 'Trạng thái sự kiện là cần thiết' }]}
             >
-              <Input
-                value={record[dataIndex].toString()}
-                onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-              />
+              <Select
+                value={text}
+                onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+                suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              >
+                {statusOptions.map((option) => (
+                  <Select.Option key={option} value={option}>
+                    {option}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           ) : (
-            <span>{text !== "INACTIVE" ? <Tag color="#2db7f5">ACTIVE</Tag> : <Tag color="#f50">INACTIVE</Tag>}</span>
+            <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
           );
         },
       },
@@ -391,39 +385,32 @@ export const EventTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới SỰ KIỆN'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
+          <BaseForm.Item name="name" label={'Tên sự kiện'} rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+          <BaseForm.Item name="startTime" label={'Thời gian bắt đầu'} rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
+            <Input type='datetime-local' />
+          </BaseForm.Item>
+          <BaseForm.Item name="endTime" label={'Thời gian kết thúc'} rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
+            <Input type='datetime-local' />
           </BaseForm.Item>
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select placeholder={'---- Select Status ----'}>
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
         </S.FormContent>

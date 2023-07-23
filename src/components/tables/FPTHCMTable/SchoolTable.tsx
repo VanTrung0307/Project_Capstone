@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -11,17 +11,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { School, updateSchool, getPaginatedSchools, Pagination } from '@app/api/FPT_3DMAP_API/School';
+import { School, updateSchool, getPaginatedSchools, Pagination, createSchool } from '@app/api/FPT_3DMAP_API/School';
 import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 1,
+  pageSize: 2,
 };
 
 export const SchoolTable: React.FC = () => {
 
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -170,27 +171,43 @@ export const SchoolTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: School = {
         name: values.name,
-        phoneNumber: 0,
+        phoneNumber: values.phoneNumber,
         email: values.email,
         address: values.address,
         status: values.status,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdSchool = await createSchool(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdSchool],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('School data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedSchools(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating School data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<School> = [
@@ -205,9 +222,10 @@ export const SchoolTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -216,31 +234,6 @@ export const SchoolTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: School) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Email'),
@@ -253,8 +246,11 @@ export const SchoolTable: React.FC = () => {
             key={record.email}
             name={dataIndex}
             initialValue={text}
+            rules={[{ required: false }]}
           >
             <Input
+              type='email'
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
@@ -270,13 +266,16 @@ export const SchoolTable: React.FC = () => {
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'address'; // Define dataIndex here
+        const maxTextLength = 255;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
           <Form.Item
             key={record.address}
             name={dataIndex}
             initialValue={text}
           >
-            <Input
+            <TextArea
+              autoSize={{maxRows: 3}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
             />
@@ -300,6 +299,7 @@ export const SchoolTable: React.FC = () => {
             initialValue={text}
           >
             <Input
+              type='tel'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
             />
@@ -315,21 +315,31 @@ export const SchoolTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'status'; // Define dataIndex here
+        const dataIndex: keyof School = 'status';
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -374,41 +384,46 @@ export const SchoolTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm TRƯỜNG'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
+
+          <BaseForm.Item name="name" label={'Tên trường'} rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
             <Input />
           </BaseForm.Item>
+
+          <BaseForm.Item name="email" label={'Email'} >
+            <Input />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'} >
+            <Input type='tel' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="address" label={'Địa chỉ'} >
+            <TextArea autoSize={{maxRows: 3}} />
+          </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table

@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Answer, getPaginatedAnswers, updateAnswer, Pagination } from '@app/api/FPT_3DMAP_API/Answer';
+import { Answer, getPaginatedAnswers, updateAnswer, Pagination, createAnswer } from '@app/api/FPT_3DMAP_API/Answer';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -11,7 +11,7 @@ import { DefaultRecordType, Key } from 'rc-table/lib/interface';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
-import { SearchOutlined } from '@ant-design/icons';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
 import { CSSProperties } from 'styled-components';
 import { useMounted } from '@app/hooks/useMounted';
 
@@ -23,6 +23,7 @@ const initialPagination: Pagination = {
 export const AnswerTable: React.FC = () => {
 
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -171,29 +172,45 @@ export const AnswerTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Answer = {
         answerName: values.answerName,
         isRight: values.isRight,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdAnswer = await createAnswer(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdAnswer],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Answer data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedAnswers(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating Npc data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Answer> = [
     {
-      title: t('Tên câu hỏi'),
+      title: t('Tên câu trả lời'),
       dataIndex: 'answerName',
       render: (text: string, record: Answer) => {
         const editable = isEditing(record);
@@ -203,9 +220,10 @@ export const AnswerTable: React.FC = () => {
             key={record.answerName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a answerName' }]}
+            rules={[{ required: true, message: 'Tên câu trả lời là cần thiết' }]}
           >
-            <Input
+            <TextArea
+              autoSize={{maxRows: 6}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
             />
@@ -214,52 +232,41 @@ export const AnswerTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Answer) =>
-        record.answerName.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      
     },
     {
-        title: t('Câu hỏi đúng'),
+        title: t('Dạng câu trả lời'),
         dataIndex: 'isRight',
-        render: (text: string, record: Answer) => {
+        render: (text: boolean, record: Answer) => {
           const editable = isEditing(record);
           const dataIndex: keyof Answer = 'isRight'; // Define dataIndex here
+
+          const selectOptions = [
+            { value: true, label: 'Câu trả lời đúng' },
+            { value: false, label: 'Câu trả lời sai' },
+          ];
+
           return editable ? (
             <Form.Item
               key={record.id}
               name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Please enter a true or false' }]}
+              initialValue={text.toString()}
+              rules={[{ required: true, message: 'Chọn dạng câu trả lời là cần thiết"' }]}
             >
-              <Input
-                value={record[dataIndex]}
-                onChange={(e) => handleInputChange(e.target.value, record.isRight, dataIndex)}
-              />
+              <Select
+              value={text}
+              onChange={(value) => handleInputChange(value.toString(), record.isRight.toString(), dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {selectOptions.map((option) => (
+                <Option key={option.value.toString()} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
             </Form.Item>
           ) : (
-            <span>{text !== "true" ? "SAI" : "ĐÚNG"}</span>
+            <span>{text === true ? <Tag color="#339CFD">Câu trả lời đúng</Tag> : <Tag color="#FF5252">Câu trả lời sai</Tag> }</span>
           );
         },
         },
@@ -304,41 +311,34 @@ export const AnswerTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới CÂU TRẢ LỜI'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
+
+          <BaseForm.Item name="answerName" label={'Tên câu trả lời'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+            <TextArea autoSize={{maxRows: 6}} />
           </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="isRight"
+            label={'Dạng câu trả lời'}
+            rules={[{ required: true, message: t('Dạng câu trả lời là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder="---- Select QuestionType ----" 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
+            >
+              <Option value="true">{'Câu trả lời đúng'}</Option>
+              <Option value="false">{'Câu trả lời sai'}</Option>
             </Select>
           </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table
