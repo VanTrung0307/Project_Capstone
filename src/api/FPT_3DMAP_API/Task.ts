@@ -4,12 +4,16 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Tasks`;
 
 export type Task = {
+  locationId: string;
   locationName: string;
+  majorId: string;
   majorName: string;
+  npcId: string;
   npcName: string;
   name: string
   durationCheckin: number;
-  isRequireitem: string; //boolean
+  itemId: string;
+  itemName: string;
   timeOutAmount: number;
   type: string;
   point: number;
@@ -79,7 +83,7 @@ export const getTaskById = async (taskId: string) => {
 
 export const createTask = async (taskData: Task) => {
   try {
-    const response = await axios.post<Task>(API_BASE_URL, taskData);
+    const response = await axios.post<Task>(`${API_BASE_URL}/task`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error creating task:', error);

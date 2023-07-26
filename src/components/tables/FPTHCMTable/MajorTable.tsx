@@ -213,6 +213,7 @@ export const MajorTable: React.FC = () => {
     {
       title: t('Tên ngành nghề'),
       dataIndex: 'name',
+      width: '15%',
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
         const dataIndex: keyof Major = 'name'; // Define dataIndex here

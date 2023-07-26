@@ -75,16 +75,16 @@ export const EventTable: React.FC = () => {
     loading: false,
   });
 
-  // const formatDateTime = (isoDateTime: number) => {
-  //   const dateTime = new Date(isoDateTime);
-  //   const year = dateTime.getFullYear();
-  //   const month = String(dateTime.getMonth() + 1).padStart(2, '0');
-  //   const day = String(dateTime.getDate()).padStart(2, '0');
-  //   const hours = String(dateTime.getHours()).padStart(2, '0');
-  //   const minutes = String(dateTime.getMinutes()).padStart(2, '0');
-  //   const seconds = String(dateTime.getSeconds()).padStart(2, '0');
-  //   return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
-  // };
+  const formatDateTime = (isoDateTime: number) => {
+    const dateTime = new Date(isoDateTime);
+    const year = dateTime.getFullYear();
+    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  };
 
   const isEditing = (record: Event) => record.id === editingKey;
 
@@ -205,8 +205,8 @@ export const EventTable: React.FC = () => {
 
       const newData: Event = {
         name: values.name,
-        startTime: 0,
-        endTime: 0,
+        startTime: values.startTime,
+        endTime: values.endTime,
         status: values.status,
         id: values.id,
       };
@@ -276,13 +276,14 @@ export const EventTable: React.FC = () => {
             rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
           >
             <Input
+              type='datetime-local'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.startTime, dataIndex)}
             />
           </Form.Item>
         ) : (
-          // <span>{formatDateTime(record.startTime)}</span>
-          <span>{text}</span>
+          <span>{formatDateTime(record.startTime)}</span>
+          // <span>{text}</span>
         );
       },
       },
@@ -300,13 +301,14 @@ export const EventTable: React.FC = () => {
             rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
           >
             <Input
+              type='datetime-local'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
             />
           </Form.Item>
         ) : (
-          // <span>{formatDateTime(record.endTime)}</span>
-          <span>{text}</span>
+          <span>{formatDateTime(record.endTime)}</span>
+          // <span>{text}</span>
         );
       },
       },

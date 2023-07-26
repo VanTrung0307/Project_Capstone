@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { Status } from '@app/components/profile/profileCard/profileFormNav/nav/payments/paymentHistory/Status/Status';
 import { defineColorByPriority } from '@app/utils/utils';
 import { Col, Form, Input, Modal, Row, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Task, getPaginatedTasks, updateTask, Pagination } from '@app/api/FPT_3DMAP_API/Task';
+import { Task, getPaginatedTasks, updateTask, Pagination, createTask } from '@app/api/FPT_3DMAP_API/Task';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -15,6 +15,10 @@ import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
+import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
+import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
+import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
+import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -74,6 +78,10 @@ export const TaskTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  const [locations, setLocations] = useState<RoomLocation[]>([]);
+  const [npcs, setNpcs] = useState<Npc[]>([]);
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
 
   const isEditing = (record: Task) => record.id === editingKey;
 
@@ -101,7 +109,7 @@ export const TaskTable: React.FC = () => {
           }
         });
 
-        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log("Updated null Task:", updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -150,13 +158,51 @@ export const TaskTable: React.FC = () => {
   const { isMounted } = useMounted();
 
   const fetch = useCallback(
-    (pagination: Pagination) => {
+    async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedTasks(pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      getPaginatedTasks(pagination)
+        .then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated tasks:', error);
+          setData((tableData) => ({ ...tableData, loading: false }));
+        });
+  
+      // Fetch the list of locations and store it in the "locations" state
+      try {
+        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setLocations(locationResponse.data);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      }
+
+      // Fetch the list of majors and store it in the "majors" state
+      try {
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setMajors(majorResponse.data);
+      } catch (error) {
+        console.error('Error fetching majors:', error);
+      }
+
+      // Fetch the list of npcs and store it in the "npcs" state
+      try {
+        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setNpcs(npcResponse.data);
+      } catch (error) {
+        console.error('Error fetching npcs:', error);
+      }
+
+      // Fetch the list of items and store it in the "items" state
+      try {
+        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setItems(itemResponse.data);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+
     },
     [isMounted],
   );
@@ -172,32 +218,90 @@ export const TaskTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Task = {
         name: values.name,
+        locationId: values.locationId,
         locationName: values.locationName,
+        npcId: values.npcId,
         npcName: values.npcName,
+        majorId: values.majorId,
         majorName: values.majorName,
         type: values.type,
-        point: 0,
-        durationCheckin: 0,
-        timeOutAmount: 0,
-        isRequireitem: values.isRequireitem,
+        point: values.point,
+        durationCheckin: values.durationCheckin,
+        timeOutAmount: values.timeOutAmount,
+        itemId: values.itemId,
+        itemName: values.itemName,
         status: values.status,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+      try {
+        const createdTask = await createTask(newData);
+
+        // Fetch the location data using the selected "locationName" from the form
+        const selectedLocation = locations.find((location) => location.locationName === newData.locationName);
+
+        // Fetch the major data using the selected "majorName" from the form
+        const selectedMajor = majors.find((major) => major.name === newData.majorName);
+
+        // Fetch the npc data using the selected "npcName" from the form
+        const selectedNpc = majors.find((npc) => npc.name === newData.npcName);
+
+        // Fetch the item data using the selected "itemName" from the form
+        const selectedItem = majors.find((item) => item.name === newData.itemName);
+
+        // If the selected location is found, set its ID to the newData
+        if (selectedLocation) {
+          newData.locationId = selectedLocation.id;
+        }
+
+        // If the selected major is found, set its ID to the newData
+        if (selectedMajor) {
+          newData.majorId = selectedMajor.id;
+        }
+
+        // If the selected npc is found, set its ID to the newData
+        if (selectedNpc) {
+          newData.npcId = selectedNpc.id;
+        }
+
+        // If the selected item is found, set its ID to the newData
+        if (selectedItem) {
+          newData.itemId = selectedItem.id;
+        }
+
+        // Assign the ID received from the API response to the newData
+        newData.id = createdTask.id;
+
+
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdTask],
+        loading: false, // Hide loading state after successful update
       }));
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Task data created successfully');
+
+      // Fetch the updated data after successful creation
+      getPaginatedTasks(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating Task data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Task> = [
@@ -212,7 +316,7 @@ export const TaskTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -223,31 +327,6 @@ export const TaskTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Task) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Địa điểm'),
@@ -260,12 +339,19 @@ export const TaskTable: React.FC = () => {
             key={record.locationName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a locationName' }]}
+            rules={[{ required: true, message: 'Địa điểm là cần thiết' }]}
           >
-            <Input
+            <Select
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {locations.map((location) => (
+                <Select.Option key={location.id} value={location.locationName}>
+                  {location.locationName}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
           <span>{text}</span>
@@ -285,12 +371,19 @@ export const TaskTable: React.FC = () => {
             key={record.npcName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a npcName' }]}
+            rules={[{ required: true, message: 'Tên NPC là cần thiết' }]}
           >
-            <Input
+            <Select
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.npcName, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {npcs.map((npc) => (
+                <Select.Option key={npc.id} value={npc.name}>
+                  {npc.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
           <span>{text}</span>
@@ -310,12 +403,19 @@ export const TaskTable: React.FC = () => {
             key={record.majorName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a majorName' }]}
+            rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
-            <Input
+            <Select
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.majorName, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {majors.map((major) => (
+                <Select.Option key={major.id} value={major.name}>
+                  {major.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
           <span>{text}</span>
@@ -325,7 +425,6 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Loại nhiệm vụ'),
       dataIndex: 'type',
-      width: '8%',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'type'; // Define dataIndex here
@@ -337,6 +436,7 @@ export const TaskTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a type' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
             />
@@ -349,7 +449,6 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Điểm thưởng'),
       dataIndex: 'point',
-      width: '8%',
       render: (text: number, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'point'; // Define dataIndex here
@@ -361,6 +460,7 @@ export const TaskTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a point' }]}
           >
             <Input
+              type='number'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
             />
@@ -373,7 +473,6 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Giới hạn Check in?'),
       dataIndex: 'durationCheckin',
-      width: '8%',
       render: (text: number, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'durationCheckin'; // Define dataIndex here
@@ -382,9 +481,10 @@ export const TaskTable: React.FC = () => {
             key={record.durationCheckin}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a durationCheckin' }]}
+            rules={[{ required: false }]}
           >
             <Input
+              type='time'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.durationCheckin, dataIndex)}
             />
@@ -397,7 +497,6 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Thời gian làm lại'),
       dataIndex: 'timeOutAmount',
-      width: '8%',
       render: (text: number, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'timeOutAmount'; // Define dataIndex here
@@ -406,9 +505,10 @@ export const TaskTable: React.FC = () => {
             key={record.timeOutAmount}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a timeOutAmount' }]}
+            rules={[{ required: false }]}
           >
             <Input
+              type='number'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.timeOutAmount, dataIndex)}
             />
@@ -419,33 +519,38 @@ export const TaskTable: React.FC = () => {
       },
     },
     {
-      title: t('Có yêu cầu vật phẩm?'),
-      dataIndex: 'isRequireitem',
-      width: '8%',
-      render: (text: boolean, record: Task) => {
+      title: t('Vật phẩm'),
+      dataIndex: 'itemName',
+      render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'isRequireitem'; // Define dataIndex here
+        const dataIndex: keyof Task = 'itemName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.isRequireitem}
+            key={record.itemName}
             name={dataIndex}
-            initialValue={text ? 'true' : 'false'}
-            rules={[{ required: true, message: 'Please enter a isRequireitem' }]}
+            initialValue={text}
+            rules={[{ required: false }]}
           >
-            <Input
+            <Select
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.isRequireitem, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {items.map((item) => (
+                <Select.Option key={item.id} value={item.name}>
+                  {item.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text !== false ? text : "Không có"}</span>
+          <span>{text !== null ? text : "Không có"}</span>
         );
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'status'; // Define dataIndex here
@@ -469,7 +574,6 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         return (
@@ -507,41 +611,106 @@ export const TaskTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới NHIỆM VỤ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
+
+          <BaseForm.Item name="name" label={'Tên nhiệm vụ'} rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
             <Input />
           </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="locationName"
+            label={'Tên địa điểm'}
+            rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select Location ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {locations.map((location) => (
+                <Option key={location.id} value={location.locationName}>
+                  {location.locationName}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
+
+          <BaseForm.Item name="npcName" label={'Tên NPC'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+            <Select 
+              placeholder={'---- Select NPC ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+                {npcs.map((npc) => (
+                  <Option key={npc.id} value={npc.name}>
+                    {npc.name}
+                  </Option>
+                ))}
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="majorName" label={'Tên ngành nghề'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+            <Select 
+              placeholder={'---- Select Major ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+                {majors.map((major) => (
+                  <Option key={major.id} value={major.name}>
+                    {major.name}
+                  </Option>
+                ))}
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="type" label={'Loại nhiệm vụ'} rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+            <Input maxLength={100} />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="point" label={'Điểm thưởng'} rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+            <Input type='number' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="durationCheckin" label={'Giới hạn Check in (nếu có)'} >
+            <Input type='time' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="timeOutAmount" label={'Thời gian làm lại (nếu có)'} >
+            <Input type='number' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="itemName" label={'Tên vật phẩm (nếu có)'} >
+            <Select 
+              placeholder={'---- Select Item ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+                {items.map((item) => (
+                  <Option key={item.id} value={item.name}>
+                    {item.name}
+                  </Option>
+                ))}
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item
+            name="status"
+            label={'Status'}
+            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
+          >
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
+            </Select>
+          </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table
