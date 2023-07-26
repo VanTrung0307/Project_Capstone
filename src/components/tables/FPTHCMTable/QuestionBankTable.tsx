@@ -185,12 +185,12 @@ export const QuestionBankTable: React.FC = () => {
         console.error('Error fetching majors:', error);
       }
 
-      // Fetch the list of answers and store it in the "majors" state
+      // Fetch the list of answers and store it in the "answers" state
       try {
         const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
         setAnswers(answerResponse.data);
       } catch (error) {
-        console.error('Error fetching answers:', error);
+        console.error('Error fetching questions:', error);
       }
 
     },
@@ -306,7 +306,7 @@ export const QuestionBankTable: React.FC = () => {
             key={record.majorName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a majorName' }]}
+            rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
               value={record[dataIndex]}
