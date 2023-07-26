@@ -8,7 +8,9 @@ export type Item = {
   price: number;
   description: string;
   type: string;
-  limitExchange: string //boolean
+  limitExchange: boolean; //boolean
+  quantity: number;
+  imageUrl: string;
   status: string;
   id: string;
 };
@@ -38,10 +40,16 @@ export const getPaginatedItems = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -69,7 +77,7 @@ export const getItemById = async (itemId: string) => {
 
 export const createItem = async (itemData: Item) => {
   try {
-    const response = await axios.post<Item>(API_BASE_URL, itemData);
+    const response = await axios.post<Item>(`${API_BASE_URL}/Item`, itemData);
     return response.data;
   } catch (error) {
     console.error('Error creating item:', error);

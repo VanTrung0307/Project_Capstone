@@ -1,10 +1,10 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Item, Pagination, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
+import { DownOutlined } from '@ant-design/icons';
+import { Item, Pagination, createItem, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Avatar, Form, Input, Modal, Select, Space } from 'antd';
+import { Avatar, Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -22,6 +22,7 @@ const initialPagination: Pagination = {
 export const ItemTable: React.FC = () => {
 
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -97,6 +98,16 @@ export const ItemTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === '') {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log('Updated null Item:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -114,7 +125,7 @@ export const ItemTable: React.FC = () => {
         console.error('Error updating Item data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -138,7 +149,7 @@ export const ItemTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -166,35 +177,53 @@ export const ItemTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
-        key: Date.now(), // Generate a unique key for the new data (e.g., using timestamp)
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Item = {
         name: values.name,
-        price: 0,
-        description: values.description,
         type: values.type,
+        price: values.price,
+        quantity: values.quantity,
+        description: values.description,
+        imageUrl: values.imageUrl,
         limitExchange: values.limitExchange,
         status: values.status,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdItem = await createItem(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdItem],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Item data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedItems(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating Item data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Item> = [
     {
       title: t('Tên vật phẩm'),
       dataIndex: 'name',
+      width: '20%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'name'; // Define dataIndex here
@@ -203,9 +232,10 @@ export const ItemTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên vật phẩm là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -213,40 +243,16 @@ export const ItemTable: React.FC = () => {
         ) : (
           // <span>{text}</span>
           <span style={imageWithNameStyles}>
-            <Avatar src={record.description} alt="Hình ảnh" />
-              {text}
+            <Avatar src={record.imageUrl} alt="Hình ảnh" />
+            {text}
           </span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Item) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Loại vật phẩm'),
       dataIndex: 'type',
+      width: '15%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'type'; // Define dataIndex here
@@ -255,9 +261,10 @@ export const ItemTable: React.FC = () => {
             key={record.type}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a type' }]}
+            rules={[{ required: true, message: 'Loại vật phẩm là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
             />
@@ -270,24 +277,27 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Mô tả'),
       dataIndex: 'description',
-      width: "20%",
+      width: '15%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'description'; // Define dataIndex here
+        const maxTextLength = 255;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
           <Form.Item
             key={record.description}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a Description' }]}
+            rules={[{ required: false }]}
           >
-            <Input
+            <TextArea
+              autoSize={{maxRows: 6}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
         );
       },
     },
@@ -303,39 +313,80 @@ export const ItemTable: React.FC = () => {
             key={record.price}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a price' }]}
+            rules={[{ required: true, message: 'Điểm thưởng là cần thiết' }]}
           >
             <Input
+              type='number'
+              min={0}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.price, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text + " điểm"}</span>
         );
       },
     },
     {
-      title: t('Giới hạn'),
-      dataIndex: 'limitExchange',
-      width: '8%',
+      title: t('Số lượng'),
+      dataIndex: 'quantity',
+      width: '10%',
       render: (text: number, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'limitExchange'; // Define dataIndex here
+        const dataIndex: keyof Item = 'quantity'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.limitExchange}
+            key={record.quantity}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a limitExchange' }]}
+            rules={[{ required: true, message: 'Số lượng vật phẩm là cần thiết' }]}
           >
             <Input
+              type='number'
+              min={0}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.limitExchange, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.quantity, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text === 0 ? "Bán hết" : text}</span>
+        );
+      },
+    },
+    {
+      title: t('Giới hạn trao đổi'),
+      dataIndex: 'limitExchange',
+      width: '15%',
+      render: (text: boolean, record: Item) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Item = 'limitExchange';
+
+        const selectOptions = [
+          { value: true, label: 'Có giới hạn' },
+          { value: false, label: 'Không giới hạn' },
+        ];
+
+        return editable ? (
+          <Form.Item
+            key={record.id}
+            name={dataIndex}
+            initialValue={text.toString()}
+            rules={[{ required: true, message: 'Giới hạn trao đổi vật phẩm là cần thiết' }]}
+          >
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value.toString(), record.limitExchange.toString(), dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {selectOptions.map((option) => (
+                <Option key={option.value.toString()} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        ) : (
+          <span>{text === true ? 'Có giới hạn' : 'Không giới hạn'}</span>
         );
       },
     },
@@ -345,21 +396,31 @@ export const ItemTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'status'; // Define dataIndex here
+        const dataIndex: keyof Item = 'status';
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -404,41 +465,68 @@ export const ItemTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới VẬT PHẨM'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
+          
+          <BaseForm.Item name="name" label={'Tên vật phẩm'} rules={[{ required: true, message: t('Tên vật phẩm là cần thiết') }]}>
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="type" label={'Loại vật phẩm'} rules={[{ required: true, message: t('Loại vật phẩm là cần thiết') }]} >
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="price" label={'Điểm thưởng'} rules={[{ required: true, message: t('Điểm thưởng vật phẩm là cần thiết') }]} >
+            <Input type='number' min={0} />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="quantity" label={'Số lượng'} rules={[{ required: true, message: t('Số lượng vật phẩm là cần thiết') }]}>
+            <Input type="number" min={0}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="description" label={'Mô tả'} >
+            <TextArea autoSize={{maxRows: 6}} />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="imageUrl" label={'imageUrl'} rules={[{ required: true, message: t('Hình ảnh là cần thiết') }]}>
             <Input />
           </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="limitExchange"
+            label={'Giới hạn trao đổi'}
+            rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select LimitExchange ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
+            >
+              <Option value="true">{'Có giới hạn'}</Option>
+              <Option value="false">{'Không giới hạn'}</Option>
             </Select>
           </BaseForm.Item>
+
+          <BaseForm.Item
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
+          >
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
+            </Select>
+          </BaseForm.Item>
+          
         </S.FormContent>
       </Modal>
       <Table

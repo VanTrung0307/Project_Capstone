@@ -1,25 +1,26 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
-import { Major, Pagination, createMajor, getPaginatedMajors, updateMajor } from '@app/api/FPT_3DMAP_API/Major';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Answer, getPaginatedAnswers, updateAnswer, Pagination, createAnswer } from '@app/api/FPT_3DMAP_API/Answer';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import React, { useCallback, useEffect, useState } from 'react';
+import { DefaultRecordType, Key } from 'rc-table/lib/interface';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
+import { CSSProperties } from 'styled-components';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
   pageSize: 10,
 };
 
-export const MajorTable: React.FC = () => {
+export const AnswerTable: React.FC = () => {
 
   const { t } = useTranslation();
   const { TextArea } = Input;
@@ -68,13 +69,13 @@ export const MajorTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Major[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: Answer[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: Major) => record.id === editingKey;
+  const isEditing = (record: Answer) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -100,7 +101,7 @@ export const MajorTable: React.FC = () => {
           }
         });
 
-        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log("Updated null Answer:", updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -113,10 +114,10 @@ export const MajorTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateMajor(key.toString(), row);
-        console.log('Major data updated successfully');
+        await updateAnswer(key.toString(), row);
+        console.log('Answer data updated successfully');
       } catch (error) {
-        console.error('Error updating Major data:', error);
+        console.error('Error updating Answer data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData}));
@@ -131,12 +132,12 @@ export const MajorTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<Major> & { key: React.Key }) => {
+  const edit = (record: Partial<Answer> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Major) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Answer) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -151,7 +152,7 @@ export const MajorTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedMajors(pagination).then((res) => {
+      getPaginatedAnswers(pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
@@ -175,32 +176,31 @@ export const MajorTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Major = {
-        name: values.name,
-        description: values.description,
-        status: values.status,
+      const newData: Answer = {
+        answerName: values.answerName,
+        isRight: values.isRight,
         id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
 
     try {
-      const createdMajor = await createMajor(newData);
+      const createdAnswer = await createAnswer(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, createdMajor],
+        data: [...prevData.data, createdAnswer],
         loading: false, // Hide loading state after successful update
       }));
       form.resetFields();
       setIsBasicModalOpen(false);
-      console.log('Major data created successfully');
+      console.log('Answer data created successfully');
 
       // Fetch the updated data after successful creation
-      getPaginatedMajors(data.pagination).then((res) => {
+      getPaginatedAnswers(data.pagination).then((res) => {
         setData({ data: res.data, pagination: res.pagination, loading: false });
       });
     } catch (error) {
-      console.error('Error creating Major data:', error);
+      console.error('Error creating Npc data:', error);
       setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
     }
   } catch (error) {
@@ -208,99 +208,73 @@ export const MajorTable: React.FC = () => {
   }
   };
 
-  const columns: ColumnsType<Major> = [
+  const columns: ColumnsType<Answer> = [
     {
-      title: t('Tên ngành nghề'),
-      dataIndex: 'name',
-      width: '15%',
-      render: (text: string, record: Major) => {
+      title: t('Tên câu trả lời'),
+      dataIndex: 'answerName',
+      render: (text: string, record: Answer) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Major = 'name'; // Define dataIndex here
-        const maxTextLength = 255;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
+        const dataIndex: keyof Answer = 'answerName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.name}
+            key={record.answerName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên ngành là cần thiết' }]}
-          >
-            <Input
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{truncatedText}</span>
-        );
-      },
-    },
-    {
-      title: t('Mô tả'),
-      dataIndex: 'description',
-      render: (text: string, record: Major) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Major = 'description';
-        const maxTextLength = 255;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
-        return editable ? (
-          <Form.Item
-            key={record.description}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false}]}
+            rules={[{ required: true, message: 'Tên câu trả lời là cần thiết' }]}
           >
             <TextArea
               autoSize={{maxRows: 6}}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
+          <span>{text}</span>
         );
       },
+      
     },
     {
-      title: t('Trạng thái'),
-      dataIndex: 'status',
-      width: '8%',
-      render: (text: string, record: Major) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Major = 'status'; // Define dataIndex here
+        title: t('Dạng câu trả lời'),
+        dataIndex: 'isRight',
+        render: (text: boolean, record: Answer) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof Answer = 'isRight'; // Define dataIndex here
 
-        const statusOptions = ['ACTIVE', 'INACTIVE'];
+          const selectOptions = [
+            { value: true, label: 'Câu trả lời đúng' },
+            { value: false, label: 'Câu trả lời sai' },
+          ];
 
-        return editable ? (
-          <Form.Item
-            key={record.status}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
-          >
-            <Select
+          return editable ? (
+            <Form.Item
+              key={record.id}
+              name={dataIndex}
+              initialValue={text.toString()}
+              rules={[{ required: true, message: 'Chọn dạng câu trả lời là cần thiết"' }]}
+            >
+              <Select
               value={text}
-              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              onChange={(value) => handleInputChange(value.toString(), record.isRight.toString(), dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
             >
-              {statusOptions.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}
-                </Select.Option>
+              {selectOptions.map((option) => (
+                <Option key={option.value.toString()} value={option.value}>
+                  {option.label}
+                </Option>
               ))}
             </Select>
-          </Form.Item>
-        ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
-        );
-      },
-    },
+            </Form.Item>
+          ) : (
+            <span>{text === true ? <Tag color="#339CFD">Câu trả lời đúng</Tag> : <Tag color="#FF5252">Câu trả lời sai</Tag> }</span>
+          );
+        },
+        },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '8%',
-      render: (text: string, record: Major) => {
+      render: (text: string, record: Answer) => {
         const editable = isEditing(record);
         return (
           <Space>
@@ -340,32 +314,28 @@ export const MajorTable: React.FC = () => {
         Thêm mới
       </Button>
       <Modal
-        title={'Thêm mới NGÀNH NGHỀ'}
+        title={'Thêm mới CÂU TRẢ LỜI'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
 
-          <BaseForm.Item name="name" label={'Tên ngành nghề'} rules={[{ required: true, message: t('Nhập tên ngành') }]}>
-            <Input maxLength={100} />
-          </BaseForm.Item>
-
-          <BaseForm.Item name="description" label={'Mô tả'}>
-            <TextArea autoSize={{maxRows: 6}}/>
+          <BaseForm.Item name="answerName" label={'Tên câu trả lời'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+            <TextArea autoSize={{maxRows: 6}} />
           </BaseForm.Item>
 
           <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
+            name="isRight"
+            label={'Dạng câu trả lời'}
+            rules={[{ required: true, message: t('Dạng câu trả lời là cần thiết') }]}
           >
             <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}  
+              placeholder="---- Select QuestionType ----" 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
             >
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
+              <Option value="true">{'Câu trả lời đúng'}</Option>
+              <Option value="false">{'Câu trả lời sai'}</Option>
             </Select>
           </BaseForm.Item>
 

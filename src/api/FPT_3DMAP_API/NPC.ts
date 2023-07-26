@@ -35,10 +35,16 @@ export const getPaginatedNpcs = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -56,10 +62,20 @@ export const getPaginatedNpcs = async (pagination: Pagination) => {
 
 export const createNpc = async (npcData: Npc) => {
   try {
-    const response = await axios.post<Npc>(API_BASE_URL, npcData);
+    const response = await axios.post<Npc>(`${API_BASE_URL}/npc`, npcData);
     return response.data;
   } catch (error) {
     console.error('Error creating npc:', error);
+    throw error;
+  }
+};
+
+export const getNpcById = async (npcId: string) => {
+  try {
+    const response = await axios.get<Npc>(`${API_BASE_URL}/${npcId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching npc:', error);
     throw error;
   }
 };

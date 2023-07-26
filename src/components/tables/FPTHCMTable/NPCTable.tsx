@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Npc, Pagination, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
+import { DownOutlined } from '@ant-design/icons';
+import { Npc, Pagination, createNpc, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Option } from 'antd/lib/mentions';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
@@ -22,6 +22,7 @@ const initialPagination: Pagination = {
 export const NPCTable: React.FC = () => {
 
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -91,6 +92,16 @@ export const NPCTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === '') {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log('Updated null NPC:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -108,7 +119,7 @@ export const NPCTable: React.FC = () => {
         console.error('Error updating Npc data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -132,7 +143,7 @@ export const NPCTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -160,42 +171,60 @@ export const NPCTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Npc = {
         name: values.name,
         introduce: values.introduce,
         status: values.status,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdNpc = await createNpc(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdNpc],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Npc data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedNpcs(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating Npc data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Npc> = [
     {
       title: t('Tên NPC'),
       dataIndex: 'name',
+      width: '40%',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Npc = 'name'; // Define dataIndex here
+        const dataIndex: keyof Npc = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên NPC là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -204,52 +233,30 @@ export const NPCTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Npc) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Lời đối thoại'),
       dataIndex: 'introduce',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Npc = 'introduce'; // Define dataIndex here
+        const dataIndex: keyof Npc = 'introduce';
+        const maxTextLength = 255;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
           <Form.Item
             key={record.introduce}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a introduce' }]}
+            rules={[{ required: true, message: 'Lời thoại NPC là cần thiết' }]}
           >
-            <Input
+            <TextArea
+              autoSize={{maxRows: 6}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
         );
       },
     },
@@ -259,21 +266,31 @@ export const NPCTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Npc = 'status'; // Define dataIndex here
+        const dataIndex: keyof Npc = 'status';
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+        
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái NPC là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -318,41 +335,38 @@ export const NPCTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới NPC'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
+
+          <BaseForm.Item name="name" label={'Tên NPC'} rules={[{ required: true, message: t('Tên NPC là cần thiết') }]}>
+            <Input  maxLength={100} />
           </BaseForm.Item>
+          
+          <BaseForm.Item name="introduce" label={'Lời đối thoại'} rules={[{ required: true, message: t('Lời thoại NPC là cần thiết') }]}>
+            <TextArea autoSize={{maxRows: 6}}  />
+          </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table

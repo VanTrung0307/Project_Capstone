@@ -5,7 +5,9 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Questions`;
 
 export type Question = {
   name: string;
+  majorId: string;
   majorName: string;
+  answerId: string;
   answerName: string;
   status: string;
   id: string;
@@ -36,10 +38,16 @@ export const getPaginatedQuestions = async (pagination: Pagination) => {
     const startIndex = (current - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    // Simulate a delay of 1 second using setTimeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log("Object", objectCount, ":", item);
+    });
+
+    console.log("Total objects:", objectCount);
 
     return {
       data: paginatedData,
@@ -67,7 +75,7 @@ export const getQuestionById = async (questionId: string) => {
 
 export const createQuestion = async (questionData: Question) => {
   try {
-    const response = await axios.post<Question>(API_BASE_URL, questionData);
+    const response = await axios.post<Question>(`${API_BASE_URL}/question`, questionData);
     return response.data;
   } catch (error) {
     console.error('Error creating question:', error);

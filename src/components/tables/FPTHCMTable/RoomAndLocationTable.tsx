@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Pagination, RoomLocation, getPaginatedRoomLocations, updateRoomLocation } from '@app/api/FPT_3DMAP_API/Room&Location';
+import { DownOutlined } from '@ant-design/icons';
+import { Pagination, RoomLocation, createRoomLocation, getPaginatedRoomLocations, updateRoomLocation } from '@app/api/FPT_3DMAP_API/Room&Location';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
-import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -13,6 +12,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -91,6 +91,16 @@ export const RoomAndLocationTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Room&Location:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -153,34 +163,59 @@ export const RoomAndLocationTable: React.FC = () => {
     fetch(initialPagination);
   }, [fetch]);
 
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetch(pagination);
-    cancel();
+  const handleTableChange = (pagination: TablePaginationConfig, filters: Record<string, any>, sorter: any) => {
+    const { current, pageSize } = pagination;
+    const paginationParams: Pagination = { current, pageSize };
+
+    // Cập nhật giá trị searchValue khi người dùng thay đổi ô tìm kiếm
+    if (filters.locationName) {
+      setSearchValue(filters.locationName[0]);
+    } else {
+      setSearchValue('');
+    }
+
+    fetch(paginationParams);
   };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
-        x: 0,
-        y: 0,
-        z: 0,
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: RoomLocation = {
+        x: values.x,
+        y: values.y,
+        z: values.z,
         locationName: values.locationName,
         status: values.status,
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+    try {
+      const createdRoomLocation = await createRoomLocation(newData);
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdRoomLocation],
+        loading: false, // Hide loading state after successful update
       }));
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('RoomLocation data created successfully');
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      // Fetch the updated data after successful creation
+      getPaginatedRoomLocations(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating RoomLocation data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<RoomLocation> = [
@@ -195,9 +230,10 @@ export const RoomAndLocationTable: React.FC = () => {
             key={record.x}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a coordinate x' }]}
+            rules={[{ required: true, message: 'Tọa độ x là cần thiết' }]}
           >
             <Input
+              type='number'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.x, dataIndex)}
             />
@@ -218,9 +254,10 @@ export const RoomAndLocationTable: React.FC = () => {
             key={record.y}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a coordinate y' }]}
+            rules={[{ required: true, message: 'Tọa độ y là cần thiết' }]}
           >
             <Input
+              type='number'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.y, dataIndex)}
             />
@@ -241,9 +278,10 @@ export const RoomAndLocationTable: React.FC = () => {
             key={record.z}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a coordinate z' }]}
+            rules={[{ required: true, message: 'Tọa độ z là cần thiết' }]}
           >
             <Input
+              type='number'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.z, dataIndex)}
             />
@@ -253,78 +291,64 @@ export const RoomAndLocationTable: React.FC = () => {
         );
       },
       },
-    {
-      title: t('Tên địa điểm'),
-      dataIndex: 'locationName',
-      render: (text: string, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'locationName'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.locationName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a locationName' }]}
-          >
-            <Input
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      {
+        title: t('Tên trường'),
+        dataIndex: 'locationName',
+        render: (text: string, record: RoomLocation) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof RoomLocation = 'locationName'; // Define dataIndex here
+          return editable ? (
+            <Form.Item
+              key={record.locationName}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Tên vị trí là cần thiết' }]}
+            >
+              <Input
+                maxLength={100}
+                value={record[dataIndex]}
+                onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
+              />
+            </Form.Item>
+          ) : (
+            <span>{text}</span>
+          );
+        },
       },
-      onFilter: (value: string | number | boolean, record: RoomLocation) =>
-        record.locationName.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
+      {
+        title: t('Trạng thái'),
+        dataIndex: 'status',
+        width: '8%',
+        render: (text: string, record: RoomLocation) => {
+          const editable = isEditing(record);
+          const dataIndex: keyof RoomLocation = 'status';
+  
+          const statusOptions = ['ACTIVE', 'INACTIVE'];
+  
+          return editable ? (
+            <Form.Item
+              key={record.status}
+              name={dataIndex}
+              initialValue={text}
+              rules={[{ required: true, message: 'Trạng thái tọa độ là cần thiết' }]}
+            >
+              <Select
+                value={text}
+                onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+                suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              >
+                {statusOptions.map((option) => (
+                  <Select.Option key={option} value={option}>
+                    {option}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          ) : (
+            <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          );
+        },
       },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
-    },
-    {
-      title: t('Trạng thái'),
-      dataIndex: 'status',
-      width: '8%',
-      render: (text: string, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'status'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.status}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
-          >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -366,41 +390,46 @@ export const RoomAndLocationTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm TỌA ĐỘ & VỊ TRÍ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
+           
+          <BaseForm.Item name="x" label={'Tọa độ x'} rules={[{ required: true, message: t('Tọa độ x là cần thiết') }]}>
+            <Input type='number' />
           </BaseForm.Item>
+
+          <BaseForm.Item name="y" label={'Tọa độ y'} rules={[{ required: true, message: t('Tọa độ y là cần thiết') }]}>
+            <Input type='number' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="z" label={'Tọa độ z'} rules={[{ required: true, message: t('Tọa độ z là cần thiết') }]}>
+            <Input type='number' />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="locationName" label={'Tên vị trí'} rules={[{ required: true, message: t('TTên vị trí là cần thiết') }]}>
+            <Input maxLength={100} />
+          </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table

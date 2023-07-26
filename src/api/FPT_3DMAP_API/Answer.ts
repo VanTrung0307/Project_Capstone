@@ -1,18 +1,16 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
 
-const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Events`;
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Answers`;
 
-export type Event = {
-  name: string;
-  startTime: number;
-  endTime: number
-  status: string; 
-  id: string;
+export type Answer = {
+  answerName: string;
+  isRight: string;
+  id: string
 };
 
-export type EventList = {
-  data: Event[];
+export type AnswerList = {
+  data: Answer[];
 };
 
 export interface Pagination {
@@ -22,13 +20,13 @@ export interface Pagination {
 }
 
 export interface PaginationData {
-  data: Event[];
+  data: Answer[];
   pagination: Pagination;
 }
 
-export const getPaginatedEvents = async (pagination: Pagination) => {
+export const getPaginatedAnswers = async (pagination: Pagination) => {
   try {
-    const response = await axios.get<EventList>(API_BASE_URL);
+    const response = await axios.get<AnswerList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -56,37 +54,37 @@ export const getPaginatedEvents = async (pagination: Pagination) => {
       },
     };
   } catch (error) {
-    console.error('Error fetching paginated events:', error);
+    console.error('Error fetching paginated answers:', error);
     throw error;
   }
 };
 
-export const getEventById = async (eventId: string) => {
+export const getAnswerById = async (answerId: string) => {
   try {
-    const response = await axios.get<Event>(`${API_BASE_URL}/${eventId}`);
+    const response = await axios.get<Answer>(`${API_BASE_URL}/${answerId}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching event:', error);
+    console.error('Error fetching answer:', error);
     throw error;
   }
 };
 
-export const createEvent = async (eventData: Event) => {
+export const createAnswer = async (answerData: Answer) => {
   try {
-    const response = await axios.post<Event>(`${API_BASE_URL}/event`, eventData);
+    const response = await axios.post<Answer>(`${API_BASE_URL}/answer`, answerData);
     return response.data;
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error('Error creating answer:', error);
     throw error;
   }
 };
 
-export const updateEvent = async (eventId: string, eventData: Event) => {
+export const updateAnswer = async (answerId: string, answerData: Answer) => {
   try {
-    const response = await axios.put<Event>(`${API_BASE_URL}/${eventId}`, eventData);
+    const response = await axios.put<Answer>(`${API_BASE_URL}/${answerId}`, answerData);
     return response.data;
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('Error updating answer:', error);
     throw error;
   }
 };

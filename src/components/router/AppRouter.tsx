@@ -76,6 +76,7 @@ const School = React.lazy(() => import('@app/pages/SchoolPage'));
 const Task = React.lazy(() => import('@app/pages/TaskPage'));
 const Major = React.lazy(() => import('@app/pages/MajorPage'));
 const QuestionBank = React.lazy(() => import('@app/pages/QuestionBankPage'));
+const Answer = React.lazy(() => import('@app/pages/AnswerPage'));
 const NPC = React.lazy(() => import('@app/pages/NPCPage'));
 const Gift = React.lazy(() => import('@app/pages/GiftPage'));
 const Item = React.lazy(() => import('@app/pages/ItemPage'));
@@ -175,6 +176,7 @@ export const AppRouter: React.FC = () => {
             <Route path="tasks" element={<Task />} />
             <Route path="majors" element={<Major />} />
             <Route path="questionbanks" element={<QuestionBank />} />
+            <Route path="answers" element={<Answer />} />
             <Route path="npcs" element={<NPC />} />
             <Route path="gifts" element={<Gift />} />
             <Route path="items" element={<Item />} />

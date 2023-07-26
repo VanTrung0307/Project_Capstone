@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Gift, Pagination, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
+import { DownOutlined } from '@ant-design/icons';
+import { Gift, Pagination, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
+import { Rank, getPaginatedRanks } from '@app/api/FPT_3DMAP_API/Rank';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -22,6 +23,7 @@ const initialPagination: Pagination = {
 export const GiftTable: React.FC = () => {
  
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const filterDropdownStyles: CSSProperties = {
     height: '50px',
@@ -72,6 +74,7 @@ export const GiftTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  const [ranks, setRanks] = useState<Rank[]>([]);
 
   const isEditing = (record: Gift) => record.id === editingKey;
 
@@ -91,6 +94,16 @@ export const GiftTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        // Kiểm tra và chuyển các trường rỗng thành giá trị null
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === "") {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log("Updated null Gift:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -138,13 +151,27 @@ export const GiftTable: React.FC = () => {
   const { isMounted } = useMounted();
 
   const fetch = useCallback(
-    (pagination: Pagination) => {
+    async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedGifts(pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      getPaginatedGifts(pagination)
+        .then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated gifts:', error);
+          setData((tableData) => ({ ...tableData, loading: false }));
+        });
+
+      // Fetch the list of ranks and store it in the "ranks" state
+      try {
+        const majorResponse = await getPaginatedRanks({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setRanks(majorResponse.data);
+      } catch (error) {
+        console.error('Error fetching ranks:', error);
+      }
+
     },
     [isMounted],
   );
@@ -160,12 +187,14 @@ export const GiftTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: Gift = {
         name: values.name,
         decription: values.decription,
+        rankId: values.rankId,
         rankName: values.rankName,
         price: values.price,
         place: values.place,
@@ -173,15 +202,44 @@ export const GiftTable: React.FC = () => {
         id: values.id,
       };
 
-      // Update the tableData state with the new data
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+      try {
+        const createdGift = await createGift(newData);
+
+        // Fetch the major data using the selected "rankName" from the form
+        const selectedrank = ranks.find((rank) => rank.name === newData.rankName);
+
+        // If the selected major is found, set its ID to the newData
+        if (selectedrank) {
+          newData.rankId = selectedrank.id;
+        }
+
+        // Assign the ID received from the API response to the newData
+        newData.id = createdGift.id;
+
+
       setData((prevData) => ({
         ...prevData,
-        data: [...prevData.data, newData],
+        data: [...prevData.data, createdGift],
+        loading: false, // Hide loading state after successful update
       }));
 
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('Gift data created successfully');
+
+      // Fetch the updated data after successful creation
+      getPaginatedGifts(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating Gift data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
   };
 
   const columns: ColumnsType<Gift> = [
@@ -196,9 +254,10 @@ export const GiftTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a giftName' }]}
+            rules={[{ required: true, message: 'Tên quà tặng là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -207,31 +266,6 @@ export const GiftTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Gift) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Thứ hạng được nhận'),
@@ -244,15 +278,16 @@ export const GiftTable: React.FC = () => {
             key={record.place}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a place' }]}
+            rules={[{ required: false}]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.place, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== null ? text : "Chưa có thông tin"}</span>
         );
       },
     },
@@ -267,20 +302,27 @@ export const GiftTable: React.FC = () => {
             key={record.rankName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a rankName' }]}
+            rules={[{ required: false }]}
           >
-            <Input
+            <Select
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.rankName, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {ranks.map((rank) => (
+                <Select.Option key={rank.id} value={rank.name}>
+                  {rank.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== null ? text : "Chưa có thông tin"}</span>
         );
       },
     },
     {
-      title: t('Số điểm thưởng tương ứng'),
+      title: t('Điểm thưởng tương ứng'),
       dataIndex: 'price',
       render: (text: number, record: Gift) => {
         const editable = isEditing(record);
@@ -290,38 +332,43 @@ export const GiftTable: React.FC = () => {
             key={record.price}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a price' }]}
+            rules={[{ required: false }]}
           >
             <Input
+              type='number'
+              min={0}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.price, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== null ? text : "Chưa có thông tin"}</span>
         );
       },
     },
     {
-      title: t('Mô tả cách nhận thưởng'),
+      title: t('Mô tả'),
       dataIndex: 'decription',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'decription'; // Define dataIndex here
+        const maxTextLength = 255;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
           <Form.Item
             key={record.decription}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter decription' }]}
+            rules={[{ required: false }]}
           >
-            <Input
+            <TextArea
+              autoSize={{maxRows: 6}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.decription, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
         );
       },
     },
@@ -332,20 +379,30 @@ export const GiftTable: React.FC = () => {
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'status'; // Define dataIndex here
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái phần qùa là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -390,41 +447,62 @@ export const GiftTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Add Data
+        Thêm mới
       </Button>
       <Modal
-        title={'Add Player'}
+        title={'Thêm mới PHẦN QUÀ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
+          <BaseForm.Item name="name" label={'Tên phần quà'} rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}>
+            <Input maxLength={100} />
           </BaseForm.Item>
+
+          <BaseForm.Item name="place" label={'Thứ hạng được nhận'} >
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="description" label={'Mô tả'} >
+            <TextArea autoSize={{maxRows: 6}}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="price" label={'Điểm thưởng tương ứng'} >
+            <Input type='number' min={0}/>
+          </BaseForm.Item>
+
           <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
+            name="rankName"
+            label={'Tên bảng xếp hạng'}
+            rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
           >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
+            <Select 
+              placeholder={'---- Select Rank ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
+            >
+                {ranks.map((rank) => (
+                  <Option key={rank.id} value={rank.name}>
+                    {rank.name}
+                  </Option>
+                ))}
             </Select>
           </BaseForm.Item>
+
+          <BaseForm.Item
+            name="status"
+            label={'Trạng thái'}
+            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
+          >
+            <Select 
+              placeholder={'---- Select Status ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
+            </Select>
+          </BaseForm.Item>
+
         </S.FormContent>
       </Modal>
       <Table
