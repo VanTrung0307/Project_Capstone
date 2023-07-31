@@ -27,16 +27,6 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-// export const getSchools = async () => {
-//   try {
-//     const response = await axios.get<SchoolList>(API_BASE_URL);
-//     return response.data.data;
-//   } catch (error) {
-//     console.error('Error fetching schools:', error);
-//     throw error;
-//   }
-// };
-
 export const getPaginatedSchools = async (pagination: Pagination) => {
   try {
     const response = await axios.get<SchoolList>(API_BASE_URL);
@@ -53,10 +43,10 @@ export const getPaginatedSchools = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -101,13 +91,3 @@ export const updateSchool = async (schoolId: string, schoolData: School) => {
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

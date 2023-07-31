@@ -12,25 +12,26 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
+import { Student, getStudenbySchoolById } from '@app/api/FPT_3DMAP_API/Student';
 
 const initialPagination: Pagination = {
   current: 1,
   pageSize: 2,
 };
 
-export const SchoolTable: React.FC = () => {
+export const StudentTable: React.FC = () => {
 
   const { t } = useTranslation();
   const { TextArea } = Input;
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: School[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: Student[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: School) => record.id === editingKey;
+  const isEditing = (record: Student) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -107,7 +108,7 @@ export const SchoolTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedSchools(pagination).then((res) => {
+      getStudenbySchoolById(pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
