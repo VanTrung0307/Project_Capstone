@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 
 const initialPagination: Pagination = {
@@ -70,6 +71,7 @@ export const PlayerTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  const [events, setEvents] = useState<Event[]>([]);
 
   const formatDateTime = (isoDateTime: number) => {
     const dateTime = new Date(isoDateTime);
@@ -89,13 +91,26 @@ export const PlayerTable: React.FC = () => {
   const { isMounted } = useMounted();
 
   const fetch = useCallback(
-    (pagination: Pagination) => {
+    async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedPlayers(pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      getPaginatedPlayers(pagination)
+        .then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated players:', error);
+          setData((tableData) => ({ ...tableData, loading: false }));
+        });
+  
+      // Fetch the list of events and store it in the "events" state
+      try {
+        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setEvents(eventResponse.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
     },
     [isMounted],
   );
@@ -126,31 +141,6 @@ export const PlayerTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Player) =>
-        record.fullname.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Biệt danh'),
@@ -169,36 +159,48 @@ export const PlayerTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Player) =>
-        record.nickname.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
+    },
+    {
+      title: t('Tên sự kiện'),
+      dataIndex: 'eventName',
+      render: (text: string, record: Player) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Player = 'eventName'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.eventName}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
+          >
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
         );
       },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+    },
+    {
+      title: t('Mã tham gia'),
+      dataIndex: 'passcode',
+      render: (text: string, record: Player) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Player = 'passcode'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.passcode}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Mã tham gia là cần thiết' }]}
+          ></Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
     },
     {
       title: t('Tổng điểm thưởng'),
       dataIndex: 'totalPoint',
-      width: '10%',
+      width: '8%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
         const dataIndex: keyof Player = 'totalPoint'; // Define dataIndex here

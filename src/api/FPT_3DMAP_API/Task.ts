@@ -10,11 +10,9 @@ export type Task = {
   majorName: string;
   npcId: string;
   npcName: string;
-  name: string
-  durationCheckin: number;
+  name: string;
   itemId: string;
   itemName: string;
-  timeOutAmount: number;
   type: string;
   point: number;
   status: string; 

@@ -4,11 +4,14 @@ import axios from 'axios';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Players/players/listPlayer-username`;
 
 export type Player = {
+  eventId: string;
+  eventName: string;
   fullname: string;
   totalPoint: number;
   totalTime: number;
   nickname: string;
   createdAt: number;
+  passcode: string;
   id: string;
 };
 

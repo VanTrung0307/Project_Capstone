@@ -1,17 +1,23 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { User, getPaginatedUsers, updateUser, Pagination } from '@app/api/FPT_3DMAP_API/User';
-import { Form, Input, Space } from 'antd';
+import { DownOutlined, SearchOutlined } from '@ant-design/icons';
+import { User, getPaginatedUsers, updateUser, Pagination, createUser } from '@app/api/FPT_3DMAP_API/User';
+import { Form, Input, Modal, Select, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
+import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { Option } from '@app/components/common/selects/Select/Select';
+import { Key } from 'antd/lib/table/interface';
+import { Link } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -71,6 +77,7 @@ export const UserTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  const [schools, setSchools] = useState<School[]>([]);
 
   const isEditing = (record: User) => record.id === editingKey;
 
@@ -136,14 +143,29 @@ export const UserTable: React.FC = () => {
 
   const { isMounted } = useMounted();
 
+  const [selectedData, setSelectedData] = useState<User[]>([]);
+
   const fetch = useCallback(
-    (pagination: Pagination) => {
+    async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedUsers(pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      getPaginatedUsers(pagination)
+        .then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated users:', error);
+          setData((tableData) => ({ ...tableData, loading: false }));
+        });
+  
+      // Fetch the list of schools and store it in the "schools" state
+      try {
+        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setSchools(schoolResponse.data);
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+      }
     },
     [isMounted],
   );
@@ -157,11 +179,70 @@ export const UserTable: React.FC = () => {
     cancel();
   };
   
+  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const newData: User = {
+        schoolId: values.schoolId,
+        schoolname: values.schoolname,
+        email: values.email,
+        graduateYear: values.graduateYear,
+        phoneNumber: values.phoneNumber,
+        gender: values.gender,
+        fullname: values.fullname,
+        classname: values.classname,
+        status: values.status,
+        id: values.id,
+      };
+
+      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+
+      try {
+        const createdUser = await createUser(newData);
+
+        // Fetch the school data using the selected "schoolName" from the form
+        const selectedschool = schools.find((school) => school.name === newData.schoolname);
+
+        // If the selected location is found, set its ID to the newData
+        if (selectedschool) {
+          newData.schoolId = selectedschool.id;
+        }
+
+        // Assign the ID received from the API response to the newData
+        newData.id = createdUser.id;
+
+
+      setData((prevData) => ({
+        ...prevData,
+        data: [...prevData.data, createdUser],
+        loading: false, // Hide loading state after successful update
+      }));
+
+      form.resetFields();
+      setIsBasicModalOpen(false);
+      console.log('User data created successfully');
+
+      // Fetch the updated data after successful creation
+      getPaginatedUsers(data.pagination).then((res) => {
+        setData({ data: res.data, pagination: res.pagination, loading: false });
+      });
+    } catch (error) {
+      console.error('Error creating User data:', error);
+      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+    }
+  } catch (error) {
+    console.error('Error validating form:', error);
+  }
+  };
 
   const columns: ColumnsType<User> = [
     {
       title: t('Họ và Tên'),
       dataIndex: 'fullname',
+      width: '15%',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
         const dataIndex: keyof User = 'fullname'; // Define dataIndex here
@@ -170,39 +251,18 @@ export const UserTable: React.FC = () => {
             key={record.fullname}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên đầy đủ là bắt buộc' }]}
           >
-            <Input value={text} onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)} />
+            <Input 
+              value={text} 
+              onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)} 
+              maxLength={100}  
+            />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: User) =>
-        record.fullname.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Email'),
@@ -218,6 +278,8 @@ export const UserTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter an email' }]}
           >
             <Input
+              maxLength={100}
+              type='email'
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
@@ -226,60 +288,35 @@ export const UserTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      showSorterTooltip: false,
-      onFilter: (value: string | number | boolean, record: User) =>
-        record.email.toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0]?.toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
-      title: t('Tên đăng nhập'),
-      dataIndex: 'username',
+      title: t('Tên lớp'),
+      dataIndex: 'classname',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'username'; // Define dataIndex here
+        const dataIndex: keyof User = 'classname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.username}
+            key={record.classname}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a username' }]}
+            rules={[{ required: true, message: 'Tên lớp là cần thiết' }]}
           >
             <Input
+              maxLength={100}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.username, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.classname, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      showSorterTooltip: false,
     },
     {
       title: t('Tên trường'),
       dataIndex: 'schoolname',
+      width: '15%',
       render: (text: string, record: User) => {
         const editable = isEditing(record);
         const dataIndex: keyof User = 'schoolname'; // Define dataIndex here
@@ -290,9 +327,39 @@ export const UserTable: React.FC = () => {
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a schoolname' }]}
           >
+            <Select
+              value={record[dataIndex]}
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              {schools.map((school) => (
+                <Select.Option key={school.id} value={school.name}>
+                  {school.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Năm học'),
+      dataIndex: 'graduateYear',
+      render: (text: string, record: User) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof User = 'graduateYear'; // Define dataIndex here
+        return editable ? (
+          <Form.Item
+            key={record.graduateYear}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Năm học là cần thiết' }]}
+          >
             <Input
               value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.schoolname, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.graduateYear, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -339,6 +406,9 @@ export const UserTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a phoneNumber' }]}
           >
             <Input
+              type='number'
+              min={10}
+              max={11}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
             />
@@ -347,31 +417,6 @@ export const UserTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: User) =>
-        record.phoneNumber.toString().toLowerCase().includes(value.toString().toLowerCase()),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
-        const handleSearch = () => {
-          confirm();
-          setSearchValue(selectedKeys[0].toString());
-        };
-
-        return (
-          <div style={filterDropdownStyles} className="input-box">
-            <Input
-              type="text"
-              placeholder="Search here..."
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value.toString()] : [])}
-              style={inputStyles}
-            />
-            <Button onClick={handleSearch} className="button" style={buttonStyles}>
-              Filter
-            </Button>
-          </div>
-        );
-      },
-      filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
     },
     {
       title: t('Trạng thái'),
@@ -433,6 +478,91 @@ export const UserTable: React.FC = () => {
 
   return (
     <Form form={form}>
+      <Button
+        type="default"
+        onClick={() => setIsBasicModalOpen(true)}
+        style={{ position: 'absolute', top: '0', right: '150px', margin: '15px 20px' }}
+      >
+        Import Excel
+      </Button>
+      <Button
+        type="primary"
+        onClick={() => setIsBasicModalOpen(true)}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
+      >
+        Thêm mới
+      </Button>
+      <Modal
+        title={'Thêm mới HỌC SINH'}
+        open={isBasicModalOpen}
+        onOk={handleModalOk}
+        onCancel={() => setIsBasicModalOpen(false)}
+      >
+        <S.FormContent>
+
+          <BaseForm.Item name="fullname" label={'Tên học sinh'} rules={[{ required: true, message: t('Tên học sinh là cần thiết') }]}>
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="email" label={'Tên học sinh'} rules={[{ required: true, message: t('Email là cần thiết') }]}>
+            <Input type='email'/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="classname" label={'Tên lớp'} rules={[{ required: true, message: t('Tên lớp là cần thiết') }]}>
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="schoolname" label={'Tên vật phẩm (nếu có)'} >
+            <Select 
+              placeholder={'---- Select School ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+                {schools.map((school) => (
+                  <Option key={school.id} value={school.name}>
+                    {school.name}
+                  </Option>
+                ))}
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="graduateYear" label={'Năm học'} rules={[{ required: true, message: t('Năm học là cần thiết') }]}>
+            <Input maxLength={100}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item
+            name="status"
+            label={'Status'}
+            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
+          >
+            <Select 
+              placeholder={'---- Select Gender ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="Nam">{'Nam'}</Option>
+              <Option value="Nữ">{'Nữ'}</Option>
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item name="phoneNumber" label={'Điện thoại'} rules={[{ required: true, message: t('Điện thoại là cần thiết') }]}>
+            <Input type='number' min={10} max={11}/>
+          </BaseForm.Item>
+
+          <BaseForm.Item
+            name="status"
+            label={'Status'}
+            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
+          >
+            <Select 
+              placeholder={'---- Select Phone Number ----'}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+            >
+              <Option value="ACTIVE">{'ACTIVE'}</Option>
+              <Option value="INACTIVE">{'INACTIVE'}</Option>
+            </Select>
+          </BaseForm.Item>
+
+        </S.FormContent>
+      </Modal>
       <Table
         components={{
           body: {

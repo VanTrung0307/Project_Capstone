@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -74,7 +75,7 @@ export const GiftTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
-  const [ranks, setRanks] = useState<Rank[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
 
   const isEditing = (record: Gift) => record.id === editingKey;
 
@@ -164,12 +165,12 @@ export const GiftTable: React.FC = () => {
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
-      // Fetch the list of ranks and store it in the "ranks" state
+      // Fetch the list of events and store it in the "events" state
       try {
-        const majorResponse = await getPaginatedRanks({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
-        setRanks(majorResponse.data);
+        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setEvents(eventResponse.data);
       } catch (error) {
-        console.error('Error fetching ranks:', error);
+        console.error('Error fetching events:', error);
       }
 
     },
@@ -194,10 +195,9 @@ export const GiftTable: React.FC = () => {
       const newData: Gift = {
         name: values.name,
         decription: values.decription,
-        rankId: values.rankId,
-        rankName: values.rankName,
-        price: values.price,
-        place: values.place,
+        eventId: values.eventId,
+        eventName: values.eventName,
+        quantity: values.quantity,
         status: values.status,
         id: values.id,
       };
@@ -207,12 +207,12 @@ export const GiftTable: React.FC = () => {
       try {
         const createdGift = await createGift(newData);
 
-        // Fetch the major data using the selected "rankName" from the form
-        const selectedrank = ranks.find((rank) => rank.name === newData.rankName);
+        // Fetch the event data using the selected "rankevent" from the form
+        const selectedEvent = events.find((event) => event.name === newData.eventName);
 
-        // If the selected major is found, set its ID to the newData
-        if (selectedrank) {
-          newData.rankId = selectedrank.id;
+        // If the selected event is found, set its ID to the newData
+        if (selectedEvent) {
+          newData.eventId = selectedEvent.id;
         }
 
         // Assign the ID received from the API response to the newData
@@ -268,50 +268,26 @@ export const GiftTable: React.FC = () => {
       },
     },
     {
-      title: t('Thứ hạng được nhận'),
-      dataIndex: 'place',
+      title: t('Tên sự kiện'),
+      dataIndex: 'eventName',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'place'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'eventName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.place}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false}]}
-          >
-            <Input
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : "Chưa có thông tin"}</span>
-        );
-      },
-    },
-    {
-      title: t('Tên bảng xếp hạng'),
-      dataIndex: 'rankName',
-      render: (text: string, record: Gift) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'rankName'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.rankName}
+            key={record.eventName}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: false }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.eventName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
             >
-              {ranks.map((rank) => (
-                <Select.Option key={rank.id} value={rank.name}>
-                  {rank.name}
+              {events.map((event) => (
+                <Select.Option key={event.id} value={event.name}>
+                  {event.name}
                 </Select.Option>
               ))}
             </Select>
@@ -322,14 +298,14 @@ export const GiftTable: React.FC = () => {
       },
     },
     {
-      title: t('Điểm thưởng tương ứng'),
-      dataIndex: 'price',
+      title: t('Số lượng'),
+      dataIndex: 'quantity',
       render: (text: number, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'price'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'quantity'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.price}
+            key={record.quantity}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: false }]}
@@ -338,7 +314,7 @@ export const GiftTable: React.FC = () => {
               type='number'
               min={0}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.price, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.quantity, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -460,30 +436,26 @@ export const GiftTable: React.FC = () => {
             <Input maxLength={100} />
           </BaseForm.Item>
 
-          <BaseForm.Item name="place" label={'Thứ hạng được nhận'} >
-            <Input maxLength={100}/>
-          </BaseForm.Item>
-
-          <BaseForm.Item name="description" label={'Mô tả'} >
+          <BaseForm.Item name="decription" label={'Mô tả'} >
             <TextArea autoSize={{maxRows: 6}}/>
           </BaseForm.Item>
 
-          <BaseForm.Item name="price" label={'Điểm thưởng tương ứng'} >
+          <BaseForm.Item name="quantity" label={'Số lượng'} >
             <Input type='number' min={0}/>
           </BaseForm.Item>
 
           <BaseForm.Item
-            name="rankName"
-            label={'Tên bảng xếp hạng'}
-            rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
+            name="eventName"
+            label={'Tên sự kiện'}
+            rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}
           >
             <Select 
-              placeholder={'---- Select Rank ----'}
+              placeholder={'---- Select Event ----'}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
             >
-                {ranks.map((rank) => (
-                  <Option key={rank.id} value={rank.name}>
-                    {rank.name}
+                {events.map((event) => (
+                  <Option key={event.id} value={event.name}>
+                    {event.name}
                   </Option>
                 ))}
             </Select>

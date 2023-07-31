@@ -6,10 +6,9 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Gifts`;
 export type Gift = {
   name: string;
   decription: string;
-  price: number;
-  rankId: string;
-  rankName: string;
-  place: string;
+  quantity: number;
+  eventId: string;
+  eventName: string;
   status: string;
   id: string;
 };

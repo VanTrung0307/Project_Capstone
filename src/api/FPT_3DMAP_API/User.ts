@@ -10,14 +10,14 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users`;
 // }
 
 export type User = {
+  schoolId: string;
   schoolname: string;
-  roleId: string;
   email: string;
-  password: string;
+  graduateYear: string;
   phoneNumber: number;
   gender: string;
   fullname: string;
-  username: string;
+  classname: string;
   // status?: Tag[];
   status: string;
   id: string;
@@ -73,15 +73,15 @@ export const getPaginatedUsers = async (pagination: Pagination) => {
   }
 };
 
-// export const createUser = async (userData: User) => {
-//   try {
-//     const response = await axios.post<User>(`${API_BASE_URL}/user`, userData);
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error creating user:', error);
-//     throw error;
-//   }
-// };
+export const createUser = async (userData: User) => {
+  try {
+    const response = await axios.post<User>(`${API_BASE_URL}/user`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+};
 
 export const updateUser = async (id: string, userData: User) => {
   try {

@@ -230,8 +230,6 @@ export const TaskTable: React.FC = () => {
         majorName: values.majorName,
         type: values.type,
         point: values.point,
-        durationCheckin: values.durationCheckin,
-        timeOutAmount: values.timeOutAmount,
         itemId: values.itemId,
         itemName: values.itemName,
         status: values.status,
@@ -341,7 +339,7 @@ export const TaskTable: React.FC = () => {
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.locationName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
             >
               {locations.map((location) => (
@@ -373,7 +371,7 @@ export const TaskTable: React.FC = () => {
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.npcName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
             >
               {npcs.map((npc) => (
@@ -405,7 +403,7 @@ export const TaskTable: React.FC = () => {
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
             >
               {majors.map((major) => (
@@ -465,54 +463,6 @@ export const TaskTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Giới hạn Check in?'),
-      dataIndex: 'durationCheckin',
-      render: (text: number, record: Task) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Task = 'durationCheckin'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.durationCheckin}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
-            <Input
-              type='time'
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.durationCheckin, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : "Không có"}</span>
-        );
-      },
-    },
-    {
-      title: t('Thời gian làm lại'),
-      dataIndex: 'timeOutAmount',
-      render: (text: number, record: Task) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Task = 'timeOutAmount'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.timeOutAmount}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
-            <Input
-              type='number'
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.timeOutAmount, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : "Không có"}</span>
         );
       },
     },
@@ -671,14 +621,6 @@ export const TaskTable: React.FC = () => {
           </BaseForm.Item>
 
           <BaseForm.Item name="point" label={'Điểm thưởng'} rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-            <Input type='number' />
-          </BaseForm.Item>
-
-          <BaseForm.Item name="durationCheckin" label={'Giới hạn Check in (nếu có)'} >
-            <Input type='time' />
-          </BaseForm.Item>
-
-          <BaseForm.Item name="timeOutAmount" label={'Thời gian làm lại (nếu có)'} >
             <Input type='number' />
           </BaseForm.Item>
 
