@@ -162,7 +162,7 @@ export const PlayerTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a nickname' }]}
           ></Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text === 'null' ? 'chưa có thông tin' : text}</span>
         );
       },
     },
