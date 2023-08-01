@@ -99,22 +99,23 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
   }
 };
 
-export const createSchool = async (schoolData: Student) => {
-  try {
-    const response = await axios.post<Student>(`${API_BASE_URL}/school`, schoolData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating school:', error);
-    throw error;
+export const uploadExcelStudent = async (schoolId: string, file: File) => {
+  if (!schoolId) {
+    console.error('schoolId is undefined.');
+    return;
   }
-};
 
-export const updateSchool = async (schoolId: string, schoolData: Student) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
   try {
-    const response = await axios.put<Student>(`${API_BASE_URL}/${schoolId}`, schoolData);
-    return response.data;
+    const response = await axios.post(`${API_BASE_URL}/student/${schoolId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('Upload response:', response.data);
   } catch (error) {
-    console.error('Error updating school:', error);
-    throw error;
+    console.error('Upload error:', error);
   }
 };

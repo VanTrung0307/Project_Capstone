@@ -1,12 +1,13 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
 
-const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Players/players/listPlayer-username`;
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Players`;
 
 export type Player = {
   eventId: string;
   eventName: string;
-  fullname: string;
+  studentId: string;
+  studentName: string;
   totalPoint: number;
   totalTime: number;
   nickname: string;
@@ -46,10 +47,10 @@ export const getPaginatedPlayers = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -71,6 +72,53 @@ export const getPlayerById = async (playerId: string) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching player:', error);
+    throw error;
+  }
+};
+
+interface PlayerData {
+  studentId: string;
+  studentName:string;
+  eventId: string;
+  nickname: string;
+  passcode: string;
+  createdAt: string;
+  totalPoint: number;
+  totalTime: number;
+  isplayer: boolean;
+  id: string;
+}
+
+export const createPlayer = async ({
+  studentId,
+  studentName,
+  eventId,
+  nickname,
+  passcode,
+  createdAt,
+  totalPoint,
+  totalTime,
+  isplayer,
+  id,
+}: PlayerData) => {
+  try {
+    const playerData: PlayerData = {
+      studentId,
+      studentName,
+      eventId,
+      nickname,
+      passcode,
+      createdAt,
+      totalPoint,
+      totalTime,
+      isplayer,
+      id,
+    };
+
+    const response = await axios.post(`${API_BASE_URL}/player`, playerData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating player:', error);
     throw error;
   }
 };

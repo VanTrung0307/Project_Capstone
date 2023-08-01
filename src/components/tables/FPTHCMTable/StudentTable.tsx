@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
-import { Pagination, School, createSchool, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import { DownOutlined, UploadOutlined } from '@ant-design/icons';
+import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import { Student, getStudenbySchoolById, uploadExcelStudent } from '@app/api/FPT_3DMAP_API/Student';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -12,7 +13,10 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
-import { Student, getStudenbySchoolById } from '@app/api/FPT_3DMAP_API/Student';
+import { useParams } from 'react-router-dom';
+import { Upload } from '@app/components/common/Upload/Upload';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { createPlayer } from '@app/api/FPT_3DMAP_API/Player';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -20,7 +24,6 @@ const initialPagination: Pagination = {
 };
 
 export const StudentTable: React.FC = () => {
-
   const { t } = useTranslation();
   const { TextArea } = Input;
 
@@ -52,12 +55,12 @@ export const StudentTable: React.FC = () => {
 
         // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Major:', updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -76,7 +79,7 @@ export const StudentTable: React.FC = () => {
         console.error('Error updating school data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -93,28 +96,34 @@ export const StudentTable: React.FC = () => {
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof School) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Student) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
+  const { schoolId } = useParams<{ schoolId: string | undefined }>();
 
   const fetch = useCallback(
     (pagination: Pagination) => {
+      if (schoolId === undefined) {
+        console.error('School ID is missing in the URL.');
+        return;
+      }
+
       setData((tableData) => ({ ...tableData, loading: true }));
-      getStudenbySchoolById(pagination).then((res) => {
+      getStudenbySchoolById(schoolId, pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       });
     },
-    [isMounted],
+    [isMounted, schoolId],
   );
 
   useEffect(() => {
@@ -126,57 +135,120 @@ export const StudentTable: React.FC = () => {
     cancel();
   };
 
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+  // const uploadProps = {
+  //   name: 'file',
+  //   multiple: true,
+  //   action: `http://anhkiet-001-site1.htempurl.com/api/Students/student/${schoolId}`,
+  //   onChange: async (info: any) => {
+  //     const { status } = info.file;
+  //     if (status !== 'uploading') {
+  //       console.log(info.file, info.fileList);
+  //     }
+  //     if (status === 'done') {
+  //       try {
+  //         if (schoolId) {
+  //           await uploadExcelStudent(schoolId, info.file.originFileObj);
+  //           message.success(t('uploads.successUpload', { name: info.file.name }));
+  //           setData((prevData) => ({ ...prevData, loading: true }));
+  //         }
+  //       } catch (error) {
+  //         message.error(t('uploads.failedUpload', { name: info.file.name }));
+  //         setData((prevData) => ({ ...prevData, loading: false }));
+  //       }
+  //     } else if (status === 'error') {
+  //       message.error(t('uploads.failedUpload', { name: info.file.name }));
+  //       setData((prevData) => ({ ...prevData, loading: false }));
+  //     }
+  //   },
+  // };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-
-      const newData: School = {
-        name: values.name,
-        phoneNumber: values.phoneNumber,
-        email: values.email,
-        address: values.address,
-        status: values.status,
-        id: values.id,
-      };
-
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
-
-    try {
-      const createdSchool = await createSchool(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdSchool],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('School data created successfully');
-
-      // Fetch the updated data after successful creation
-      getPaginatedSchools(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
-    } catch (error) {
-      console.error('Error creating School data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
-    }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
+  const uploadProps = {
+    name: 'file',
+    multiple: true,
+    action: `http://anhkiet-001-site1.htempurl.com/api/Students/student/${schoolId}`,
+    onChange: (info: any) => {
+      const { status } = info.file;
+      if (status !== 'uploading') {
+        console.log(info.file, info.fileList);
+      }
+      if (status === 'done') {
+        message.success(t('uploads.successUpload', { name: info.file.name }));
+      } else if (status === 'error') {
+        message.error(t('uploads.failedUpload', { name: info.file.name }));
+      }
+    },
   };
 
-  const columns: ColumnsType<School> = [
+  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+  const [isAddPlayerModalVisible, setIsAddPlayerModalVisible] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [selectOptions, setSelectOptions] = useState<Event[]>([]); // Replace this with your actual options
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | undefined>(undefined);
+
+  const initialFormData = {
+    // Example: name: '',
+    // Example: age: 0,
+    // ...
+  };
+
+  const fetchSelectOptions = async () => {
+    try {
+      const pagination = { current: 1, pageSize: 10 };
+      const response = await getPaginatedEvents(pagination);
+      setSelectOptions(response.data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  const handleAddPlayer = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setIsAddPlayerModalVisible(true);
+    fetchSelectOptions();
+    setFormData(initialFormData);
+  };
+
+  const handleSavePlayer = async () => {
+    setIsAddPlayerModalVisible(false);
+
+    try {
+      if (selectedStudentId && selectedOption) {
+        await createPlayer({
+          studentId: selectedStudentId,
+          studentName: '',
+          eventId: selectedOption,
+          nickname: '',
+          passcode: '',
+          createdAt: new Date().toISOString(),
+          totalPoint: 0,
+          totalTime: 0,
+          isplayer: true,
+          id: '',
+        });
+
+        message.success('Player added successfully');
+      }
+    } catch (error) {
+      console.error('Error adding player:', error);
+      message.error('Failed to add player');
+    }
+  };
+
+  const handleCancelPlayer = () => {
+    setIsAddPlayerModalVisible(false);
+  };
+
+  const columns: ColumnsType<Student> = [
     {
-      title: t('Tên trường'),
-      dataIndex: 'name',
-      render: (text: string, record: School) => {
+      title: t('Họ và tên'),
+      dataIndex: 'fullname',
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'name'; // Define dataIndex here
+        const dataIndex: keyof Student = 'fullname'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.name}
+            key={record.fullname}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
@@ -184,7 +256,7 @@ export const StudentTable: React.FC = () => {
             <Input
               maxLength={100}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -195,18 +267,13 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
-      render: (text: string, record: School) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'email'; // Define dataIndex here
+        const dataIndex: keyof Student = 'email'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.email}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
-              type='email'
+              type="email"
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
@@ -218,23 +285,18 @@ export const StudentTable: React.FC = () => {
       },
     },
     {
-      title: t('Địa chỉ nhà trường'),
-      dataIndex: 'address',
-      render: (text: string, record: School) => {
+      title: t('Điện thoại'),
+      dataIndex: 'phonenumber',
+      width: '8%',
+      render: (text: number, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'address'; // Define dataIndex here
-        const maxTextLength = 255;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
+        const dataIndex: keyof Student = 'phonenumber'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.address}
-            name={dataIndex}
-            initialValue={text}
-          >
-            <TextArea
-              autoSize={{maxRows: 3}}
+          <Form.Item key={record.phonenumber} name={dataIndex} initialValue={text}>
+            <Input
+              type="tel"
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.phonenumber, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -243,22 +305,18 @@ export const StudentTable: React.FC = () => {
       },
     },
     {
-      title: t('Điện thoại'),
-      dataIndex: 'phoneNumber',
-      width: "8%",
-      render: (text: number, record: School) => {
+      title: t('Lớp'),
+      dataIndex: 'classname',
+      width: '8%',
+      render: (text: number, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'phoneNumber'; // Define dataIndex here
+        const dataIndex: keyof Student = 'classname'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.phoneNumber}
-            name={dataIndex}
-            initialValue={text}
-          >
+          <Form.Item key={record.classname} name={dataIndex} initialValue={text}>
             <Input
-              type='tel'
+              type="tel"
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.classname, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -270,9 +328,9 @@ export const StudentTable: React.FC = () => {
       title: t('Trạng thái'),
       dataIndex: 'status',
       width: '8%',
-      render: (text: string, record: School) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'status';
+        const dataIndex: keyof Student = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -286,7 +344,7 @@ export const StudentTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -296,7 +354,7 @@ export const StudentTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -304,7 +362,7 @@ export const StudentTable: React.FC = () => {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '8%',
-      render: (text: string, record: School) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
         return (
           <Space>
@@ -326,6 +384,31 @@ export const StudentTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
+                <Button type="ghost" onClick={() => handleAddPlayer(record.id)}>
+                  Become Player
+                </Button>
+                <Modal
+                  title="Add Player"
+                  visible={isAddPlayerModalVisible}
+                  onOk={handleSavePlayer}
+                  onCancel={handleCancelPlayer}
+                >
+                  <Form>
+                    <Form.Item label="Select Event">
+                      <Select
+                        value={selectedOption}
+                        onChange={(value) => setSelectedOption(value)}
+                        placeholder="Select an event"
+                      >
+                        {selectOptions.map((event) => (
+                          <Select.Option key={event.id} value={event.id}>
+                            {event.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Form>
+                </Modal>
               </>
             )}
           </Space>
@@ -343,28 +426,36 @@ export const StudentTable: React.FC = () => {
       >
         Thêm mới
       </Button>
+      <Upload {...uploadProps}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
+          {t('uploads.clickToUpload')}
+        </Button>
+      </Upload>
       <Modal
         title={'Thêm TRƯỜNG'}
         open={isBasicModalOpen}
-        onOk={handleModalOk}
+        // onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-
-          <BaseForm.Item name="name" label={'Tên trường'} rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
+          <BaseForm.Item
+            name="name"
+            label={'Tên trường'}
+            rules={[{ required: true, message: t('Tên trường là cần thiết') }]}
+          >
             <Input />
           </BaseForm.Item>
 
-          <BaseForm.Item name="email" label={'Email'} >
+          <BaseForm.Item name="email" label={'Email'}>
             <Input />
           </BaseForm.Item>
 
-          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'} >
-            <Input type='tel' />
+          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'}>
+            <Input type="tel" />
           </BaseForm.Item>
 
-          <BaseForm.Item name="address" label={'Địa chỉ'} >
-            <TextArea autoSize={{maxRows: 3}} />
+          <BaseForm.Item name="address" label={'Địa chỉ'}>
+            <TextArea autoSize={{ maxRows: 3 }} />
           </BaseForm.Item>
 
           <BaseForm.Item
@@ -372,15 +463,11 @@ export const StudentTable: React.FC = () => {
             label={'Trạng thái'}
             rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="ACTIVE">{'ACTIVE'}</Option>
               <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
-
         </S.FormContent>
       </Modal>
       <Table

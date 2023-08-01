@@ -128,12 +128,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     url: '/schools',
     icon: <IoSchoolOutline />,
   },
-  {
-    title: 'Student',
-    key: 'student',
-    url: '/students',
-    icon: <IoSchoolOutline />,
-  },
+  // {
+  //   title: 'Student',
+  //   key: 'student',
+  //   url: '/students',
+  //   icon: <IoSchoolOutline />,
+  // },
   {
     title: 'Rooms And Locations',
     key: 'roomLocation',

@@ -12,7 +12,7 @@ import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-
+import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -72,7 +72,7 @@ export const PlayerTable: React.FC = () => {
     loading: false,
   });
   const [events, setEvents] = useState<Event[]>([]);
-
+  const [students, setStudents] = useState<User[]>([]);
   const formatDateTime = (isoDateTime: number) => {
     const dateTime = new Date(isoDateTime);
     const year = dateTime.getFullYear();
@@ -103,13 +103,19 @@ export const PlayerTable: React.FC = () => {
           console.error('Error fetching paginated players:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
-  
+
       // Fetch the list of events and store it in the "events" state
       try {
         const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
         setEvents(eventResponse.data);
       } catch (error) {
         console.error('Error fetching events:', error);
+      }
+      try {
+        const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        setStudents(studentResponse.data);
+      } catch (error) {
+        console.error('Error fetching students:', error);
       }
     },
     [isMounted],
@@ -126,13 +132,13 @@ export const PlayerTable: React.FC = () => {
   const columns: ColumnsType<Player> = [
     {
       title: t('Tên học sinh đã tham gia'),
-      dataIndex: 'fullname',
+      dataIndex: 'studentName',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'fullname'; // Define dataIndex here
+        const dataIndex: keyof Player = 'studentName'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.fullname}
+            key={record.studentName}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a fullname' }]}
@@ -172,8 +178,7 @@ export const PlayerTable: React.FC = () => {
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
-          >
-          </Form.Item>
+          ></Form.Item>
         ) : (
           <span>{text}</span>
         );

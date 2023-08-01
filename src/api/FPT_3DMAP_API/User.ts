@@ -2,7 +2,7 @@
 import axios from 'axios';
 // import { Priority } from '@app/constants/enums/priorities';
 
-const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Users`;
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
 
 // export interface Tag {
 //   status: string;

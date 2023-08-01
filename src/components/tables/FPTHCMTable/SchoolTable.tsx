@@ -12,6 +12,7 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
+import { useNavigate } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -19,7 +20,6 @@ const initialPagination: Pagination = {
 };
 
 export const SchoolTable: React.FC = () => {
-
   const { t } = useTranslation();
   const { TextArea } = Input;
 
@@ -51,12 +51,12 @@ export const SchoolTable: React.FC = () => {
 
         // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Major:', updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -75,7 +75,7 @@ export const SchoolTable: React.FC = () => {
         console.error('Error updating school data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -99,7 +99,7 @@ export const SchoolTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -142,28 +142,34 @@ export const SchoolTable: React.FC = () => {
 
       setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
 
-    try {
-      const createdSchool = await createSchool(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdSchool],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('School data created successfully');
+      try {
+        const createdSchool = await createSchool(newData);
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdSchool],
+          loading: false, // Hide loading state after successful update
+        }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('School data created successfully');
 
-      // Fetch the updated data after successful creation
-      getPaginatedSchools(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        // Fetch the updated data after successful creation
+        getPaginatedSchools(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating School data:', error);
+        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      }
     } catch (error) {
-      console.error('Error creating School data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
+  };
+
+  const navigate = useNavigate();
+
+  const handleDetailClick = (schoolId: string) => {
+    navigate(`/students/${schoolId}`);
   };
 
   const columns: ColumnsType<School> = [
@@ -198,14 +204,9 @@ export const SchoolTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'email'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.email}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
-              type='email'
+              type="email"
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
@@ -225,13 +226,9 @@ export const SchoolTable: React.FC = () => {
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item
-            key={record.address}
-            name={dataIndex}
-            initialValue={text}
-          >
+          <Form.Item key={record.address} name={dataIndex} initialValue={text}>
             <TextArea
-              autoSize={{maxRows: 3}}
+              autoSize={{ maxRows: 3 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
             />
@@ -244,18 +241,14 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Điện thoại'),
       dataIndex: 'phoneNumber',
-      width: "8%",
+      width: '8%',
       render: (text: number, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'phoneNumber'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.phoneNumber}
-            name={dataIndex}
-            initialValue={text}
-          >
+          <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
             <Input
-              type='tel'
+              type="tel"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
             />
@@ -285,7 +278,7 @@ export const SchoolTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -295,7 +288,7 @@ export const SchoolTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -325,6 +318,9 @@ export const SchoolTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
+                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
+                  {t('Detail')}
+                </Button>
               </>
             )}
           </Space>
@@ -349,21 +345,24 @@ export const SchoolTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-
-          <BaseForm.Item name="name" label={'Tên trường'} rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
+          <BaseForm.Item
+            name="name"
+            label={'Tên trường'}
+            rules={[{ required: true, message: t('Tên trường là cần thiết') }]}
+          >
             <Input />
           </BaseForm.Item>
 
-          <BaseForm.Item name="email" label={'Email'} >
+          <BaseForm.Item name="email" label={'Email'}>
             <Input />
           </BaseForm.Item>
 
-          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'} >
-            <Input type='tel' />
+          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'}>
+            <Input type="tel" />
           </BaseForm.Item>
 
-          <BaseForm.Item name="address" label={'Địa chỉ'} >
-            <TextArea autoSize={{maxRows: 3}} />
+          <BaseForm.Item name="address" label={'Địa chỉ'}>
+            <TextArea autoSize={{ maxRows: 3 }} />
           </BaseForm.Item>
 
           <BaseForm.Item
@@ -371,15 +370,11 @@ export const SchoolTable: React.FC = () => {
             label={'Trạng thái'}
             rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="ACTIVE">{'ACTIVE'}</Option>
               <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
-
         </S.FormContent>
       </Modal>
       <Table
