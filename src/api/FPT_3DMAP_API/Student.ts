@@ -6,12 +6,24 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
 export type Student = {
   id: string;
   schoolId: string;
+  schoolname: string;
   fullname: string;
   email: string;
   phonenumber: number;
   graduateYear: string;
   classname: string;
   status: string;
+};
+
+export type updateStudentData = {
+  schoolId: string;
+  fullname: string;
+  email: string;
+  phonenumber: number;
+  graduateYear: string;
+  classname: string;
+  status: string;
+  id: string;
 };
 
 export type StudentList = {
@@ -29,7 +41,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedSchools = async (pagination: Pagination) => {
+export const getPaginatedStudent = async (pagination: Pagination) => {
   try {
     const response = await axios.get<StudentList>(API_BASE_URL);
     const { data } = response.data;
@@ -117,5 +129,25 @@ export const uploadExcelStudent = async (schoolId: string, file: File) => {
     console.log('Upload response:', response.data);
   } catch (error) {
     console.error('Upload error:', error);
+  }
+};
+
+export const createStudent = async (studentData: Student) => {
+  try {
+    const response = await axios.post<Student>(`${API_BASE_URL}/student`, studentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+};
+
+export const updateStudent = async (id: string, studentData: updateStudentData) => {
+  try {
+    const response = await axios.put<Student>(`${API_BASE_URL}/${id}`, studentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating player:', error);
+    throw error;
   }
 };

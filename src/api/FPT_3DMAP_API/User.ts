@@ -1,13 +1,7 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
-// import { Priority } from '@app/constants/enums/priorities';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
-
-// export interface Tag {
-//   status: string;
-//   priority: Priority;
-// }
 
 export type User = {
   schoolId: string;
@@ -18,7 +12,6 @@ export type User = {
   gender: string;
   fullname: string;
   classname: string;
-  // status?: Tag[];
   status: string;
   id: string;
 };

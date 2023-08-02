@@ -1,85 +1,38 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
-import { DownOutlined, SearchOutlined } from '@ant-design/icons';
-import { User, getPaginatedUsers, updateUser, Pagination, createUser } from '@app/api/FPT_3DMAP_API/User';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
+import { Pagination, Student, createStudent, getPaginatedStudent, updateStudent } from '@app/api/FPT_3DMAP_API/Student';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
-import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
-import { Key } from 'antd/lib/table/interface';
-import { Link } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 10,
+  pageSize: 5,
 };
 
 export const UserTable: React.FC = () => {
-
   const { t } = useTranslation();
 
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
-
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: User[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: Student[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
   const [schools, setSchools] = useState<School[]>([]);
 
-  const isEditing = (record: User) => record.id === editingKey;
+  const isEditing = (record: Student) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -108,13 +61,13 @@ export const UserTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateUser(key.toString(), row);
-        console.log('User data updated successfully');
+        await updateStudent(key.toString(), row);
+        console.log('Student data updated successfully');
       } catch (error) {
-        console.error('Error updating User data:', error);
+        console.error('Error updating Student data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -126,29 +79,29 @@ export const UserTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<User> & { key: React.Key }) => {
+  const edit = (record: Partial<Student> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof User) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Student) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
 
-  const [selectedData, setSelectedData] = useState<User[]>([]);
+  // const [selectedData, setSelectedData] = useState<Student[]>([]);
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedUsers(pagination)
+      getPaginatedStudent(pagination)
         .then((res) => {
           if (isMounted.current) {
             setData({ data: res.data, pagination: res.pagination, loading: false });
@@ -158,10 +111,8 @@ export const UserTable: React.FC = () => {
           console.error('Error fetching paginated users:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
-  
-      // Fetch the list of schools and store it in the "schools" state
       try {
-        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
         setSchools(schoolResponse.data);
       } catch (error) {
         console.error('Error fetching schools:', error);
@@ -178,74 +129,69 @@ export const UserTable: React.FC = () => {
     fetch(pagination);
     cancel();
   };
-  
+
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
 
-      const newData: User = {
+      const newData: Student = {
         schoolId: values.schoolId,
         schoolname: values.schoolname,
         email: values.email,
         graduateYear: values.graduateYear,
-        phoneNumber: values.phoneNumber,
-        gender: values.gender,
+        phonenumber: values.phoneNumber,
+        // gender: values.gender,
         fullname: values.fullname,
         classname: values.classname,
         status: values.status,
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdUser = await createUser(newData);
+        const createdStudent = await createStudent(newData);
+        const selectedschool = schools.find((school) => school.id === newData.schoolId);
 
-        // Fetch the school data using the selected "schoolName" from the form
-        const selectedschool = schools.find((school) => school.name === newData.schoolname);
-
-        // If the selected location is found, set its ID to the newData
         if (selectedschool) {
           newData.schoolId = selectedschool.id;
         }
 
-        // Assign the ID received from the API response to the newData
-        newData.id = createdUser.id;
+        newData.id = createdStudent.id;
 
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdStudent],
+          loading: false,
+        }));
 
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdUser],
-        loading: false, // Hide loading state after successful update
-      }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Student data created successfully');
 
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('User data created successfully');
-
-      // Fetch the updated data after successful creation
-      getPaginatedUsers(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        // Fetch the updated data after successful creation
+        getPaginatedStudent(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Student data:', error);
+        setData((prevData) => ({ ...prevData, loading: false }));
+      }
     } catch (error) {
-      console.error('Error creating User data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
-  const columns: ColumnsType<User> = [
+  const columns: ColumnsType<Student> = [
     {
       title: t('Họ và Tên'),
       dataIndex: 'fullname',
       width: '15%',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'fullname'; // Define dataIndex here
+        const dataIndex: keyof Student = 'fullname';
         return editable ? (
           <Form.Item
             key={record.fullname}
@@ -253,10 +199,10 @@ export const UserTable: React.FC = () => {
             initialValue={text}
             rules={[{ required: true, message: 'Tên đầy đủ là bắt buộc' }]}
           >
-            <Input 
-              value={text} 
-              onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)} 
-              maxLength={100}  
+            <Input
+              value={text}
+              onChange={(e) => handleInputChange(e.target.value, record.fullname, dataIndex)}
+              maxLength={100}
             />
           </Form.Item>
         ) : (
@@ -267,9 +213,9 @@ export const UserTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
-      render: (text: number, record: User) => {
+      render: (text: number, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'email'; // Define dataIndex here
+        const dataIndex: keyof Student = 'email';
         return editable ? (
           <Form.Item
             key={record.email}
@@ -279,7 +225,7 @@ export const UserTable: React.FC = () => {
           >
             <Input
               maxLength={100}
-              type='email'
+              type="email"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
@@ -292,9 +238,9 @@ export const UserTable: React.FC = () => {
     {
       title: t('Tên lớp'),
       dataIndex: 'classname',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'classname'; // Define dataIndex here
+        const dataIndex: keyof Student = 'classname';
         return editable ? (
           <Form.Item
             key={record.classname}
@@ -317,9 +263,9 @@ export const UserTable: React.FC = () => {
       title: t('Tên trường'),
       dataIndex: 'schoolname',
       width: '15%',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'schoolname'; // Define dataIndex here
+        const dataIndex: keyof Student = 'schoolname';
         return editable ? (
           <Form.Item
             key={record.schoolname}
@@ -330,10 +276,10 @@ export const UserTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {schools.map((school) => (
-                <Select.Option key={school.id} value={school.name}>
+                <Select.Option key={school.id} value={school.id}>
                   {school.name}
                 </Select.Option>
               ))}
@@ -347,9 +293,9 @@ export const UserTable: React.FC = () => {
     {
       title: t('Năm học'),
       dataIndex: 'graduateYear',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'graduateYear'; // Define dataIndex here
+        const dataIndex: keyof Student = 'graduateYear';
         return editable ? (
           <Form.Item
             key={record.graduateYear}
@@ -368,49 +314,25 @@ export const UserTable: React.FC = () => {
       },
     },
     {
-      title: t('Giới tính'),
-      dataIndex: 'gender',
-      width: '8%',
-      render: (text: string, record: User) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof User = 'gender'; // Define dataIndex here
-        return editable ? (
-          <Form.Item
-            key={record.gender.toString()}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a gender' }]}
-          >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.gender.toString(), dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
       title: t('Điện thoại'),
-      dataIndex: 'phoneNumber',
+      dataIndex: 'phonenumber',
       width: '8%',
-      render: (text: number, record: User) => {
+      render: (text: number, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'phoneNumber'; // Define dataIndex here
+        const dataIndex: keyof Student = 'phonenumber';
         return editable ? (
           <Form.Item
-            key={record.phoneNumber}
+            key={record.phonenumber}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a phoneNumber' }]}
           >
             <Input
-              type='number'
+              type="number"
               min={10}
               max={11}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.phonenumber, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -422,23 +344,33 @@ export const UserTable: React.FC = () => {
       title: t('Trạng thái'),
       dataIndex: 'status',
       width: '8%',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof User = 'status'; // Define dataIndex here
+        const dataIndex: keyof Student = 'status';
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái Student là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -446,7 +378,7 @@ export const UserTable: React.FC = () => {
       title: t('Chức năng'),
       dataIndex: 'actions',
       width: '8%',
-      render: (text: string, record: User) => {
+      render: (text: string, record: Student) => {
         const editable = isEditing(record);
         return (
           <Space>
@@ -499,52 +431,61 @@ export const UserTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-
-          <BaseForm.Item name="fullname" label={'Tên học sinh'} rules={[{ required: true, message: t('Tên học sinh là cần thiết') }]}>
-            <Input maxLength={100}/>
+          <BaseForm.Item
+            name="fullname"
+            label={'Tên học sinh'}
+            rules={[{ required: true, message: t('Tên học sinh là cần thiết') }]}
+          >
+            <Input maxLength={100} />
           </BaseForm.Item>
 
-          <BaseForm.Item name="email" label={'Tên học sinh'} rules={[{ required: true, message: t('Email là cần thiết') }]}>
-            <Input type='email'/>
-          </BaseForm.Item>
-
-          <BaseForm.Item name="classname" label={'Tên lớp'} rules={[{ required: true, message: t('Tên lớp là cần thiết') }]}>
-            <Input maxLength={100}/>
-          </BaseForm.Item>
-
-          <BaseForm.Item name="schoolname" label={'Tên vật phẩm (nếu có)'} >
-            <Select 
-              placeholder={'---- Select School ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-                {schools.map((school) => (
-                  <Option key={school.id} value={school.name}>
-                    {school.name}
-                  </Option>
-                ))}
-            </Select>
-          </BaseForm.Item>
-
-          <BaseForm.Item name="graduateYear" label={'Năm học'} rules={[{ required: true, message: t('Năm học là cần thiết') }]}>
-            <Input maxLength={100}/>
+          <BaseForm.Item name="email" label={'Email'} rules={[{ required: true, message: t('Email là cần thiết') }]}>
+            <Input type="email" />
           </BaseForm.Item>
 
           <BaseForm.Item
+            name="classname"
+            label={'Tên lớp'}
+            rules={[{ required: true, message: t('Tên lớp là cần thiết') }]}
+          >
+            <Input maxLength={100} />
+          </BaseForm.Item>
+
+          <BaseForm.Item name="schoolId" label={'Tên trường'}>
+            <Select placeholder={'---- Select School ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {schools.map((school) => (
+                <Option key={school.id} value={school.id}>
+                  {school.name}
+                </Option>
+              ))}
+            </Select>
+          </BaseForm.Item>
+
+          <BaseForm.Item
+            name="graduateYear"
+            label={'Năm học'}
+            rules={[{ required: true, message: t('Năm học là cần thiết') }]}
+          >
+            <Input maxLength={100} />
+          </BaseForm.Item>
+
+          {/* <BaseForm.Item
             name="status"
             label={'Status'}
             rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Gender ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Gender ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="Nam">{'Nam'}</Option>
               <Option value="Nữ">{'Nữ'}</Option>
             </Select>
-          </BaseForm.Item>
+          </BaseForm.Item> */}
 
-          <BaseForm.Item name="phoneNumber" label={'Điện thoại'} rules={[{ required: true, message: t('Điện thoại là cần thiết') }]}>
-            <Input type='number' min={10} max={11}/>
+          <BaseForm.Item
+            name="phoneNumber"
+            label={'Điện thoại'}
+            rules={[{ required: true, message: t('Điện thoại là cần thiết') }]}
+          >
+            <Input type="number" min={10} max={11} />
           </BaseForm.Item>
 
           <BaseForm.Item
@@ -552,15 +493,14 @@ export const UserTable: React.FC = () => {
             label={'Status'}
             rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
           >
-            <Select 
+            <Select
               placeholder={'---- Select Phone Number ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               <Option value="ACTIVE">{'ACTIVE'}</Option>
               <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
-
         </S.FormContent>
       </Modal>
       <Table
