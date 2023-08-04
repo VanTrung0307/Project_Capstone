@@ -15,7 +15,31 @@ export type Task = {
   itemName: string;
   type: string;
   point: number;
-  status: string; 
+  status: string;
+  id: string;
+};
+
+export type addTask = {
+  locationId: string;
+  majorId: string;
+  npcId: string;
+  itemId: string;
+  name: string;
+  point: number;
+  type: string;
+  status: string;
+  id: string;
+};
+
+export type updateTaskData = {
+  locationId: string;
+  majorId: string;
+  npcId: string;
+  itemId: string;
+  name: string;
+  point: number;
+  type: string;
+  status: string;
   id: string;
 };
 
@@ -50,10 +74,10 @@ export const getPaginatedTasks = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -79,7 +103,7 @@ export const getTaskById = async (taskId: string) => {
   }
 };
 
-export const createTask = async (taskData: Task) => {
+export const createTask = async (taskData: addTask) => {
   try {
     const response = await axios.post<Task>(`${API_BASE_URL}/task`, taskData);
     return response.data;
@@ -89,9 +113,9 @@ export const createTask = async (taskData: Task) => {
   }
 };
 
-export const updateTask = async (taskId: string, taskData: Task) => {
+export const updateTask = async (id: string, taskData: updateTaskData) => {
   try {
-    const response = await axios.put<Task>(`${API_BASE_URL}/${taskId}`, taskData);
+    const response = await axios.put<Task>(`${API_BASE_URL}/${id}`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error updating task:', error);

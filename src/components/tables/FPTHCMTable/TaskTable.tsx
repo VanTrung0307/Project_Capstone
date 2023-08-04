@@ -24,51 +24,7 @@ const initialPagination: Pagination = {
 };
 
 export const TaskTable: React.FC = () => {
-
   const { t } = useTranslation();
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Task[]; pagination: Pagination; loading: boolean }>({
@@ -100,14 +56,13 @@ export const TaskTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Task:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Task:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -126,7 +81,7 @@ export const TaskTable: React.FC = () => {
         console.error('Error updating Task data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -150,7 +105,7 @@ export const TaskTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -168,39 +123,34 @@ export const TaskTable: React.FC = () => {
           console.error('Error fetching paginated tasks:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
-  
-      // Fetch the list of locations and store it in the "locations" state
+
       try {
-        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 1000 });
         setLocations(locationResponse.data);
       } catch (error) {
         console.error('Error fetching locations:', error);
       }
 
-      // Fetch the list of majors and store it in the "majors" state
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
         setMajors(majorResponse.data);
       } catch (error) {
         console.error('Error fetching majors:', error);
       }
 
-      // Fetch the list of npcs and store it in the "npcs" state
       try {
-        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 });
         setNpcs(npcResponse.data);
       } catch (error) {
         console.error('Error fetching npcs:', error);
       }
 
-      // Fetch the list of items and store it in the "items" state
       try {
-        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 1000 });
         setItems(itemResponse.data);
       } catch (error) {
         console.error('Error fetching items:', error);
       }
-
     },
     [isMounted],
   );
@@ -230,74 +180,63 @@ export const TaskTable: React.FC = () => {
         majorName: values.majorName,
         type: values.type,
         point: values.point,
-        itemId: values.itemId,
+        itemId: values?.itemId,
         itemName: values.itemName,
         status: values.status,
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdTask = await createTask(newData);
 
-        // Fetch the location data using the selected "locationName" from the form
-        const selectedLocation = locations.find((location) => location.locationName === newData.locationName);
+        const selectedLocation = locations.find((location) => location.id === newData.locationId);
 
-        // Fetch the major data using the selected "majorName" from the form
-        const selectedMajor = majors.find((major) => major.name === newData.majorName);
+        const selectedMajor = majors.find((major) => major.id === newData.majorId);
 
-        // Fetch the npc data using the selected "npcName" from the form
-        const selectedNpc = majors.find((npc) => npc.name === newData.npcName);
+        const selectedNpc = majors.find((npc) => npc.id === newData.npcId);
 
-        // Fetch the item data using the selected "itemName" from the form
-        const selectedItem = majors.find((item) => item.name === newData.itemName);
+        const selectedItem = majors.find((item) => item.id === newData.itemId);
 
-        // If the selected location is found, set its ID to the newData
         if (selectedLocation) {
           newData.locationId = selectedLocation.id;
         }
 
-        // If the selected major is found, set its ID to the newData
         if (selectedMajor) {
           newData.majorId = selectedMajor.id;
         }
 
-        // If the selected npc is found, set its ID to the newData
         if (selectedNpc) {
           newData.npcId = selectedNpc.id;
         }
 
-        // If the selected item is found, set its ID to the newData
         if (selectedItem) {
           newData.itemId = selectedItem.id;
         }
 
-        // Assign the ID received from the API response to the newData
         newData.id = createdTask.id;
 
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdTask],
+          loading: false,
+        }));
 
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdTask],
-        loading: false, // Hide loading state after successful update
-      }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Task data created successfully');
 
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Task data created successfully');
-
-      // Fetch the updated data after successful creation
-      getPaginatedTasks(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        getPaginatedTasks(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Task data:', error);
+        setData((prevData) => ({ ...prevData, loading: false }));
+      }
     } catch (error) {
-      console.error('Error creating Task data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Task> = [
@@ -306,7 +245,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'name'; // Define dataIndex here
+        const dataIndex: keyof Task = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -329,21 +268,21 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'locationName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'locationName'; // Define dataIndex here
+        const dataIndex: keyof Task = 'locationId';
         return editable ? (
           <Form.Item
-            key={record.locationName}
+            key={record.locationId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Địa điểm là cần thiết' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.locationName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              onChange={(value) => handleInputChange(value, record.locationId, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {locations.map((location) => (
-                <Select.Option key={location.id} value={location.locationName}>
+                <Select.Option key={location.id} value={location.id}>
                   {location.locationName}
                 </Select.Option>
               ))}
@@ -361,21 +300,21 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'npcName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'npcName'; // Define dataIndex here
+        const dataIndex: keyof Task = 'npcId';
         return editable ? (
           <Form.Item
-            key={record.npcName}
+            key={record.npcId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên NPC là cần thiết' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.npcName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              onChange={(value) => handleInputChange(value, record.npcId, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {npcs.map((npc) => (
-                <Select.Option key={npc.id} value={npc.name}>
+                <Select.Option key={npc.id} value={npc.id}>
                   {npc.name}
                 </Select.Option>
               ))}
@@ -385,7 +324,6 @@ export const TaskTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
       showSorterTooltip: false,
     },
     {
@@ -393,21 +331,21 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'majorName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'majorName'; // Define dataIndex here
+        const dataIndex: keyof Task = 'majorId'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.majorName}
+            key={record.majorId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              onChange={(value) => handleInputChange(value, record.majorId, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
-                <Select.Option key={major.id} value={major.name}>
+                <Select.Option key={major.id} value={major.id}>
                   {major.name}
                 </Select.Option>
               ))}
@@ -456,7 +394,7 @@ export const TaskTable: React.FC = () => {
             rules={[{ required: true, message: 'Please enter a point' }]}
           >
             <Input
-              type='number'
+              type="number"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
             />
@@ -471,28 +409,23 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'itemName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'itemName'; // Define dataIndex here
+        const dataIndex: keyof Task = 'itemId'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.itemName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.itemId} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              onChange={(value) => handleInputChange(value, record.itemId, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {items.map((item) => (
-                <Select.Option key={item.id} value={item.name}>
+                <Select.Option key={item.id} value={item.id}>
                   {item.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : "Không có"}</span>
+          <span>{text !== null ? text : 'Không có'}</span>
         );
       },
     },
@@ -568,72 +501,82 @@ export const TaskTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-
-          <BaseForm.Item name="name" label={'Tên nhiệm vụ'} rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+          <BaseForm.Item
+            name="name"
+            label={'Tên nhiệm vụ'}
+            rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}
+          >
             <Input />
           </BaseForm.Item>
 
           <BaseForm.Item
-            name="locationName"
+            name="locationId"
             label={'Tên địa điểm'}
             rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}
           >
-            <Select 
+            <Select
               placeholder={'---- Select Location ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {locations.map((location) => (
-                <Option key={location.id} value={location.locationName}>
+                <Option key={location.id} value={location.id}>
                   {location.locationName}
                 </Option>
               ))}
             </Select>
           </BaseForm.Item>
 
-          <BaseForm.Item name="npcName" label={'Tên NPC'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-            <Select 
-              placeholder={'---- Select NPC ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-                {npcs.map((npc) => (
-                  <Option key={npc.id} value={npc.name}>
-                    {npc.name}
-                  </Option>
-                ))}
+          <BaseForm.Item
+            name="npcId"
+            label={'Tên NPC'}
+            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
+          >
+            <Select placeholder={'---- Select NPC ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {npcs.map((npc) => (
+                <Option key={npc.id} value={npc.id}>
+                  {npc.name}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
 
-          <BaseForm.Item name="majorName" label={'Tên ngành nghề'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-            <Select 
-              placeholder={'---- Select Major ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-                {majors.map((major) => (
-                  <Option key={major.id} value={major.name}>
-                    {major.name}
-                  </Option>
-                ))}
+          <BaseForm.Item
+            name="majorId"
+            label={'Tên ngành nghề'}
+            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
+          >
+            <Select placeholder={'---- Select Major ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {majors.map((major) => (
+                <Option key={major.id} value={major.id}>
+                  {major.name}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
 
-          <BaseForm.Item name="type" label={'Loại nhiệm vụ'} rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+          <BaseForm.Item
+            name="type"
+            label={'Loại nhiệm vụ'}
+            rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}
+          >
             <Input maxLength={100} />
           </BaseForm.Item>
 
-          <BaseForm.Item name="point" label={'Điểm thưởng'} rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-            <Input type='number' />
+          <BaseForm.Item
+            name="point"
+            label={'Điểm thưởng'}
+            rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}
+          >
+            <Input type="number" />
           </BaseForm.Item>
 
-          <BaseForm.Item name="itemName" label={'Tên vật phẩm (nếu có)'} >
-            <Select 
-              placeholder={'---- Select Item ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-                {items.map((item) => (
-                  <Option key={item.id} value={item.name}>
-                    {item.name}
-                  </Option>
-                ))}
+          <BaseForm.Item name="itemID" label={'Tên vật phẩm'}>
+            <Select placeholder={'---- Select Item ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {items.map((item) => (
+                <Option key={item.id} value={item?.id}>
+                  {item.name}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
 
@@ -642,15 +585,11 @@ export const TaskTable: React.FC = () => {
             label={'Status'}
             rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="ACTIVE">{'ACTIVE'}</Option>
               <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
-
         </S.FormContent>
       </Modal>
       <Table
@@ -667,7 +606,7 @@ export const TaskTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

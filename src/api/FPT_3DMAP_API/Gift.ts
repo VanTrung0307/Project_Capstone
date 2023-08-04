@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
 
-const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Gifts`;
+const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Prizes`;
 
 export type Gift = {
   name: string;
@@ -11,6 +11,14 @@ export type Gift = {
   eventName: string;
   status: string;
   id: string;
+};
+
+export type addGift = {
+  eventId: string;
+  name: string;
+  decription: string;
+  status: string;
+  quantity: number;
 };
 
 export type GiftList = {
@@ -44,10 +52,10 @@ export const getPaginatedGifts = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -73,9 +81,9 @@ export const getGiftById = async (giftId: string) => {
   }
 };
 
-export const createGift = async (giftData: Gift) => {
+export const createGift = async (giftData: addGift) => {
   try {
-    const response = await axios.post<Gift>(`${API_BASE_URL}/gift`, giftData);
+    const response = await axios.post<Gift>(`${API_BASE_URL}/Gift`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error creating gift:', error);

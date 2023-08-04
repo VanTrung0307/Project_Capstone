@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
-import { Student, getStudenbySchoolById, uploadExcelStudent } from '@app/api/FPT_3DMAP_API/Student';
+import { Student, getStudenbySchoolById } from '@app/api/FPT_3DMAP_API/Student';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';

@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
+import { useNavigate } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -20,51 +21,7 @@ const initialPagination: Pagination = {
 };
 
 export const EventTable: React.FC = () => {
-  
   const { t } = useTranslation();
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Event[]; pagination: Pagination; loading: boolean }>({
@@ -119,7 +76,7 @@ export const EventTable: React.FC = () => {
         console.error('Error updating Event data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -134,6 +91,12 @@ export const EventTable: React.FC = () => {
   const edit = (record: Partial<Event> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
+  };
+
+  const navigate = useNavigate();
+
+  const handleDetailClick = (eventId: string) => {
+    navigate(`/schools/${eventId}`);
   };
 
   // const edit = (record: Partial<Event> & { key: React.Key }) => {
@@ -155,7 +118,7 @@ export const EventTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -211,28 +174,28 @@ export const EventTable: React.FC = () => {
 
       setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
 
-    try {
-      const createdEvent = await createEvent(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdEvent],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Event data created successfully');
+      try {
+        const createdEvent = await createEvent(newData);
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdEvent],
+          loading: false, // Hide loading state after successful update
+        }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Event data created successfully');
 
-      // Fetch the updated data after successful creation
-      getPaginatedEvents(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        // Fetch the updated data after successful creation
+        getPaginatedEvents(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating event data:', error);
+        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      }
     } catch (error) {
-      console.error('Error creating event data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Event> = [
@@ -274,7 +237,7 @@ export const EventTable: React.FC = () => {
             rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
           >
             <Input
-              type='datetime-local'
+              type="datetime-local"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.startTime, dataIndex)}
             />
@@ -284,7 +247,7 @@ export const EventTable: React.FC = () => {
           // <span>{text}</span>
         );
       },
-      },
+    },
     {
       title: t('Thời gian kết thúc'),
       dataIndex: 'endTime',
@@ -299,7 +262,7 @@ export const EventTable: React.FC = () => {
             rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
           >
             <Input
-              type='datetime-local'
+              type="datetime-local"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
             />
@@ -309,41 +272,41 @@ export const EventTable: React.FC = () => {
           // <span>{text}</span>
         );
       },
-      },
-      {
-        title: t('Trạng thái'),
-        dataIndex: 'status',
-        width: '8%',
-        render: (text: string, record: Event) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof Event = 'status'; // Define dataIndex here
+    },
+    {
+      title: t('Trạng thái'),
+      dataIndex: 'status',
+      width: '8%',
+      render: (text: string, record: Event) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Event = 'status'; // Define dataIndex here
 
-          const statusOptions = ['ACTIVE', 'INACTIVE'];
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
 
-          return editable ? (
-            <Form.Item
-              key={record.status}
-              name={dataIndex}
-              initialValue={text}
-              rules={[{ required: true, message: 'Trạng thái sự kiện là cần thiết' }]}
+        return editable ? (
+          <Form.Item
+            key={record.status}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Trạng thái sự kiện là cần thiết' }]}
+          >
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
-              <Select
-                value={text}
-                onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-                suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-              >
-                {statusOptions.map((option) => (
-                  <Select.Option key={option} value={option}>
-                    {option}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ) : (
-            <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
-          );
-        },
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        ) : (
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+        );
       },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -370,6 +333,9 @@ export const EventTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
+                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
+                  {t('Detail')}
+                </Button>
               </>
             )}
           </Space>
@@ -394,14 +360,26 @@ export const EventTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Tên sự kiện'} rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
-            <Input maxLength={100}/>
+          <BaseForm.Item
+            name="name"
+            label={'Tên sự kiện'}
+            rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}
+          >
+            <Input maxLength={100} />
           </BaseForm.Item>
-          <BaseForm.Item name="startTime" label={'Thời gian bắt đầu'} rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
-            <Input type='datetime-local' />
+          <BaseForm.Item
+            name="startTime"
+            label={'Thời gian bắt đầu'}
+            rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}
+          >
+            <Input type="datetime-local" />
           </BaseForm.Item>
-          <BaseForm.Item name="endTime" label={'Thời gian kết thúc'} rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
-            <Input type='datetime-local' />
+          <BaseForm.Item
+            name="endTime"
+            label={'Thời gian kết thúc'}
+            rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}
+          >
+            <Input type="datetime-local" />
           </BaseForm.Item>
           <BaseForm.Item
             name="status"

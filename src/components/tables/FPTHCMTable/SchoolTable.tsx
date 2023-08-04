@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
-import { Pagination, School, createSchool, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import { Pagination, School, createSchool, getPaginatedSchools, getSchoolbyEventId, updateSchool } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -12,7 +12,7 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -103,6 +103,7 @@ export const SchoolTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
+  const { eventId } = useParams<{ eventId: string | undefined }>();
 
   const fetch = useCallback(
     (pagination: Pagination) => {
@@ -112,8 +113,15 @@ export const SchoolTable: React.FC = () => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       });
+      if (eventId) {
+        getSchoolbyEventId(eventId, pagination).then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
+      }
     },
-    [isMounted],
+    [isMounted, eventId],
   );
 
   useEffect(() => {

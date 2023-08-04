@@ -85,13 +85,19 @@ export const UserTable: React.FC = () => {
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Student) => {
-    const updatedData = data.data.map((record) => {
-      if (record.id === key) {
-        return { ...record, [dataIndex]: value };
-      }
-      return record;
-    });
-    setData((prevData) => ({ ...prevData, data: updatedData }));
+    const selectedSchool = schools.find((school) => school.name === value);
+
+    if (selectedSchool) {
+      const updatedData = data.data.map((record) => {
+        if (record.id === key) {
+          return { ...record, [dataIndex]: selectedSchool.id };
+        }
+        return record;
+      });
+      setData((prevData) => ({ ...prevData, data: updatedData }));
+    } else {
+      console.error('Selected school not found.');
+    }
   };
 
   const { isMounted } = useMounted();
@@ -265,10 +271,10 @@ export const UserTable: React.FC = () => {
       width: '15%',
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Student = 'schoolname';
+        const dataIndex: keyof Student = 'schoolId';
         return editable ? (
           <Form.Item
-            key={record.schoolname}
+            key={record.schoolId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a schoolname' }]}

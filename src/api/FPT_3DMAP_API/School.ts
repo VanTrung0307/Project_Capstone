@@ -91,3 +91,38 @@ export const updateSchool = async (schoolId: string, schoolData: School) => {
     throw error;
   }
 };
+
+export const getSchoolbyEventId = async (eventId: string, pagination: Pagination) => {
+  try {
+    const response = await axios.get<SchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    let objectCount = 0;
+
+    paginatedData.forEach((item) => {
+      objectCount++;
+      console.log('Object', objectCount, ':', item);
+    });
+
+    console.log('Total objects:', objectCount);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated schools:', error);
+    throw error;
+  }
+};

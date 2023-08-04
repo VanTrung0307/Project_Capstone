@@ -13,6 +13,22 @@ export type Question = {
   id: string;
 };
 
+export type addQuestion = {
+  name: string;
+  majorId: string;
+  answerId: string;
+  status: string;
+  id: string;
+};
+
+export type updateQuestion = {
+  answerId: string;
+  majorId: string;
+  name: string;
+  status: string;
+  id: string;
+};
+
 export type QuestionList = {
   data: Question[];
 };
@@ -44,10 +60,10 @@ export const getPaginatedQuestions = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -73,7 +89,7 @@ export const getQuestionById = async (questionId: string) => {
   }
 };
 
-export const createQuestion = async (questionData: Question) => {
+export const createQuestion = async (questionData: addQuestion) => {
   try {
     const response = await axios.post<Question>(`${API_BASE_URL}/question`, questionData);
     return response.data;
@@ -83,9 +99,9 @@ export const createQuestion = async (questionData: Question) => {
   }
 };
 
-export const updateQuestion = async (questionId: string, questionData: Question) => {
+export const updateQuestion = async (id: string, questionData: updateQuestion) => {
   try {
-    const response = await axios.put<Question>(`${API_BASE_URL}/${questionId}`, questionData);
+    const response = await axios.put<Question>(`${API_BASE_URL}/${id}`, questionData);
     return response.data;
   } catch (error) {
     console.error('Error updating question:', error);

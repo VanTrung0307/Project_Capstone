@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
+
 import { Gift, Pagination, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
-import { Rank, getPaginatedRanks } from '@app/api/FPT_3DMAP_API/Rank';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -12,7 +12,6 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
@@ -22,52 +21,8 @@ const initialPagination: Pagination = {
 };
 
 export const GiftTable: React.FC = () => {
- 
   const { t } = useTranslation();
   const { TextArea } = Input;
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Gift[]; pagination: Pagination; loading: boolean }>({
@@ -98,12 +53,12 @@ export const GiftTable: React.FC = () => {
 
         // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Gift:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Gift:', updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -122,7 +77,7 @@ export const GiftTable: React.FC = () => {
         console.error('Error updating Gift data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -146,7 +101,7 @@ export const GiftTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -172,7 +127,6 @@ export const GiftTable: React.FC = () => {
       } catch (error) {
         console.error('Error fetching events:', error);
       }
-
     },
     [isMounted],
   );
@@ -218,28 +172,27 @@ export const GiftTable: React.FC = () => {
         // Assign the ID received from the API response to the newData
         newData.id = createdGift.id;
 
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdGift],
+          loading: false, // Hide loading state after successful update
+        }));
 
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdGift],
-        loading: false, // Hide loading state after successful update
-      }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Gift data created successfully');
 
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Gift data created successfully');
-
-      // Fetch the updated data after successful creation
-      getPaginatedGifts(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        // Fetch the updated data after successful creation
+        getPaginatedGifts(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Gift data:', error);
+        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      }
     } catch (error) {
-      console.error('Error creating Gift data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Gift> = [
@@ -274,16 +227,11 @@ export const GiftTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'eventName'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.eventName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.eventName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.eventName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {events.map((event) => (
                 <Select.Option key={event.id} value={event.name}>
@@ -293,7 +241,7 @@ export const GiftTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : "Chưa có thông tin"}</span>
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -304,21 +252,16 @@ export const GiftTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'quantity'; // Define dataIndex here
         return editable ? (
-          <Form.Item
-            key={record.quantity}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.quantity} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
-              type='number'
+              type="number"
               min={0}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.quantity, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : "Chưa có thông tin"}</span>
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -331,20 +274,15 @@ export const GiftTable: React.FC = () => {
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item
-            key={record.decription}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          >
+          <Form.Item key={record.decription} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <TextArea
-              autoSize={{maxRows: 6}}
+              autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.decription, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
+          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -368,7 +306,7 @@ export const GiftTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -378,7 +316,7 @@ export const GiftTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -432,32 +370,33 @@ export const GiftTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item name="name" label={'Tên phần quà'} rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}>
+          <BaseForm.Item
+            name="name"
+            label={'Tên phần quà'}
+            rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}
+          >
             <Input maxLength={100} />
           </BaseForm.Item>
 
-          <BaseForm.Item name="decription" label={'Mô tả'} >
-            <TextArea autoSize={{maxRows: 6}}/>
+          <BaseForm.Item name="decription" label={'Mô tả'}>
+            <TextArea autoSize={{ maxRows: 6 }} />
           </BaseForm.Item>
 
-          <BaseForm.Item name="quantity" label={'Số lượng'} >
-            <Input type='number' min={0}/>
+          <BaseForm.Item name="quantity" label={'Số lượng'}>
+            <Input type="number" min={0} />
           </BaseForm.Item>
 
           <BaseForm.Item
-            name="eventName"
+            name="eventId"
             label={'Tên sự kiện'}
             rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Event ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
-            >
-                {events.map((event) => (
-                  <Option key={event.id} value={event.name}>
-                    {event.name}
-                  </Option>
-                ))}
+            <Select placeholder={'---- Select Event ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {events.map((event) => (
+                <Option key={event.id} value={event.id}>
+                  {event.name}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
 
@@ -466,15 +405,11 @@ export const GiftTable: React.FC = () => {
             label={'Trạng thái'}
             rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
-            >
+            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="ACTIVE">{'ACTIVE'}</Option>
               <Option value="INACTIVE">{'INACTIVE'}</Option>
             </Select>
           </BaseForm.Item>
-
         </S.FormContent>
       </Modal>
       <Table

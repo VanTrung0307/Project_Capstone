@@ -2,9 +2,16 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Answer, getPaginatedAnswers } from '@app/api/FPT_3DMAP_API/Answer';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
-import { Pagination, Question, createQuestion, getPaginatedQuestions, updateQuestion } from '@app/api/FPT_3DMAP_API/QuestionBank';
+import {
+  Pagination,
+  Question,
+  createQuestion,
+  getPaginatedQuestions,
+  updateQuestion,
+} from '@app/api/FPT_3DMAP_API/QuestionBank';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
@@ -12,9 +19,7 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -22,51 +27,7 @@ const initialPagination: Pagination = {
 };
 
 export const QuestionBankTable: React.FC = () => {
-
   const { t } = useTranslation();
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Question[]; pagination: Pagination; loading: boolean }>({
@@ -98,12 +59,12 @@ export const QuestionBankTable: React.FC = () => {
 
         // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Question:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Question:', updatedItem); // Kiểm tra giá trị trước khi gọi API
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -122,7 +83,7 @@ export const QuestionBankTable: React.FC = () => {
         console.error('Error updating Question data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -146,7 +107,7 @@ export const QuestionBankTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -175,7 +136,7 @@ export const QuestionBankTable: React.FC = () => {
           console.error('Error fetching paginated questions:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
-  
+
       // Fetch the list of majors and store it in the "majors" state
       try {
         const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
@@ -191,7 +152,6 @@ export const QuestionBankTable: React.FC = () => {
       } catch (error) {
         console.error('Error fetching questions:', error);
       }
-
     },
     [isMounted],
   );
@@ -234,39 +194,38 @@ export const QuestionBankTable: React.FC = () => {
 
         // If the selected major is found, set its ID to the newData
         if (selectedMajor) {
-          newData.majorId = selectedMajor.id;
+          newData.majorId = selectedMajor.name;
         }
 
         // If the selected answer is found, set its ID to the newData
         if (selectedAnswer) {
-          newData.answerId = selectedAnswer.id;
+          newData.answerId = selectedAnswer.answerName;
         }
 
         // Assign the ID received from the API response to the newData
         newData.id = createdQuestion.id;
 
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdQuestion],
+          loading: false, // Hide loading state after successful update
+        }));
 
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdQuestion],
-        loading: false, // Hide loading state after successful update
-      }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Question data created successfully');
 
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Question data created successfully');
-
-      // Fetch the updated data after successful creation
-      getPaginatedQuestions(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        // Fetch the updated data after successful creation
+        getPaginatedQuestions(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Question data:', error);
+        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      }
     } catch (error) {
-      console.error('Error creating Question data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Question> = [
@@ -299,10 +258,10 @@ export const QuestionBankTable: React.FC = () => {
       dataIndex: 'majorName',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'majorName'; // Define dataIndex here
+        const dataIndex: keyof Question = 'majorId'; // Define dataIndex here
         return editable ? (
           <Form.Item
-            key={record.majorName}
+            key={record.majorId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
@@ -310,10 +269,10 @@ export const QuestionBankTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
-                <Select.Option key={major.id} value={major.name}>
+                <Select.Option key={major.id} value={major.id}>
                   {major.name}
                 </Select.Option>
               ))}
@@ -323,16 +282,16 @@ export const QuestionBankTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      },
+    },
     {
       title: t('Câu trả lời đúng'),
       dataIndex: 'answerName',
-      render: (text: number, record: Question) => {
+      render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'answerName'; // Define dataIndex here
+        const dataIndex: keyof Question = 'answerId';
         return editable ? (
           <Form.Item
-            key={record.answerName}
+            key={record.answerId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a answerName' }]}
@@ -340,10 +299,10 @@ export const QuestionBankTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {answers.map((answer) => (
-                <Select.Option key={answer.id} value={answer.answerName}>
+                <Select.Option key={answer.id} value={answer.id}>
                   {answer.answerName}
                 </Select.Option>
               ))}
@@ -374,7 +333,7 @@ export const QuestionBankTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -384,7 +343,7 @@ export const QuestionBankTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -438,38 +397,39 @@ export const QuestionBankTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          
-          <BaseForm.Item name="name" label={'Tên câu hỏi'} rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
+          <BaseForm.Item
+            name="name"
+            label={'Tên câu hỏi'}
+            rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}
+          >
             <Input maxLength={100} />
           </BaseForm.Item>
 
           <BaseForm.Item
-            name="majorName"
+            name="majorId"
             label={'Tên ngành'}
             rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Major ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Major ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               {majors.map((major) => (
-                <Option key={major.id} value={major.name}>
+                <Option key={major.id} value={major.id}>
                   {major.name}
                 </Option>
               ))}
             </Select>
           </BaseForm.Item>
 
-          <BaseForm.Item name="answerName" label={'Câu trả lời'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-            <Select 
-              placeholder={'---- Select Answer ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-                {answers.map((answer) => (
-                  <Option key={answer.id} value={answer.answerName}>
-                    {answer.answerName}
-                  </Option>
-                ))}
+          <BaseForm.Item
+            name="answerId"
+            label={'Câu trả lời'}
+            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
+          >
+            <Select placeholder={'---- Select Answer ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+              {answers.map((answer) => (
+                <Option key={answer.id} value={answer.id}>
+                  {answer.answerName}
+                </Option>
+              ))}
             </Select>
           </BaseForm.Item>
 
@@ -478,15 +438,11 @@ export const QuestionBankTable: React.FC = () => {
             label={'Status'}
             rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
           >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
+            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
               <Option value="ACTIVE">{'Đang hoạt động'}</Option>
               <Option value="INACTIVE">{'Không hoạt động'}</Option>
             </Select>
           </BaseForm.Item>
-          
         </S.FormContent>
       </Modal>
       <Table
