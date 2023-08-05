@@ -14,6 +14,7 @@ import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useMounted } from '@app/hooks/useMounted';
 import { useNavigate } from 'react-router-dom';
+import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/School';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -95,21 +96,18 @@ export const EventTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleDetailClick = (eventId: string) => {
-    navigate(`/schools/${eventId}`);
-  };
+  const handleDetailClick = async (eventId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 5 };
+      const result = await getSchoolbyEventId(eventId, pagination);
+      navigate(`/schools/${eventId}`);
 
-  // const edit = (record: Partial<Event> & { key: React.Key }) => {
-  //   const unformattedRecord = data.data.find((item) => item.id === record.id);
-  //   if (unformattedRecord) {
-  //     form.setFieldsValue({
-  //       ...unformattedRecord,
-  //       startTime: formatDateTime(unformattedRecord.startTime), // Format the startTime field
-  //       endTime: formatDateTime(unformattedRecord.endTime), // Format the endTime field
-  //     });
-  //     setEditingKey(record.key);
-  //   }
-  // };
+      console.log('Paginated School List:', result.data);
+      console.log('Pagination Info:', result.pagination);
+    } catch (error) {
+      console.error('Error fetching paginated schools:', error);
+    }
+  };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof Event) => {
     const updatedData = data.data.map((record) => {
