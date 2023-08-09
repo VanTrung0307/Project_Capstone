@@ -1,16 +1,14 @@
 /* eslint-disable prettier/prettier */
+import { Event, Pagination, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { SchoolTable } from '@app/components/tables/FPTHCMTable/SchoolTable';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import * as S from './FPTHCMTables.styles';
-import { Event, Pagination, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 type SchoolTablesProps = {
   eventId?: string;
 };
 
 export const SchoolTables: React.FC<SchoolTablesProps> = ({ eventId }) => {
-  const { t } = useTranslation();
   const [event, setEvent] = useState<Event | undefined>(undefined);
 
   useEffect(() => {
@@ -32,7 +30,7 @@ export const SchoolTables: React.FC<SchoolTablesProps> = ({ eventId }) => {
     <>
       <S.FPTHCMTablesWrapper>
         <S.Card id="basic-table" padding="1.25rem 1.25rem 0">
-          <div style={{ width: '700px' }}>
+          <div style={{ width: '700px', marginBottom: '30px' }}>
             <div style={{ overflowWrap: 'break-word' }}>
               <h1 style={{ fontWeight: 'bold' }}>
                 {event?.name ? `Danh sách trường của sự kiện: ${event.name}` : 'Bảng Trường Trung Học Phổ Thông'}

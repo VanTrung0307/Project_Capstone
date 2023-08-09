@@ -15,8 +15,8 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -292,7 +292,7 @@ export const TaskTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      // sorter: (a: BasicTableRow, b: BasicTableRow) => a.email - b.email,
+
       showSorterTooltip: false,
     },
     {
@@ -331,7 +331,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'majorName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'majorId'; // Define dataIndex here
+        const dataIndex: keyof Task = 'majorId';
         return editable ? (
           <Form.Item
             key={record.majorId}
@@ -361,7 +361,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'type',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'type'; // Define dataIndex here
+        const dataIndex: keyof Task = 'type';
         return editable ? (
           <Form.Item
             key={record.type}
@@ -385,7 +385,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'point',
       render: (text: number, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'point'; // Define dataIndex here
+        const dataIndex: keyof Task = 'point';
         return editable ? (
           <Form.Item
             key={record.point}
@@ -409,7 +409,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'itemName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'itemId'; // Define dataIndex here
+        const dataIndex: keyof Task = 'itemId';
         return editable ? (
           <Form.Item key={record.itemId} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Select
@@ -434,7 +434,7 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'status',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'status'; // Define dataIndex here
+        const dataIndex: keyof Task = 'status';
         return editable ? (
           <Form.Item
             key={record.status}
@@ -485,6 +485,20 @@ export const TaskTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -501,97 +515,119 @@ export const TaskTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="name"
-            label={'Tên nhiệm vụ'}
-            rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}
-          >
-            <Input />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên nhiệm vụ'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+                <Input />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="locationId"
-            label={'Tên địa điểm'}
-            rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}
-          >
-            <Select
-              placeholder={'---- Select Location ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {locations.map((location) => (
-                <Option key={location.id} value={location.id}>
-                  {location.locationName}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên địa điểm'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Location ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {locations.map((location) => (
+                    <Option key={location.id} value={location.id}>
+                      {location.locationName}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="npcId"
-            label={'Tên NPC'}
-            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select NPC ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {npcs.map((npc) => (
-                <Option key={npc.id} value={npc.id}>
-                  {npc.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên NPC'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+                <Select placeholder={'---- Select NPC ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+                  {npcs.map((npc) => (
+                    <Option key={npc.id} value={npc.id}>
+                      {npc.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="majorId"
-            label={'Tên ngành nghề'}
-            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Major ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {majors.map((major) => (
-                <Option key={major.id} value={major.id}>
-                  {major.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên ngành nghề'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Major ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {majors.map((major) => (
+                    <Option key={major.id} value={major.id}>
+                      {major.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="type"
-            label={'Loại nhiệm vụ'}
-            rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Loại nhiệm vụ'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="point"
-            label={'Điểm thưởng'}
-            rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}
-          >
-            <Input type="number" />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Điểm thưởng'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+                <Input type="number" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="itemID" label={'Tên vật phẩm'}>
-            <Select placeholder={'---- Select Item ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {items.map((item) => (
-                <Option key={item.id} value={item?.id}>
-                  {item.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên vật phẩm'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="itemID">
+                <Select
+                  placeholder={'---- Select Item ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {items.map((item) => (
+                    <Option key={item.id} value={item?.id}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="status"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Status'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

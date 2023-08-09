@@ -1,6 +1,14 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import { Pagination, School, createSchool, getPaginatedSchools, getSchoolbyEventId, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import {
+  Pagination,
+  School,
+  createSchool,
+  getPaginatedSchools,
+  getSchoolbyEventId,
+  updateSchool,
+} from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -13,6 +21,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import { useNavigate, useParams } from 'react-router-dom';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -49,14 +58,13 @@ export const SchoolTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
           if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log('Updated null Major:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -148,26 +156,25 @@ export const SchoolTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdSchool = await createSchool(newData);
         setData((prevData) => ({
           ...prevData,
           data: [...prevData.data, createdSchool],
-          loading: false, // Hide loading state after successful update
+          loading: false,
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
         console.log('School data created successfully');
 
-        // Fetch the updated data after successful creation
         getPaginatedSchools(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
         console.error('Error creating School data:', error);
-        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+        setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
       console.error('Error validating form:', error);
@@ -186,7 +193,7 @@ export const SchoolTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'name'; // Define dataIndex here
+        const dataIndex: keyof School = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -210,7 +217,7 @@ export const SchoolTable: React.FC = () => {
       dataIndex: 'email',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'email'; // Define dataIndex here
+        const dataIndex: keyof School = 'email';
         return editable ? (
           <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
@@ -230,7 +237,7 @@ export const SchoolTable: React.FC = () => {
       dataIndex: 'address',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'address'; // Define dataIndex here
+        const dataIndex: keyof School = 'address';
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
@@ -252,7 +259,7 @@ export const SchoolTable: React.FC = () => {
       width: '8%',
       render: (text: number, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'phoneNumber'; // Define dataIndex here
+        const dataIndex: keyof School = 'phoneNumber';
         return editable ? (
           <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
             <Input
@@ -337,6 +344,20 @@ export const SchoolTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -353,38 +374,59 @@ export const SchoolTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="name"
-            label={'Tên trường'}
-            rules={[{ required: true, message: t('Tên trường là cần thiết') }]}
-          >
-            <Input />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên trường'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
+                <Input />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="email" label={'Email'}>
-            <Input />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Email'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="email">
+                <Input />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="phoneNumber" label={'Số điện thoại'}>
-            <Input type="tel" />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Số điện thoại'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="phoneNumber">
+                <Input type="tel" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="address" label={'Địa chỉ'}>
-            <TextArea autoSize={{ maxRows: 3 }} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Địa chỉ'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="address">
+                <TextArea autoSize={{ maxRows: 3 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Trạng thái'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

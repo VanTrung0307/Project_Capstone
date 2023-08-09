@@ -89,6 +89,19 @@ interface PlayerData {
   id: string;
 }
 
+interface PlayerData {
+  studentId: string;
+  studentName: string;
+  eventId: string;
+  nickname: string;
+  passcode: string;
+  createdAt: string;
+  totalPoint: number;
+  totalTime: number;
+  isplayer: boolean;
+  id: string;
+}
+
 export const createPlayer = async ({
   studentId,
   studentName,

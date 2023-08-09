@@ -1,18 +1,15 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { SearchOutlined } from '@ant-design/icons';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { Pagination, Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
-import { Form, Input } from 'antd';
+import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
+import { useMounted } from '@app/hooks/useMounted';
+import { Form } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
-import { Button } from 'components/common/buttons/Button/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
-import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -21,49 +18,6 @@ const initialPagination: Pagination = {
 
 export const PlayerTable: React.FC = () => {
   const { t } = useTranslation();
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
@@ -104,15 +58,14 @@ export const PlayerTable: React.FC = () => {
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
-      // Fetch the list of events and store it in the "events" state
       try {
-        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
       try {
-        const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 });
         setStudents(studentResponse.data);
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -135,7 +88,7 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'studentName',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'studentName'; // Define dataIndex here
+        const dataIndex: keyof Player = 'studentName';
         return editable ? (
           <Form.Item
             key={record.studentName}
@@ -153,7 +106,7 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'nickname',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'nickname'; // Define dataIndex here
+        const dataIndex: keyof Player = 'nickname';
         return editable ? (
           <Form.Item
             key={record.nickname}
@@ -171,7 +124,7 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'eventName',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'eventName'; // Define dataIndex here
+        const dataIndex: keyof Player = 'eventName';
         return editable ? (
           <Form.Item
             key={record.eventName}
@@ -189,7 +142,7 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'passcode',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'passcode'; // Define dataIndex here
+        const dataIndex: keyof Player = 'passcode';
         return editable ? (
           <Form.Item
             key={record.passcode}
@@ -208,7 +161,7 @@ export const PlayerTable: React.FC = () => {
       width: '8%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalPoint'; // Define dataIndex here
+        const dataIndex: keyof Player = 'totalPoint';
         return editable ? (
           <Form.Item
             key={record.totalPoint}
@@ -227,7 +180,7 @@ export const PlayerTable: React.FC = () => {
       width: '10%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalTime'; // Define dataIndex here
+        const dataIndex: keyof Player = 'totalTime';
         return editable ? (
           <Form.Item
             key={record.totalTime}
@@ -246,7 +199,7 @@ export const PlayerTable: React.FC = () => {
       width: '15%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'createdAt'; // Define dataIndex here
+        const dataIndex: keyof Player = 'createdAt';
         return editable ? (
           <Form.Item
             key={record.createdAt}
@@ -274,7 +227,7 @@ export const PlayerTable: React.FC = () => {
         pagination={data.pagination}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1000 }}
         bordered
       />
     </Form>

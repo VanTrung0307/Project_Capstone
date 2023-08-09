@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -51,14 +52,13 @@ export const GiftTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
           if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log('Updated null Gift:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Gift:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -120,9 +120,8 @@ export const GiftTable: React.FC = () => {
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
-      // Fetch the list of events and store it in the "events" state
       try {
-        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -156,39 +155,35 @@ export const GiftTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdGift = await createGift(newData);
 
-        // Fetch the event data using the selected "rankevent" from the form
         const selectedEvent = events.find((event) => event.name === newData.eventName);
 
-        // If the selected event is found, set its ID to the newData
         if (selectedEvent) {
           newData.eventId = selectedEvent.id;
         }
 
-        // Assign the ID received from the API response to the newData
         newData.id = createdGift.id;
 
         setData((prevData) => ({
           ...prevData,
           data: [...prevData.data, createdGift],
-          loading: false, // Hide loading state after successful update
+          loading: false,
         }));
 
         form.resetFields();
         setIsBasicModalOpen(false);
         console.log('Gift data created successfully');
 
-        // Fetch the updated data after successful creation
         getPaginatedGifts(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
         console.error('Error creating Gift data:', error);
-        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+        setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
       console.error('Error validating form:', error);
@@ -201,7 +196,7 @@ export const GiftTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'name'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -225,7 +220,7 @@ export const GiftTable: React.FC = () => {
       dataIndex: 'eventName',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'eventName'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'eventName';
         return editable ? (
           <Form.Item key={record.eventName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Select
@@ -250,7 +245,7 @@ export const GiftTable: React.FC = () => {
       dataIndex: 'quantity',
       render: (text: number, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'quantity'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'quantity';
         return editable ? (
           <Form.Item key={record.quantity} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
@@ -270,7 +265,7 @@ export const GiftTable: React.FC = () => {
       dataIndex: 'decription',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'decription'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'decription';
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
@@ -292,7 +287,7 @@ export const GiftTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'status'; // Define dataIndex here
+        const dataIndex: keyof Gift = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -354,6 +349,20 @@ export const GiftTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -370,48 +379,64 @@ export const GiftTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="name"
-            label={'Tên phần quà'}
-            rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
-
-          <BaseForm.Item name="decription" label={'Mô tả'}>
-            <TextArea autoSize={{ maxRows: 6 }} />
-          </BaseForm.Item>
-
-          <BaseForm.Item name="quantity" label={'Số lượng'}>
-            <Input type="number" min={0} />
-          </BaseForm.Item>
-
-          <BaseForm.Item
-            name="eventId"
-            label={'Tên sự kiện'}
-            rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Event ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {events.map((event) => (
-                <Option key={event.id} value={event.id}>
-                  {event.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
-
-          <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên phần quà'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Mô tả'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="decription">
+                <TextArea autoSize={{ maxRows: 6 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Số lượng'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="quantity">
+                <Input type="number" min={0} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Tên sự kiện'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Event ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {events.map((event) => (
+                    <Option key={event.id} value={event.id}>
+                      {event.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Trạng thái'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

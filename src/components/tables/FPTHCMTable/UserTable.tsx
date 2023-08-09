@@ -15,6 +15,7 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -102,8 +103,6 @@ export const UserTable: React.FC = () => {
 
   const { isMounted } = useMounted();
 
-  // const [selectedData, setSelectedData] = useState<Student[]>([]);
-
   const fetch = useCallback(
     async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
@@ -148,7 +147,7 @@ export const UserTable: React.FC = () => {
         email: values.email,
         graduateYear: values.graduateYear,
         phonenumber: values.phoneNumber,
-        // gender: values.gender,
+
         fullname: values.fullname,
         classname: values.classname,
         status: values.status,
@@ -177,7 +176,6 @@ export const UserTable: React.FC = () => {
         setIsBasicModalOpen(false);
         console.log('Student data created successfully');
 
-        // Fetch the updated data after successful creation
         getPaginatedStudent(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
@@ -414,6 +412,20 @@ export const UserTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form}>
       <Button
@@ -437,78 +449,86 @@ export const UserTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="fullname"
-            label={'Tên học sinh'}
-            rules={[{ required: true, message: t('Tên học sinh là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên học sinh'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="fullname" rules={[{ required: true, message: t('Tên học sinh là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="email" label={'Email'} rules={[{ required: true, message: t('Email là cần thiết') }]}>
-            <Input type="email" />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Email'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="email" rules={[{ required: true, message: t('Email là cần thiết') }]}>
+                <Input type="email" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="classname"
-            label={'Tên lớp'}
-            rules={[{ required: true, message: t('Tên lớp là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên lớp'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="classname" rules={[{ required: true, message: t('Tên lớp là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="schoolId" label={'Tên trường'}>
-            <Select placeholder={'---- Select School ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {schools.map((school) => (
-                <Option key={school.id} value={school.id}>
-                  {school.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên trường'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="schoolId">
+                <Select
+                  placeholder={'---- Select School ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {schools.map((school) => (
+                    <Option key={school.id} value={school.id}>
+                      {school.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="graduateYear"
-            label={'Năm học'}
-            rules={[{ required: true, message: t('Năm học là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Năm học'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="graduateYear" rules={[{ required: true, message: t('Năm học là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          {/* <BaseForm.Item
-            name="status"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Gender ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              <Option value="Nam">{'Nam'}</Option>
-              <Option value="Nữ">{'Nữ'}</Option>
-            </Select>
-          </BaseForm.Item> */}
+          <FlexContainer>
+            <Label>{'Điện thoại'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="phoneNumber" rules={[{ required: true, message: t('Điện thoại là cần thiết') }]}>
+                <Input type="number" min={10} max={11} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="phoneNumber"
-            label={'Điện thoại'}
-            rules={[{ required: true, message: t('Điện thoại là cần thiết') }]}
-          >
-            <Input type="number" min={10} max={11} />
-          </BaseForm.Item>
-
-          <BaseForm.Item
-            name="status"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
-          >
-            <Select
-              placeholder={'---- Select Phone Number ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Status'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Phone Number ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

@@ -11,7 +11,7 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
+import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -20,52 +20,8 @@ const initialPagination: Pagination = {
 };
 
 export const MajorTable: React.FC = () => {
-
   const { t } = useTranslation();
   const { TextArea } = Input;
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Major[]; pagination: Pagination; loading: boolean }>({
@@ -93,14 +49,13 @@ export const MajorTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Major:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -119,7 +74,7 @@ export const MajorTable: React.FC = () => {
         console.error('Error updating Major data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -143,7 +98,7 @@ export const MajorTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -182,30 +137,29 @@ export const MajorTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
-    try {
-      const createdMajor = await createMajor(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdMajor],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Major data created successfully');
+      try {
+        const createdMajor = await createMajor(newData);
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdMajor],
+          loading: false,
+        }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Major data created successfully');
 
-      // Fetch the updated data after successful creation
-      getPaginatedMajors(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        getPaginatedMajors(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Major data:', error);
+        setData((prevData) => ({ ...prevData, loading: false }));
+      }
     } catch (error) {
-      console.error('Error creating Major data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Major> = [
@@ -215,7 +169,7 @@ export const MajorTable: React.FC = () => {
       width: '15%',
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Major = 'name'; // Define dataIndex here
+        const dataIndex: keyof Major = 'name';
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
@@ -245,20 +199,15 @@ export const MajorTable: React.FC = () => {
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item
-            key={record.description}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false}]}
-          >
+          <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <TextArea
-              autoSize={{maxRows: 6}}
+              autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
+          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -268,7 +217,7 @@ export const MajorTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Major = 'status'; // Define dataIndex here
+        const dataIndex: keyof Major = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -282,7 +231,7 @@ export const MajorTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -292,7 +241,7 @@ export const MajorTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -330,6 +279,20 @@ export const MajorTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -346,31 +309,41 @@ export const MajorTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
+          <FlexContainer>
+            <Label>{'Tên ngành nghề'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Nhập tên ngành') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="name" label={'Tên ngành nghề'} rules={[{ required: true, message: t('Nhập tên ngành') }]}>
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Mô tả'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="description">
+                <TextArea autoSize={{ maxRows: 6 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="description" label={'Mô tả'}>
-            <TextArea autoSize={{maxRows: 6}}/>
-          </BaseForm.Item>
-
-          <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
-          >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}  
-            >
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
-
+          <FlexContainer>
+            <Label>{'Trạng thái'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

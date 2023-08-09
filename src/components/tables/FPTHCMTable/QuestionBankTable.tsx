@@ -20,6 +20,7 @@ import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -57,14 +58,13 @@ export const QuestionBankTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
           if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log('Updated null Question:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Question:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -112,17 +112,6 @@ export const QuestionBankTable: React.FC = () => {
 
   const { isMounted } = useMounted();
 
-  // const fetch = useCallback(
-  //   (pagination: Pagination) => {
-  //     setData((tableData) => ({ ...tableData, loading: true }));
-  //     getPaginatedQuestions(pagination).then((res) => {
-  //       if (isMounted.current) {
-  //         setData({ data: res.data, pagination: res.pagination, loading: false });
-  //       }
-  //     });
-  //   },
-  //   [isMounted],
-  // );
   const fetch = useCallback(
     async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
@@ -137,17 +126,15 @@ export const QuestionBankTable: React.FC = () => {
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
-      // Fetch the list of majors and store it in the "majors" state
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
         setMajors(majorResponse.data);
       } catch (error) {
         console.error('Error fetching majors:', error);
       }
 
-      // Fetch the list of answers and store it in the "answers" state
       try {
-        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 1000 }); // Adjust the pagination as needed
+        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 1000 });
         setAnswers(answerResponse.data);
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -181,47 +168,41 @@ export const QuestionBankTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdQuestion = await createQuestion(newData);
 
-        // Fetch the major data using the selected "majorName" from the form
         const selectedMajor = majors.find((major) => major.name === newData.majorName);
 
-        // Fetch the answer data using the selected "answerName" from the form
         const selectedAnswer = answers.find((answer) => answer.answerName === newData.answerName);
 
-        // If the selected major is found, set its ID to the newData
         if (selectedMajor) {
           newData.majorId = selectedMajor.name;
         }
 
-        // If the selected answer is found, set its ID to the newData
         if (selectedAnswer) {
           newData.answerId = selectedAnswer.answerName;
         }
 
-        // Assign the ID received from the API response to the newData
         newData.id = createdQuestion.id;
 
         setData((prevData) => ({
           ...prevData,
           data: [...prevData.data, createdQuestion],
-          loading: false, // Hide loading state after successful update
+          loading: false,
         }));
 
         form.resetFields();
         setIsBasicModalOpen(false);
         console.log('Question data created successfully');
 
-        // Fetch the updated data after successful creation
         getPaginatedQuestions(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
         console.error('Error creating Question data:', error);
-        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+        setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
       console.error('Error validating form:', error);
@@ -234,7 +215,7 @@ export const QuestionBankTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'name'; // Define dataIndex here
+        const dataIndex: keyof Question = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -258,7 +239,7 @@ export const QuestionBankTable: React.FC = () => {
       dataIndex: 'majorName',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'majorId'; // Define dataIndex here
+        const dataIndex: keyof Question = 'majorId';
         return editable ? (
           <Form.Item
             key={record.majorId}
@@ -381,6 +362,20 @@ export const QuestionBankTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -397,54 +392,68 @@ export const QuestionBankTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="name"
-            label={'Tên câu hỏi'}
-            rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên câu hỏi'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="majorId"
-            label={'Tên ngành'}
-            rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Major ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {majors.map((major) => (
-                <Option key={major.id} value={major.id}>
-                  {major.name}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên ngành'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Major ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {majors.map((major) => (
+                    <Option key={major.id} value={major.id}>
+                      {major.name}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="answerId"
-            label={'Câu trả lời'}
-            rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Answer ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              {answers.map((answer) => (
-                <Option key={answer.id} value={answer.id}>
-                  {answer.answerName}
-                </Option>
-              ))}
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Câu trả lời'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="answerId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Answer ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  {answers.map((answer) => (
+                    <Option key={answer.id} value={answer.id}>
+                      {answer.answerName}
+                    </Option>
+                  ))}
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="status"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Status ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-              <Option value="ACTIVE">{'Đang hoạt động'}</Option>
-              <Option value="INACTIVE">{'Không hoạt động'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Status'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'Đang hoạt động'}</Option>
+                  <Option value="INACTIVE">{'Không hoạt động'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

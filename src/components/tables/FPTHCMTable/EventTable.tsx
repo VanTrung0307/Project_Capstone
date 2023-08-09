@@ -1,8 +1,10 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
 import { Event, Pagination, createEvent, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
+import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
@@ -10,11 +12,9 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
-import { EditableCell } from '../editableTable/EditableCell';
-import { useMounted } from '@app/hooks/useMounted';
 import { useNavigate } from 'react-router-dom';
-import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/School';
+import { EditableCell } from '../editableTable/EditableCell';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -133,20 +133,6 @@ export const EventTable: React.FC = () => {
     [isMounted],
   );
 
-  // const fetch = useCallback((pagination: Pagination) => {
-  //   setData((tableData) => ({ ...tableData, loading: true }));
-  //   getPaginatedEvents(pagination).then((res) => {
-  //     if (isMounted.current) {
-  //       const formattedEvents = res.data.map((event) => ({
-  //         ...event,
-  //         startTimeFormatted: formatDateTime(event.startTime), // Store formatted startTime
-  //         endTimeFormatted: formatDateTime(event.endTime), // Store formatted endTime
-  //       }));
-  //       setData({ data: formattedEvents, pagination: res.pagination, loading: false });
-  //     }
-  //   });
-  // }, [isMounted]);
-
   useEffect(() => {
     fetch(initialPagination);
   }, [fetch]);
@@ -170,26 +156,25 @@ export const EventTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdEvent = await createEvent(newData);
         setData((prevData) => ({
           ...prevData,
           data: [...prevData.data, createdEvent],
-          loading: false, // Hide loading state after successful update
+          loading: false,
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
         console.log('Event data created successfully');
 
-        // Fetch the updated data after successful creation
         getPaginatedEvents(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
         console.error('Error creating event data:', error);
-        setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+        setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
       console.error('Error validating form:', error);
@@ -202,7 +187,7 @@ export const EventTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'name'; // Define dataIndex here
+        const dataIndex: keyof Event = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -226,7 +211,7 @@ export const EventTable: React.FC = () => {
       dataIndex: 'startTime',
       render: (text: number, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'startTime'; // Define dataIndex here
+        const dataIndex: keyof Event = 'startTime';
         return editable ? (
           <Form.Item
             key={record.startTime}
@@ -242,7 +227,6 @@ export const EventTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{formatDateTime(record.startTime)}</span>
-          // <span>{text}</span>
         );
       },
     },
@@ -251,7 +235,7 @@ export const EventTable: React.FC = () => {
       dataIndex: 'endTime',
       render: (text: number, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'endTime'; // Define dataIndex here
+        const dataIndex: keyof Event = 'endTime';
         return editable ? (
           <Form.Item
             key={record.endTime}
@@ -267,7 +251,6 @@ export const EventTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{formatDateTime(record.endTime)}</span>
-          // <span>{text}</span>
         );
       },
     },
@@ -277,7 +260,7 @@ export const EventTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'status'; // Define dataIndex here
+        const dataIndex: keyof Event = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -342,6 +325,20 @@ export const EventTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -358,39 +355,44 @@ export const EventTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-          <BaseForm.Item
-            name="name"
-            label={'Tên sự kiện'}
-            rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}
-          >
-            <Input maxLength={100} />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="startTime"
-            label={'Thời gian bắt đầu'}
-            rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}
-          >
-            <Input type="datetime-local" />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="endTime"
-            label={'Thời gian kết thúc'}
-            rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}
-          >
-            <Input type="datetime-local" />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
-          >
-            <Select placeholder={'---- Select Status ----'}>
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Tên sự kiện'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Thời gian bắt đầu'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
+                <Input type="datetime-local" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Thời gian kết thúc'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
+                <Input type="datetime-local" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Trạng thái'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+                <Select placeholder={'---- Select Status ----'}>
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

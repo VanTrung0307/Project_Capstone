@@ -1,14 +1,11 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
 import { Pagination, Rank, getPaginatedRanks, updateRank } from '@app/api/FPT_3DMAP_API/Rank';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Space } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CSSProperties } from 'styled-components';
@@ -20,7 +17,6 @@ const initialPagination: Pagination = {
 };
 
 export const RankTable: React.FC = () => {
-
   const { t } = useTranslation();
 
   const filterDropdownStyles: CSSProperties = {
@@ -49,7 +45,7 @@ export const RankTable: React.FC = () => {
 
   const buttonStyles: CSSProperties = {
     height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
+    width: '60px',
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
@@ -58,7 +54,7 @@ export const RankTable: React.FC = () => {
     fontWeight: '400',
     color: '#fff',
     border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
+    padding: '4px 10px',
     borderRadius: '6px',
     backgroundColor: '#4070f4',
     cursor: 'pointer',
@@ -92,14 +88,13 @@ export const RankTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Rank:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Rank:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -118,7 +113,7 @@ export const RankTable: React.FC = () => {
         console.error('Error updating Rank data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -142,7 +137,7 @@ export const RankTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -168,37 +163,13 @@ export const RankTable: React.FC = () => {
     cancel();
   };
 
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
-
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Create a new data object from the form values
-      const newData = {
-        name: values.name,
-        playerId: values.playerId,
-        place: values.place,
-        eventId: values.eventId,
-        id: values.id,
-      };
-
-      // Update the tableData state with the new data
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, newData],
-      }));
-
-      form.resetFields(); // Reset the form fields
-      setIsBasicModalOpen(false); // Close the modal
-    });
-  };
-
   const columns: ColumnsType<Rank> = [
     {
       title: t('Tên bảng xếp hạng'),
       dataIndex: 'name',
       render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'name'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -239,14 +210,14 @@ export const RankTable: React.FC = () => {
         );
       },
       filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      filtered: searchValue !== '',
     },
     {
       title: t('Tên người chơi'),
       dataIndex: 'playerId',
       render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'playerId'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'playerId';
         return editable ? (
           <Form.Item
             key={record.playerId}
@@ -287,14 +258,14 @@ export const RankTable: React.FC = () => {
         );
       },
       filterIcon: () => <SearchOutlined />,
-      filtered: searchValue !== '', // Apply filtering if searchValue is not empty
+      filtered: searchValue !== '',
     },
     {
       title: t('Sự kiện'),
       dataIndex: 'eventId',
       render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'eventId'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'eventId';
         return editable ? (
           <Form.Item
             key={record.eventId}
@@ -318,7 +289,7 @@ export const RankTable: React.FC = () => {
       width: '8%',
       render: (text: string, record: Rank) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'place'; // Define dataIndex here
+        const dataIndex: keyof Rank = 'place';
         return editable ? (
           <Form.Item
             key={record.place}
@@ -335,7 +306,7 @@ export const RankTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-    }, 
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -372,48 +343,6 @@ export const RankTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Button
-        type="primary"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
-      >
-        Add Data
-      </Button>
-      <Modal
-        title={'Add Player'}
-        open={isBasicModalOpen}
-        onOk={handleModalOk}
-        onCancel={() => setIsBasicModalOpen(false)}
-      >
-        <S.FormContent>
-          <BaseForm.Item name="name" label={'Name'} rules={[{ required: true, message: t('Hãy điền tên người chơi') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="email"
-            label={'Email'}
-            rules={[{ required: true, message: t('Hãy điền email người chơi') }]}
-          >
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="phone" label={'Phone'} rules={[{ required: true, message: t('Nhập số điện thoại') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item name="gender" label={'Gender'} rules={[{ required: true, message: t('Nhập giới tính') }]}>
-            <Input />
-          </BaseForm.Item>
-          <BaseForm.Item
-            name="country"
-            label={'Status'}
-            rules={[{ required: true, message: t('Trạng thái người chơi là cần thiết') }]}
-          >
-            <Select placeholder={'Status'}>
-              <Option value="active">{'Đang hoạt động'}</Option>
-              <Option value="inactive">{'Không hoạt động'}</Option>
-            </Select>
-          </BaseForm.Item>
-        </S.FormContent>
-      </Modal>
       <Table
         components={{
           body: {

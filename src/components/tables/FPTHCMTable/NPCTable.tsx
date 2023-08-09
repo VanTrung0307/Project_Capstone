@@ -11,8 +11,8 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -20,52 +20,8 @@ const initialPagination: Pagination = {
 };
 
 export const NPCTable: React.FC = () => {
-
   const { t } = useTranslation();
   const { TextArea } = Input;
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Npc[]; pagination: Pagination; loading: boolean }>({
@@ -93,14 +49,13 @@ export const NPCTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
           if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log('Updated null NPC:', updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null NPC:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -182,30 +137,29 @@ export const NPCTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
-    try {
-      const createdNpc = await createNpc(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdNpc],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Npc data created successfully');
+      try {
+        const createdNpc = await createNpc(newData);
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdNpc],
+          loading: false,
+        }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Npc data created successfully');
 
-      // Fetch the updated data after successful creation
-      getPaginatedNpcs(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        getPaginatedNpcs(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Npc data:', error);
+        setData((prevData) => ({ ...prevData, loading: false }));
+      }
     } catch (error) {
-      console.error('Error creating Npc data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Npc> = [
@@ -250,13 +204,13 @@ export const NPCTable: React.FC = () => {
             rules={[{ required: true, message: 'Lời thoại NPC là cần thiết' }]}
           >
             <TextArea
-              autoSize={{maxRows: 6}}
+              autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{truncatedText !== null ? truncatedText : "Chưa có thông tin"}</span>
+          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -269,7 +223,7 @@ export const NPCTable: React.FC = () => {
         const dataIndex: keyof Npc = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
-        
+
         return editable ? (
           <Form.Item
             key={record.status}
@@ -280,7 +234,7 @@ export const NPCTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -290,7 +244,7 @@ export const NPCTable: React.FC = () => {
             </Select>
           </Form.Item>
         ) : (
-          <span>{text !== "INACTIVE" ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },
@@ -328,6 +282,20 @@ export const NPCTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -344,31 +312,41 @@ export const NPCTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
+          <FlexContainer>
+            <Label>{'Tên NPC'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên NPC là cần thiết') }]}>
+                <Input maxLength={100} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item name="name" label={'Tên NPC'} rules={[{ required: true, message: t('Tên NPC là cần thiết') }]}>
-            <Input  maxLength={100} />
-          </BaseForm.Item>
-          
-          <BaseForm.Item name="introduce" label={'Lời đối thoại'} rules={[{ required: true, message: t('Lời thoại NPC là cần thiết') }]}>
-            <TextArea autoSize={{maxRows: 6}}  />
-          </BaseForm.Item>
+          <FlexContainer>
+            <Label>{'Lời đối thoại'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="introduce" rules={[{ required: true, message: t('Lời thoại NPC là cần thiết') }]}>
+                <TextArea autoSize={{ maxRows: 6 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
 
-          <BaseForm.Item
-            name="status"
-            label={'Trạng thái'}
-            rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}
-          >
-            <Select 
-              placeholder={'---- Select Status ----'}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
-            >
-              <Option value="ACTIVE">{'ACTIVE'}</Option>
-              <Option value="INACTIVE">{'INACTIVE'}</Option>
-            </Select>
-          </BaseForm.Item>
-
+          <FlexContainer>
+            <Label>{'Trạng thái'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {

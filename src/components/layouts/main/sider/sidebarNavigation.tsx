@@ -1,22 +1,15 @@
 /* eslint-disable prettier/prettier */
 import {
   AimOutlined,
-  BlockOutlined,
   CalendarOutlined,
   DashboardOutlined,
   FileDoneOutlined,
-  FormOutlined,
   GiftOutlined,
-  HomeOutlined,
   InboxOutlined,
-  LayoutOutlined,
-  LineChartOutlined,
   QuestionCircleOutlined,
   RobotOutlined,
-  ShopOutlined,
-  TableOutlined,
   TrophyOutlined,
-  UserOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import React from 'react';
 import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';
@@ -155,7 +148,7 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
   {
     title: 'Trường học',
     key: 'schools',
-    url: '/schools',
+    url: '/school',
     icon: <IoSchoolOutline />,
   },
   {

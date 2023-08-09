@@ -1,19 +1,18 @@
 /* eslint-disable prettier/prettier */
+import { DownOutlined } from '@ant-design/icons';
+import { Answer, Pagination, createAnswer, getPaginatedAnswers, updateAnswer } from '@app/api/FPT_3DMAP_API/Answer';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
+import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Answer, getPaginatedAnswers, updateAnswer, Pagination, createAnswer } from '@app/api/FPT_3DMAP_API/Answer';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
-import { DefaultRecordType, Key } from 'rc-table/lib/interface';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { DownOutlined, SearchOutlined } from '@ant-design/icons';
-import { CSSProperties } from 'styled-components';
-import { useMounted } from '@app/hooks/useMounted';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -21,52 +20,8 @@ const initialPagination: Pagination = {
 };
 
 export const AnswerTable: React.FC = () => {
-
   const { t } = useTranslation();
   const { TextArea } = Input;
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px', // Adjust the width to accommodate the text
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px', // Adjust the padding to position the text
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Answer[]; pagination: Pagination; loading: boolean }>({
@@ -94,14 +49,13 @@ export const AnswerTable: React.FC = () => {
           ...row,
         };
 
-        // Kiểm tra và chuyển các trường rỗng thành giá trị null
         Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === "") {
+          if (updatedItem[field] === '') {
             updatedItem[field] = null;
           }
         });
 
-        console.log("Updated null Answer:", updatedItem); // Kiểm tra giá trị trước khi gọi API
+        console.log('Updated null Answer:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -120,7 +74,7 @@ export const AnswerTable: React.FC = () => {
         console.error('Error updating Answer data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData}));
+          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
@@ -144,7 +98,7 @@ export const AnswerTable: React.FC = () => {
       }
       return record;
     });
-    setData((prevData) => ({ ...prevData, data: updatedData}));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
   };
 
   const { isMounted } = useMounted();
@@ -182,30 +136,29 @@ export const AnswerTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true })); // Show loading state
+      setData((prevData) => ({ ...prevData, loading: true }));
 
-    try {
-      const createdAnswer = await createAnswer(newData);
-      setData((prevData) => ({
-        ...prevData,
-        data: [...prevData.data, createdAnswer],
-        loading: false, // Hide loading state after successful update
-      }));
-      form.resetFields();
-      setIsBasicModalOpen(false);
-      console.log('Answer data created successfully');
+      try {
+        const createdAnswer = await createAnswer(newData);
+        setData((prevData) => ({
+          ...prevData,
+          data: [...prevData.data, createdAnswer],
+          loading: false,
+        }));
+        form.resetFields();
+        setIsBasicModalOpen(false);
+        console.log('Answer data created successfully');
 
-      // Fetch the updated data after successful creation
-      getPaginatedAnswers(data.pagination).then((res) => {
-        setData({ data: res.data, pagination: res.pagination, loading: false });
-      });
+        getPaginatedAnswers(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
+      } catch (error) {
+        console.error('Error creating Npc data:', error);
+        setData((prevData) => ({ ...prevData, loading: false }));
+      }
     } catch (error) {
-      console.error('Error creating Npc data:', error);
-      setData((prevData) => ({ ...prevData, loading: false })); // Hide loading state on error
+      console.error('Error validating form:', error);
     }
-  } catch (error) {
-    console.error('Error validating form:', error);
-  }
   };
 
   const columns: ColumnsType<Answer> = [
@@ -214,7 +167,7 @@ export const AnswerTable: React.FC = () => {
       dataIndex: 'answerName',
       render: (text: string, record: Answer) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Answer = 'answerName'; // Define dataIndex here
+        const dataIndex: keyof Answer = 'answerName';
         return editable ? (
           <Form.Item
             key={record.answerName}
@@ -223,7 +176,7 @@ export const AnswerTable: React.FC = () => {
             rules={[{ required: true, message: 'Tên câu trả lời là cần thiết' }]}
           >
             <TextArea
-              autoSize={{maxRows: 6}}
+              autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.answerName, dataIndex)}
             />
@@ -232,31 +185,30 @@ export const AnswerTable: React.FC = () => {
           <span>{text}</span>
         );
       },
-      
     },
     {
-        title: t('Dạng câu trả lời'),
-        dataIndex: 'isRight',
-        render: (text: boolean, record: Answer) => {
-          const editable = isEditing(record);
-          const dataIndex: keyof Answer = 'isRight'; // Define dataIndex here
+      title: t('Dạng câu trả lời'),
+      dataIndex: 'isRight',
+      render: (text: boolean, record: Answer) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Answer = 'isRight';
 
-          const selectOptions = [
-            { value: true, label: 'Câu trả lời đúng' },
-            { value: false, label: 'Câu trả lời sai' },
-          ];
+        const selectOptions = [
+          { value: true, label: 'Câu trả lời đúng' },
+          { value: false, label: 'Câu trả lời sai' },
+        ];
 
-          return editable ? (
-            <Form.Item
-              key={record.id}
-              name={dataIndex}
-              initialValue={text.toString()}
-              rules={[{ required: true, message: 'Chọn dạng câu trả lời là cần thiết"' }]}
-            >
-              <Select
+        return editable ? (
+          <Form.Item
+            key={record.id}
+            name={dataIndex}
+            initialValue={text.toString()}
+            rules={[{ required: true, message: 'Chọn dạng câu trả lời là cần thiết"' }]}
+          >
+            <Select
               value={text}
               onChange={(value) => handleInputChange(value.toString(), record.isRight.toString(), dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>} 
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {selectOptions.map((option) => (
                 <Option key={option.value.toString()} value={option.value}>
@@ -264,12 +216,14 @@ export const AnswerTable: React.FC = () => {
                 </Option>
               ))}
             </Select>
-            </Form.Item>
-          ) : (
-            <span>{text === true ? <Tag color="#339CFD">Câu trả lời đúng</Tag> : <Tag color="#FF5252">Câu trả lời sai</Tag> }</span>
-          );
-        },
-        },
+          </Form.Item>
+        ) : (
+          <span>
+            {text === true ? <Tag color="#339CFD">Câu trả lời đúng</Tag> : <Tag color="#FF5252">Câu trả lời sai</Tag>}
+          </span>
+        );
+      },
+    },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -304,6 +258,20 @@ export const AnswerTable: React.FC = () => {
     },
   ];
 
+  const FlexContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  `;
+
+  const Label = styled.label`
+    flex: 0 0 200px;
+  `;
+
+  const InputContainer = styled.div`
+    flex: 1;
+  `;
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -320,27 +288,31 @@ export const AnswerTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
-
-          <BaseForm.Item name="answerName" label={'Tên câu trả lời'} rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-            <TextArea autoSize={{maxRows: 6}} />
-          </BaseForm.Item>
-
-          <BaseForm.Item
-            name="isRight"
-            label={'Dạng câu trả lời'}
-            rules={[{ required: true, message: t('Dạng câu trả lời là cần thiết') }]}
-          >
-            <Select 
-              placeholder="---- Select QuestionType ----" 
-              suffixIcon={<DownOutlined style={{ color: '#339CFD'}}/>}
-            >
-              <Option value="true">{'Câu trả lời đúng'}</Option>
-              <Option value="false">{'Câu trả lời sai'}</Option>
-            </Select>
-          </BaseForm.Item>
-
+          <FlexContainer>
+            <Label>{'Tên câu trả lời'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="answerName" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
+                <TextArea autoSize={{ maxRows: 6 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+          <FlexContainer>
+            <Label>{'Dạng câu trả lời'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="isRight" rules={[{ required: true, message: t('Dạng câu trả lời là cần thiết') }]}>
+                <Select
+                  placeholder="---- Select QuestionType ----"
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
+                  <Option value="true">{'Câu trả lời đúng'}</Option>
+                  <Option value="false">{'Câu trả lời sai'}</Option>
+                </Select>
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
         </S.FormContent>
       </Modal>
+
       <Table
         components={{
           body: {
