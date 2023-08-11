@@ -193,6 +193,12 @@ export const GiftTable: React.FC = () => {
     }
   };
 
+  const uniqueEventNames = new Set(data.data.map((record) => record.eventName));
+  const eventNameFilters = Array.from(uniqueEventNames).map((eventName) => ({
+    text: eventName,
+    value: eventName,
+  }));
+
   const columns: ColumnsType<Gift> = [
     {
       title: t('Tên quà tặng'),
@@ -221,6 +227,8 @@ export const GiftTable: React.FC = () => {
     {
       title: t('Tên sự kiện'),
       dataIndex: 'eventName',
+      filters: eventNameFilters,
+      onFilter: (value, record) => record.eventName === value,
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'eventName';
@@ -287,7 +295,11 @@ export const GiftTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'status';
@@ -321,7 +333,6 @@ export const GiftTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         return (
@@ -471,7 +482,7 @@ export const GiftTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

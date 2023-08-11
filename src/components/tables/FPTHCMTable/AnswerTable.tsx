@@ -192,6 +192,11 @@ export const AnswerTable: React.FC = () => {
     {
       title: t('Dạng câu trả lời'),
       dataIndex: 'isRight',
+      filters: [
+        { text: 'Câu trả lời đúng', value: 'true' },
+        { text: 'Câu trả lời sai', value: 'false' },
+      ],
+      onFilter: (value, record) => record.isRight.toString() === value,
       render: (text: boolean, record: Answer) => {
         const editable = isEditing(record);
         const dataIndex: keyof Answer = 'isRight';

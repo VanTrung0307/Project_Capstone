@@ -38,15 +38,6 @@ export const getPaginatedEvents = async (pagination: Pagination): Promise<Pagina
 
     const paginatedData = data.slice(startIndex, endIndex);
 
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log("Object", objectCount, ":", item);
-    });
-
-    console.log("Total objects:", objectCount);
-
     return {
       data: paginatedData,
       pagination: {

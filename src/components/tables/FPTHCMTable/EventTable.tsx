@@ -260,7 +260,11 @@ export const EventTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
         const dataIndex: keyof Event = 'status';
@@ -427,7 +431,7 @@ export const EventTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

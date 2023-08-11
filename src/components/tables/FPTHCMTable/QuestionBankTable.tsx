@@ -212,6 +212,12 @@ export const QuestionBankTable: React.FC = () => {
     }
   };
 
+  const uniqueMajorNames = new Set(data.data.map((record) => record.majorName));
+  const majorNameFilters = Array.from(uniqueMajorNames).map((majorName) => ({
+    text: majorName,
+    value: majorName,
+  }));
+
   const columns: ColumnsType<Question> = [
     {
       title: t('Tên câu hỏi'),
@@ -240,6 +246,8 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Tên ngành'),
       dataIndex: 'majorName',
+      filters: majorNameFilters,
+      onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'majorId';
@@ -300,7 +308,11 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'status';
@@ -334,7 +346,6 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         return (

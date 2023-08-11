@@ -258,7 +258,7 @@ export const RoomAndLocationTable: React.FC = () => {
       },
     },
     {
-      title: t('Tên trường'),
+      title: t('Tên vị trí'),
       dataIndex: 'locationName',
       render: (text: string, record: RoomLocation) => {
         const editable = isEditing(record);
@@ -284,7 +284,11 @@ export const RoomAndLocationTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: RoomLocation) => {
         const editable = isEditing(record);
         const dataIndex: keyof RoomLocation = 'status';
@@ -318,7 +322,6 @@ export const RoomAndLocationTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: RoomLocation) => {
         const editable = isEditing(record);
         return (
@@ -463,7 +466,7 @@ export const RoomAndLocationTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

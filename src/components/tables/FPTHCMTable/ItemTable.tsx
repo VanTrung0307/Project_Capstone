@@ -176,11 +176,16 @@ export const ItemTable: React.FC = () => {
     }
   };
 
+  const uniqueItemTypes = new Set(data.data.map((record) => record.type));
+  const itemTypeFilters = Array.from(uniqueItemTypes).map((taskType) => ({
+    text: taskType,
+    value: taskType,
+  }));
+
   const columns: ColumnsType<Item> = [
     {
       title: t('Tên vật phẩm'),
       dataIndex: 'name',
-      width: '20%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'name';
@@ -208,7 +213,8 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Loại vật phẩm'),
       dataIndex: 'type',
-      width: '15%',
+      filters: itemTypeFilters,
+      onFilter: (value, record) => record.type === value,
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'type';
@@ -233,7 +239,6 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Mô tả'),
       dataIndex: 'description',
-      width: '15%',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'description';
@@ -255,7 +260,6 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Điểm thưởng'),
       dataIndex: 'price',
-      width: '10%',
       render: (text: number, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'price';
@@ -281,7 +285,6 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Số lượng'),
       dataIndex: 'quantity',
-      width: '10%',
       render: (text: number, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'quantity';
@@ -307,7 +310,6 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Giới hạn trao đổi'),
       dataIndex: 'limitExchange',
-      width: '15%',
       render: (text: boolean, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'limitExchange';
@@ -344,7 +346,11 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'status';
@@ -559,7 +565,7 @@ export const ItemTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

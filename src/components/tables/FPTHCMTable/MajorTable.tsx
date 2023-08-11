@@ -165,6 +165,9 @@ export const MajorTable: React.FC = () => {
     }
   };
 
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState('');
+
   const columns: ColumnsType<Major> = [
     {
       title: t('Tên ngành nghề'),
@@ -199,25 +202,58 @@ export const MajorTable: React.FC = () => {
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
         const dataIndex: keyof Major = 'description';
-        const maxTextLength = 255;
+        const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
-        return editable ? (
-          <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
-            <TextArea
-              autoSize={{ maxRows: 6 }}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
+
+        const openDescriptionModal = () => {
+          setDescriptionModalVisible(true);
+          setSelectedDescription(text);
+        };
+
+        return (
+          <>
+            <div
+              onClick={() => {
+                if (text?.length > maxTextLength) {
+                  openDescriptionModal();
+                }
+              }}
+              style={{ cursor: text?.length > maxTextLength ? 'pointer' : 'default' }}
+            >
+              {editable ? (
+                <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+                  <TextArea
+                    autoSize={{ maxRows: 6 }}
+                    value={record[dataIndex]}
+                    onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+                  />
+                </Form.Item>
+              ) : (
+                <>
+                  <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
+                </>
+              )}
+            </div>
+            <Modal
+              title={t('Mô tả')}
+              visible={descriptionModalVisible}
+              onCancel={() => setDescriptionModalVisible(false)}
+              footer={null}
+            >
+              <p>{selectedDescription}</p>
+            </Modal>
+          </>
         );
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
         const dataIndex: keyof Major = 'status';
@@ -251,7 +287,6 @@ export const MajorTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Major) => {
         const editable = isEditing(record);
         return (

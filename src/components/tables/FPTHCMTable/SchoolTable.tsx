@@ -26,7 +26,7 @@ import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInp
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 2,
+  pageSize: 10,
 };
 
 export const SchoolTable: React.FC = () => {
@@ -260,7 +260,6 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Điện thoại'),
       dataIndex: 'phoneNumber',
-      width: '8%',
       render: (text: number, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'phoneNumber';
@@ -280,7 +279,11 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'status';
@@ -314,7 +317,6 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         return (
@@ -462,7 +464,7 @@ export const SchoolTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

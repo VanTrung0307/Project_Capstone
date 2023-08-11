@@ -85,6 +85,12 @@ export const PlayerTable: React.FC = () => {
     fetch(pagination);
   };
 
+  const uniqueEventNames = new Set(data.data.map((record) => record.eventName));
+  const eventNameFilters = Array.from(uniqueEventNames).map((eventName) => ({
+    text: eventName,
+    value: eventName,
+  }));
+
   const columns: ColumnsType<Player> = [
     {
       title: t('Tên học sinh đã tham gia'),
@@ -125,6 +131,8 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Tên sự kiện'),
       dataIndex: 'eventName',
+      filters: eventNameFilters,
+      onFilter: (value, record) => record.eventName === value,
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
         const dataIndex: keyof Player = 'eventName';
@@ -161,7 +169,6 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Tổng điểm thưởng'),
       dataIndex: 'totalPoint',
-      width: '8%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
         const dataIndex: keyof Player = 'totalPoint';
@@ -180,7 +187,6 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Tổng thời gian hoàn thành'),
       dataIndex: 'totalTime',
-      width: '10%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
         const dataIndex: keyof Player = 'totalTime';
@@ -199,7 +205,6 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Thời điểm đã tạo'),
       dataIndex: 'createdAt',
-      width: '15%',
       render: (text: number, record: Player) => {
         const editable = isEditing(record);
         const dataIndex: keyof Player = 'createdAt';
@@ -247,7 +252,7 @@ export const PlayerTable: React.FC = () => {
         pagination={data.pagination}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

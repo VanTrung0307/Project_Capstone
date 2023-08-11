@@ -56,12 +56,6 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <AimOutlined />,
   },
   {
-    title: 'Bảng xếp hạng',
-    key: 'rank',
-    url: '/ranks',
-    icon: <TrophyOutlined />,
-  },
-  {
     title: 'Phòng & Vị trí',
     key: 'roomLocation',
     url: '/rooms-location',
@@ -108,11 +102,5 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     key: 'item',
     url: '/items',
     icon: <InboxOutlined />,
-  },
-  {
-    title: 'Bảng xếp hạng',
-    key: 'rank',
-    url: '/ranks',
-    icon: <TrophyOutlined />,
   },
 ];

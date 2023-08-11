@@ -8,7 +8,7 @@ import { Pagination, Task, createTask, getPaginatedTasks, updateTask } from '@ap
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -242,6 +242,18 @@ export const TaskTable: React.FC = () => {
     }
   };
 
+  const uniqueMajorNames = new Set(data.data.map((record) => record.majorName));
+  const majorNameFilters = Array.from(uniqueMajorNames).map((majorName) => ({
+    text: majorName,
+    value: majorName,
+  }));
+
+  const uniqueTaskTypes = new Set(data.data.map((record) => record.type));
+  const taskTypeFilters = Array.from(uniqueTaskTypes).map((taskType) => ({
+    text: taskType,
+    value: taskType,
+  }));
+
   const columns: ColumnsType<Task> = [
     {
       title: t('Tên nhiệm vụ'),
@@ -332,6 +344,8 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Tên Ngành'),
       dataIndex: 'majorName',
+      filters: majorNameFilters,
+      onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'majorId';
@@ -362,6 +376,8 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Loại nhiệm vụ'),
       dataIndex: 'type',
+      filters: taskTypeFilters,
+      onFilter: (value, record) => record.type === value,
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'type';
@@ -435,23 +451,38 @@ export const TaskTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'status';
+
+        const statusOptions = ['ACTIVE', 'INACTIVE'];
+
         return editable ? (
           <Form.Item
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Trạng thái tọa độ là cần thiết' }]}
           >
-            <Input
-              value={record[dataIndex].toString()}
-              onChange={(e) => handleInputChange(e.target.value, record.status, dataIndex)}
-            />
+            <Select
+              value={text}
+              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+            >
+              {statusOptions.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         );
       },
     },

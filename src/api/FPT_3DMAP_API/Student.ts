@@ -53,15 +53,6 @@ export const getPaginatedStudent = async (pagination: Pagination): Promise<Pagin
 
     const paginatedData = data.slice(startIndex, endIndex);
 
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
-
     return {
       data: paginatedData,
       pagination: {
@@ -87,15 +78,6 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,

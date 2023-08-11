@@ -165,11 +165,13 @@ export const NPCTable: React.FC = () => {
     }
   };
 
+  const [dialogueModalVisible, setDialogueModalVisible] = useState(false);
+  const [selectedDialogue, setSelectedDialogue] = useState('');
+
   const columns: ColumnsType<Npc> = [
     {
       title: t('Tên NPC'),
       dataIndex: 'name',
-      width: '40%',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
         const dataIndex: keyof Npc = 'name';
@@ -197,30 +199,58 @@ export const NPCTable: React.FC = () => {
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
         const dataIndex: keyof Npc = 'introduce';
-        const maxTextLength = 255;
+        const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
-        return editable ? (
-          <Form.Item
-            key={record.introduce}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Lời thoại NPC là cần thiết' }]}
-          >
-            <TextArea
-              autoSize={{ maxRows: 6 }}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
+
+        const openDescriptionModal = () => {
+          setDialogueModalVisible(true);
+          setSelectedDialogue(text);
+        };
+
+        return (
+          <>
+            <div
+              onClick={() => {
+                if (text?.length > maxTextLength) {
+                  openDescriptionModal();
+                }
+              }}
+              style={{ cursor: text?.length > maxTextLength ? 'pointer' : 'default' }}
+            >
+              {editable ? (
+                <Form.Item key={record.introduce} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+                  <TextArea
+                    autoSize={{ maxRows: 6 }}
+                    value={record[dataIndex]}
+                    onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
+                  />
+                </Form.Item>
+              ) : (
+                <>
+                  <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
+                </>
+              )}
+            </div>
+            <Modal
+              title={t('Mô tả')}
+              visible={dialogueModalVisible}
+              onCancel={() => setDialogueModalVisible(false)}
+              footer={null}
+            >
+              <p>{selectedDialogue}</p>
+            </Modal>
+          </>
         );
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
         const dataIndex: keyof Npc = 'status';
@@ -254,7 +284,6 @@ export const NPCTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);
         return (
@@ -381,7 +410,7 @@ export const NPCTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

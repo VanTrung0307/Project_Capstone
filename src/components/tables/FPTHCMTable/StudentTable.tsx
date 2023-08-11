@@ -207,6 +207,12 @@ export const StudentTable: React.FC = () => {
     setIsAddPlayerModalVisible(false);
   };
 
+  const uniqueClassnames = new Set(data.data.map((record) => record.classname));
+  const classnameFilters = Array.from(uniqueClassnames).map((classname) => ({
+    text: classname,
+    value: classname,
+  }));
+
   const columns: ColumnsType<Student> = [
     {
       title: t('Họ và tên'),
@@ -255,7 +261,6 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Điện thoại'),
       dataIndex: 'phonenumber',
-      width: '8%',
       render: (text: number, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'phonenumber';
@@ -275,7 +280,8 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Lớp'),
       dataIndex: 'classname',
-      width: '8%',
+      filters: classnameFilters,
+      onFilter: (value, record) => record.classname === value,
       render: (text: number, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'classname';
@@ -295,7 +301,11 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '8%',
+      filters: [
+        { text: 'ACTIVE', value: 'ACTIVE' },
+        { text: 'INACTIVE', value: 'INACTIVE' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'status';
@@ -329,7 +339,6 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
         return (
@@ -422,7 +431,7 @@ export const StudentTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>
