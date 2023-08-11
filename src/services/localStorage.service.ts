@@ -16,16 +16,7 @@ export const persistUser = (user: LoginResponse): void => {
 export const readUser = (): LoginResponse | null => {
   const userStr = localStorage.getItem('studentId');
 
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      if ('studentId' in user && 'token' in user) {
-        return user as LoginResponse;
-      }
-    } catch (error) {}
-  }
-
-  return null;
+  return userStr ? JSON.parse(userStr) : '';
 };
 
 export const deleteToken = (): void => localStorage.removeItem('token');

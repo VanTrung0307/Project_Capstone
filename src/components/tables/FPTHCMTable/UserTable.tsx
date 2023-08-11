@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -102,6 +103,7 @@ export const UserTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
+  const [originalData, setOriginalData] = useState<Student[]>([]);
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
@@ -109,6 +111,7 @@ export const UserTable: React.FC = () => {
       getPaginatedStudent(pagination)
         .then((res) => {
           if (isMounted.current) {
+            setOriginalData(res.data);
             setData({ data: res.data, pagination: res.pagination, loading: false });
           }
         })
@@ -528,6 +531,23 @@ export const UserTable: React.FC = () => {
           </FlexContainer>
         </S.FormContent>
       </Modal>
+
+      <SearchInput
+        placeholder="Search..."
+        allowClear
+        onSearch={(value) => {
+          const filteredData = data.data.filter((record) =>
+            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+          );
+          setData((prevData) => ({ ...prevData, data: filteredData }));
+        }}
+        onChange={(e) => {
+          if (e.target.value.trim() === '') {
+            setData((prevData) => ({ ...prevData, data: originalData }));
+          }
+        }}
+        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+      />
 
       <Table
         components={{

@@ -9,7 +9,7 @@ export interface AuthSlice {
 }
 
 const initialState: AuthSlice = {
-  token: readToken(),
+  token: readToken() || null,
 };
 
 export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) => {

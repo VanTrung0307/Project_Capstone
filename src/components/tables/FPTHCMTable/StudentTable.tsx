@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -105,6 +106,7 @@ export const StudentTable: React.FC = () => {
 
   const { isMounted } = useMounted();
   const { schoolId } = useParams<{ schoolId: string | undefined }>();
+  const [originalData, setOriginalData] = useState<Student[]>([]);
 
   const fetch = useCallback(
     (pagination: Pagination) => {
@@ -116,6 +118,7 @@ export const StudentTable: React.FC = () => {
       setData((tableData) => ({ ...tableData, loading: true }));
       getStudenbySchoolById(schoolId, pagination).then((res) => {
         if (isMounted.current) {
+          setOriginalData(res.data);
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       });
@@ -385,10 +388,26 @@ export const StudentTable: React.FC = () => {
   return (
     <Form form={form} component={false}>
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}>
           {t('uploads.clickToUpload')}
         </Button>
       </Upload>
+      <SearchInput
+        placeholder="Search..."
+        allowClear
+        onSearch={(value) => {
+          const filteredData = data.data.filter((record) =>
+            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+          );
+          setData((prevData) => ({ ...prevData, data: filteredData }));
+        }}
+        onChange={(e) => {
+          if (e.target.value.trim() === '') {
+            setData((prevData) => ({ ...prevData, data: originalData }));
+          }
+        }}
+        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+      />
       <Table
         components={{
           body: {

@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
-
 import { Gift, Pagination, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
@@ -14,6 +13,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+
 import styled from 'styled-components';
 
 const initialPagination: Pagination = {
@@ -105,6 +106,7 @@ export const GiftTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
+  const [originalData, setOriginalData] = useState<Gift[]>([]);
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
@@ -112,6 +114,7 @@ export const GiftTable: React.FC = () => {
       getPaginatedGifts(pagination)
         .then((res) => {
           if (isMounted.current) {
+            setOriginalData(res.data);
             setData({ data: res.data, pagination: res.pagination, loading: false });
           }
         })
@@ -436,6 +439,23 @@ export const GiftTable: React.FC = () => {
           </FlexContainer>
         </S.FormContent>
       </Modal>
+
+      <SearchInput
+        placeholder="Search..."
+        allowClear
+        onSearch={(value) => {
+          const filteredData = data.data.filter((record) =>
+            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+          );
+          setData((prevData) => ({ ...prevData, data: filteredData }));
+        }}
+        onChange={(e) => {
+          if (e.target.value.trim() === '') {
+            setData((prevData) => ({ ...prevData, data: originalData }));
+          }
+        }}
+        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+      />
 
       <Table
         components={{
