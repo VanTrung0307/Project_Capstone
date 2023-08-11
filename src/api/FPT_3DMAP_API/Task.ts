@@ -58,7 +58,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedTasks = async (pagination: Pagination) => {
+export const getPaginatedTasks = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<TaskList>(API_BASE_URL);
     const { data } = response.data;
@@ -93,7 +93,7 @@ export const getPaginatedTasks = async (pagination: Pagination) => {
   }
 };
 
-export const getTaskById = async (taskId: string) => {
+export const getTaskById = async (taskId: string): Promise<Task> => {
   try {
     const response = await axios.get<Task>(`${API_BASE_URL}/${taskId}`);
     return response.data;
@@ -103,7 +103,7 @@ export const getTaskById = async (taskId: string) => {
   }
 };
 
-export const createTask = async (taskData: addTask) => {
+export const createTask = async (taskData: addTask): Promise<Task> => {
   try {
     const response = await axios.post<Task>(`${API_BASE_URL}/task`, taskData);
     return response.data;
@@ -113,7 +113,7 @@ export const createTask = async (taskData: addTask) => {
   }
 };
 
-export const updateTask = async (id: string, taskData: updateTaskData) => {
+export const updateTask = async (id: string, taskData: updateTaskData): Promise<Task> => {
   try {
     const response = await axios.put<Task>(`${API_BASE_URL}/${id}`, taskData);
     return response.data;
@@ -122,13 +122,3 @@ export const updateTask = async (id: string, taskData: updateTaskData) => {
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

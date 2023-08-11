@@ -1,33 +1,31 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
 import { Col, Row } from 'antd';
-import { NotificationsDropdown } from '../components/notificationsDropdown/NotificationsDropdown';
-import { ProfileDropdown } from '../components/profileDropdown/ProfileDropdown/ProfileDropdown';
-import { HeaderSearch } from '../components/HeaderSearch/HeaderSearch';
-import { SettingsDropdown } from '../components/settingsDropdown/SettingsDropdown';
-import { HeaderFullscreen } from '../components/HeaderFullscreen/HeaderFullscreen';
+import React from 'react';
 import * as S from '../Header.styles';
+import { HeaderFullscreen } from '../components/HeaderFullscreen/HeaderFullscreen';
+import { ProfileDropdown } from '../components/profileDropdown/ProfileDropdown/ProfileDropdown';
+import { SettingsDropdown } from '../components/settingsDropdown/SettingsDropdown';
+import Button from 'antd/es/button';
+import { useAppSelector } from '@app/hooks/reduxHooks';
 
 interface DesktopHeaderProps {
   isTwoColumnsLayout: boolean;
+  isLoggedIn: boolean;
 }
 
-export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout }) => {
+export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout, isLoggedIn }) => {
+  const user = useAppSelector((state) => state.user.user);
   const leftSide = isTwoColumnsLayout ? (
     <S.SearchColumn xl={16} xxl={17}>
       <Row justify="space-between">
-        <Col xl={15} xxl={12}>
-          {/* <HeaderSearch /> */}
-        </Col>
-        <Col>{/* <S.GHButton /> */}</Col>
+        <Col xl={15} xxl={12}></Col>
+        <Col></Col>
       </Row>
     </S.SearchColumn>
   ) : (
     <>
-      <Col lg={10} xxl={8}>
-        {/* <HeaderSearch /> */}
-      </Col>
-      <Col>{/* <S.GHButton /> */}</Col>
+      <Col lg={10} xxl={8}></Col>
+      <Col></Col>
     </>
   );
 
@@ -43,9 +41,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout
                 <HeaderFullscreen />
               </Col>
 
-              <Col>
-                {/* <NotificationsDropdown /> */}
-              </Col>
+              <Col>{/* <NotificationsDropdown /> */}</Col>
 
               <Col>
                 <SettingsDropdown />
@@ -54,7 +50,13 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout
           </Col>
 
           <Col>
-            <ProfileDropdown />
+            {user ? (
+              <ProfileDropdown isLoggedIn={isLoggedIn} />
+            ) : (
+              <Button type="primary" href="/auth/login">
+                Log In
+              </Button>
+            )}
           </Col>
         </Row>
       </S.ProfileColumn>

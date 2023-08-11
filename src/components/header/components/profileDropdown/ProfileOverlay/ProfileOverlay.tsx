@@ -1,20 +1,25 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import * as S from './ProfileOverlay.styles';
+import { FaSignOutAlt } from 'react-icons/fa';
 
 export const ProfileOverlay: React.FC = ({ ...props }) => {
-  const { t } = useTranslation();
-
   return (
     <div {...props}>
-      <S.Text>
-        <Link to="/profile">{t('profile.title')}</Link>
-      </S.Text>
       <S.ItemsDivider />
       <S.Text>
-        <Link to="/logout">{t('header.logout')}</Link>
+        <Link to="/logout">
+          <a style={{ color: '#FF6961' }}>LOG OUT</a>
+          <FaSignOutAlt
+            style={{
+              marginLeft: '8px',
+              color: '#FF6961',
+              width: '20px',
+              height: '20px',
+            }}
+          />
+        </Link>
       </S.Text>
     </div>
   );

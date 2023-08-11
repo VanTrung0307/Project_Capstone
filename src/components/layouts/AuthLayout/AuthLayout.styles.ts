@@ -1,12 +1,13 @@
 /* eslint-disable prettier/prettier */
-import styled from 'styled-components';
-import { Checkbox, Button } from 'antd';
 import { LeftOutlined } from '@ant-design/icons';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Input as CommonInput } from '@app/components/common/inputs/Input/Input';
 import { InputPassword as CommonInputPassword } from '@app/components/common/inputs/InputPassword/InputPassword';
-import loginBackground from '@app/assets/images/login-bg.webp';
 import { BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, media } from '@app/styles/themes/constants';
+import { Button, Checkbox } from 'antd';
+import styled from 'styled-components';
+
+const backgroundURL = 'https://daihoc.fpt.edu.vn/wp-content/uploads/2022/02/HCM-scaled.jpeg';
 
 export const Wrapper = styled.div`
   height: 100vh;
@@ -17,7 +18,7 @@ export const Wrapper = styled.div`
 export const BackgroundWrapper = styled.div`
   width: 100%;
   height: 100%;
-  background: url(${loginBackground});
+  background: url(${backgroundURL});
   background-size: cover;
   position: relative;
 `;

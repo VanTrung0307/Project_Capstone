@@ -1,17 +1,17 @@
 /* eslint-disable prettier/prettier */
 import { createAction, createSlice, PrepareAction } from '@reduxjs/toolkit';
-import { UserModel } from '@app/domain/UserModel';
+import { LoginResponse } from '@app/api/FPT_3DMAP_API/Account';
 import { persistUser, readUser } from '@app/services/localStorage.service';
 
 export interface UserState {
-  user: UserModel | null;
+  user: LoginResponse | null;
 }
 
 const initialState: UserState = {
   user: readUser(),
 };
 
-export const setUser = createAction<PrepareAction<UserModel>>('user/setUser', (newUser) => {
+export const setUser = createAction<PrepareAction<LoginResponse>>('user/setUser', (newUser) => {
   persistUser(newUser);
 
   return {

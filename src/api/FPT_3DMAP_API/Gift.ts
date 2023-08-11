@@ -36,7 +36,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedGifts = async (pagination: Pagination) => {
+export const getPaginatedGifts = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<GiftList>(API_BASE_URL);
     const { data } = response.data;
@@ -71,7 +71,7 @@ export const getPaginatedGifts = async (pagination: Pagination) => {
   }
 };
 
-export const getGiftById = async (giftId: string) => {
+export const getGiftById = async (giftId: string): Promise<Gift> => {
   try {
     const response = await axios.get<Gift>(`${API_BASE_URL}/${giftId}`);
     return response.data;
@@ -81,7 +81,7 @@ export const getGiftById = async (giftId: string) => {
   }
 };
 
-export const createGift = async (giftData: addGift) => {
+export const createGift = async (giftData: addGift): Promise<Gift> => {
   try {
     const response = await axios.post<Gift>(`${API_BASE_URL}/Gift`, giftData);
     return response.data;
@@ -91,7 +91,7 @@ export const createGift = async (giftData: addGift) => {
   }
 };
 
-export const updateGift = async (giftId: string, giftData: Gift) => {
+export const updateGift = async (giftId: string, giftData: Gift): Promise<Gift> => {
   try {
     const response = await axios.put<Gift>(`${API_BASE_URL}/${giftId}`, giftData);
     return response.data;
@@ -100,13 +100,3 @@ export const updateGift = async (giftId: string, giftData: Gift) => {
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

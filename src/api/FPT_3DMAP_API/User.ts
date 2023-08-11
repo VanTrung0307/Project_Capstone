@@ -31,7 +31,16 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedUsers = async (pagination: Pagination) => {
+interface PaginatedResponse {
+  data: User[];
+  pagination: {
+    current: number;
+    pageSize: number;
+    total: number;
+  };
+}
+
+export const getPaginatedUsers = async (pagination: Pagination): Promise<PaginatedResponse> => {
   try {
     const response = await axios.get<UserList>(API_BASE_URL);
     const { data } = response.data;
@@ -47,10 +56,10 @@ export const getPaginatedUsers = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -66,7 +75,7 @@ export const getPaginatedUsers = async (pagination: Pagination) => {
   }
 };
 
-export const createUser = async (userData: User) => {
+export const createUser = async (userData: User): Promise<User> => {
   try {
     const response = await axios.post<User>(`${API_BASE_URL}/user`, userData);
     return response.data;
@@ -76,7 +85,7 @@ export const createUser = async (userData: User) => {
   }
 };
 
-export const updateUser = async (id: string, userData: User) => {
+export const updateUser = async (id: string, userData: User): Promise<User> => {
   try {
     const response = await axios.put<User>(`${API_BASE_URL}/${id}`, userData);
     return response.data;
@@ -86,7 +95,7 @@ export const updateUser = async (id: string, userData: User) => {
   }
 };
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (email: string): Promise<User> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/users?email=${encodeURIComponent(email)}`);
     return response.data;

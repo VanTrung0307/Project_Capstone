@@ -1,12 +1,8 @@
 /* eslint-disable prettier/prettier */
-import React, { useCallback, useEffect, useMemo } from 'react';
 import { RadioGroup } from '@app/components/common/Radio/Radio';
-import { EmailItem } from '@app/components/profile/profileCard/profileFormNav/nav/PersonalInfo/EmailItem/EmailItem';
-import { PhoneItem } from '@app/components/profile/profileCard/profileFormNav/nav/PersonalInfo/PhoneItem/PhoneItem';
 import { useAppSelector } from '@app/hooks/reduxHooks';
-import { TwoFactorAuthOption } from '@app/interfaces/interfaces';
+import React, { useEffect } from 'react';
 import { TwoFactorAuthOptionState } from '../TwoFactorAuth';
-import * as S from './TwoFactorOptions.styles';
 
 interface TwoFactorOptionsProps {
   selectedOption: TwoFactorAuthOptionState;
@@ -16,36 +12,36 @@ interface TwoFactorOptionsProps {
 export const TwoFactorOptions: React.FC<TwoFactorOptionsProps> = ({ selectedOption, setSelectedOption }) => {
   const user = useAppSelector((state) => state.user.user);
 
-  const { isEmailActive, isPhoneActive } = useMemo(
-    () => ({
-      isPhoneActive: selectedOption === 'phone',
-      isEmailActive: selectedOption === 'email',
-    }),
-    [selectedOption],
-  );
+  // const { isEmailActive, isPhoneActive } = useMemo(
+  //   () => ({
+  //     isPhoneActive: selectedOption === 'phone',
+  //     isEmailActive: selectedOption === 'email',
+  //   }),
+  //   [selectedOption],
+  // );
 
-  const onClickInput = useCallback(
-    (mode: TwoFactorAuthOption) => () => {
-      setSelectedOption(mode);
-    },
-    [setSelectedOption],
-  );
+  // const onClickInput = useCallback(
+  //   (mode: TwoFactorAuthOption) => () => {
+  //     setSelectedOption(mode);
+  //   },
+  //   [setSelectedOption],
+  // );
 
   useEffect(() => {
-    if (user?.email.verified && user?.phone.verified) {
+    if (user?.email && user?.studentId) {
       setSelectedOption(null);
     }
-  }, [setSelectedOption, user?.email.verified, user?.phone.verified]);
+  }, [setSelectedOption, user?.email, user?.studentId]);
 
   return (
     <>
       <RadioGroup value={selectedOption} onChange={(e) => setSelectedOption(e.target.value)}>
-        <S.RadioBtn value="phone" $isActive={isPhoneActive} disabled={user?.phone.verified}>
-          <PhoneItem required={isPhoneActive} onClick={onClickInput('phone')} verified={user?.phone.verified} />
+        {/* <S.RadioBtn value="phone" $isActive={isPhoneActive} disabled={user?.studentId}>
+          <PhoneItem required={isPhoneActive} onClick={onClickInput('phone')} verified={user?.studentId} />
         </S.RadioBtn>
-        <S.RadioBtn value="email" $isActive={isEmailActive} disabled={user?.email.verified}>
-          <EmailItem required={isEmailActive} onClick={onClickInput('email')} verified={user?.email.verified} />
-        </S.RadioBtn>
+        <S.RadioBtn value="email" $isActive={isEmailActive} disabled={user?.email}>
+          <EmailItem required={isEmailActive} onClick={onClickInput('email')} verified={user?.email} />
+        </S.RadioBtn> */}
       </RadioGroup>
     </>
   );

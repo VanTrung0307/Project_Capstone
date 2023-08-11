@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -15,13 +16,13 @@ import * as S from './TotalEarning.styles';
 export const TotalEarning: React.FC = () => {
   const [totalEarning, setTotalEarning] = useState<ITotalEarning | null>(null);
 
-  const userId = useAppSelector((state) => state.user.user?.id);
+  // const userId = useAppSelector((state) => state.user.user?.id);
 
   const { t } = useTranslation();
 
-  useEffect(() => {
-    userId && getTotalEarning(userId, CurrencyTypeEnum.USD).then((res) => setTotalEarning(res));
-  }, [userId]);
+  // useEffect(() => {
+  //   userId && getTotalEarning(userId, CurrencyTypeEnum.USD).then((res) => setTotalEarning(res));
+  // }, [userId]);
 
   const { totalEarningData, days } = useMemo(
     () => ({

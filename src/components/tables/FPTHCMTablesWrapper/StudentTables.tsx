@@ -1,16 +1,14 @@
 /* eslint-disable prettier/prettier */
+import { Pagination, School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { StudentTable } from '../FPTHCMTable/StudentTable';
 import * as S from './FPTHCMTables.styles';
-import { Pagination, School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 
 type StudentTablesProps = {
   schoolId?: string;
 };
 
 export const StudentTables: React.FC<StudentTablesProps> = ({ schoolId }) => {
-  const { t } = useTranslation();
   const [school, setSchool] = useState<School | undefined>(undefined);
 
   useEffect(() => {

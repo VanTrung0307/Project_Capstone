@@ -42,22 +42,16 @@ const FPT_HCMDashboardPage: React.FC = () => {
         </Row>
         <References />
       </S.LeftSideCol>
-
-      {/* <S.RightSideCol xl={8} xxl={7}>
-        <div id="blood-screening">
-          <BloodScreeningCard />
-        </div>
-        <S.Space />
-        <S.ScrollWrapper id="patient-timeline">
-          <PatientResultsCard />
-        </S.ScrollWrapper>
-      </S.RightSideCol> */}
     </Row>
   );
 
   const mobileAndTabletLayout = (
     <Row gutter={[20, 20]}>
       <FPTHCMStatisticsCards />
+
+      <Col id="latest-screenings" xs={24} order={(isTablet && 8) || 0}>
+        <RankPage />
+      </Col>
 
       <Col id="activity" xs={24} md={12} order={(isTablet && 8) || 0}>
         <ActivityCard />

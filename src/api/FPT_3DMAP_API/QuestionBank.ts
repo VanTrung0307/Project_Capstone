@@ -44,7 +44,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedQuestions = async (pagination: Pagination) => {
+export const getPaginatedQuestions = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<QuestionList>(API_BASE_URL);
     const { data } = response.data;
@@ -79,7 +79,7 @@ export const getPaginatedQuestions = async (pagination: Pagination) => {
   }
 };
 
-export const getQuestionById = async (questionId: string) => {
+export const getQuestionById = async (questionId: string): Promise<Question> => {
   try {
     const response = await axios.get<Question>(`${API_BASE_URL}/${questionId}`);
     return response.data;
@@ -89,7 +89,7 @@ export const getQuestionById = async (questionId: string) => {
   }
 };
 
-export const createQuestion = async (questionData: addQuestion) => {
+export const createQuestion = async (questionData: addQuestion): Promise<Question> => {
   try {
     const response = await axios.post<Question>(`${API_BASE_URL}/question`, questionData);
     return response.data;
@@ -99,7 +99,7 @@ export const createQuestion = async (questionData: addQuestion) => {
   }
 };
 
-export const updateQuestion = async (id: string, questionData: updateQuestion) => {
+export const updateQuestion = async (id: string, questionData: updateQuestion): Promise<Question> => {
   try {
     const response = await axios.put<Question>(`${API_BASE_URL}/${id}`, questionData);
     return response.data;
@@ -108,13 +108,3 @@ export const updateQuestion = async (id: string, questionData: updateQuestion) =
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

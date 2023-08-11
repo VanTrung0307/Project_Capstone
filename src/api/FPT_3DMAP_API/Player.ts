@@ -31,7 +31,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedPlayers = async (pagination: Pagination) => {
+export const getPaginatedPlayers = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<PlayerList>(API_BASE_URL);
     const { data } = response.data;
@@ -42,15 +42,6 @@ export const getPaginatedPlayers = async (pagination: Pagination) => {
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -66,7 +57,7 @@ export const getPaginatedPlayers = async (pagination: Pagination) => {
   }
 };
 
-export const getPlayerById = async (playerId: string) => {
+export const getPlayerById = async (playerId: string): Promise<Player> => {
   try {
     const response = await axios.get<Player>(`${API_BASE_URL}/${playerId}`);
     return response.data;
@@ -78,7 +69,7 @@ export const getPlayerById = async (playerId: string) => {
 
 interface PlayerData {
   studentId: string;
-  studentName:string;
+  studentName: string;
   eventId: string;
   nickname: string;
   passcode: string;
@@ -113,7 +104,7 @@ export const createPlayer = async ({
   totalTime,
   isplayer,
   id,
-}: PlayerData) => {
+}: PlayerData): Promise<Player> => {
   try {
     const playerData: PlayerData = {
       studentId,

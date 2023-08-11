@@ -27,7 +27,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedSchools = async (pagination: Pagination) => {
+export const getPaginatedSchools = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<SchoolList>(API_BASE_URL);
     const { data } = response.data;
@@ -62,7 +62,7 @@ export const getPaginatedSchools = async (pagination: Pagination) => {
   }
 };
 
-export const getSchoolById = async (schoolId: string) => {
+export const getSchoolById = async (schoolId: string): Promise<School> => {
   try {
     const response = await axios.get<School>(`${API_BASE_URL}/${schoolId}`);
     return response.data;
@@ -72,7 +72,7 @@ export const getSchoolById = async (schoolId: string) => {
   }
 };
 
-export const createSchool = async (schoolData: School) => {
+export const createSchool = async (schoolData: School): Promise<School> => {
   try {
     const response = await axios.post<School>(`${API_BASE_URL}/school`, schoolData);
     return response.data;
@@ -82,7 +82,7 @@ export const createSchool = async (schoolData: School) => {
   }
 };
 
-export const updateSchool = async (schoolId: string, schoolData: School) => {
+export const updateSchool = async (schoolId: string, schoolData: School): Promise<School> => {
   try {
     const response = await axios.put<School>(`${API_BASE_URL}/${schoolId}`, schoolData);
     return response.data;
@@ -92,7 +92,7 @@ export const updateSchool = async (schoolId: string, schoolData: School) => {
   }
 };
 
-export const getSchoolbyEventId = async (eventId: string, pagination: Pagination) => {
+export const getSchoolbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<SchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
     const { data } = response.data;

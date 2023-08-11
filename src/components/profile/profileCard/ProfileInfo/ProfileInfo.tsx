@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
+import { LoginResponse } from '@app/api/FPT_3DMAP_API/Account';
+import { Avatar } from 'antd';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar } from 'antd';
-import { UserModel } from '@app/domain/UserModel';
 import * as S from './ProfileInfo.styles';
 
 interface ProfileInfoProps {
-  profileData: UserModel | null;
+  profileData: LoginResponse | null;
 }
 
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData }) => {
@@ -17,10 +17,10 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ profileData }) => {
   return profileData ? (
     <S.Wrapper>
       <S.ImgWrapper>
-        <Avatar shape="circle" src={profileData?.imgUrl} alt="Profile" />
+        <Avatar shape="circle" src={`${process.env.PUBLIC_URL}/admin.png`} alt="Profile" />
       </S.ImgWrapper>
-      <S.Title>{`${profileData?.firstName} ${profileData?.lastName}`}</S.Title>
-      <S.Subtitle>{profileData?.userName}</S.Subtitle>
+      <S.Title>ADMIN</S.Title>
+      <S.Subtitle>ADMIN</S.Subtitle>
       <S.FullnessWrapper>
         <S.FullnessLine width={fullness}>{fullness}%</S.FullnessLine>
       </S.FullnessWrapper>

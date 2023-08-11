@@ -30,7 +30,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedItems = async (pagination: Pagination) => {
+export const getPaginatedItems = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<ItemList>(API_BASE_URL);
     const { data } = response.data;
@@ -65,7 +65,7 @@ export const getPaginatedItems = async (pagination: Pagination) => {
   }
 };
 
-export const getItemById = async (itemId: string) => {
+export const getItemById = async (itemId: string): Promise<Item> => {
   try {
     const response = await axios.get<Item>(`${API_BASE_URL}/${itemId}`);
     return response.data;
@@ -75,7 +75,7 @@ export const getItemById = async (itemId: string) => {
   }
 };
 
-export const createItem = async (itemData: Item) => {
+export const createItem = async (itemData: Item): Promise<Item> => {
   try {
     const response = await axios.post<Item>(`${API_BASE_URL}/Item`, itemData);
     return response.data;
@@ -85,7 +85,7 @@ export const createItem = async (itemData: Item) => {
   }
 };
 
-export const updateItem = async (itemId: string, itemData: Item) => {
+export const updateItem = async (itemId: string, itemData: Item): Promise<Item> => {
   try {
     const response = await axios.put<Item>(`${API_BASE_URL}/${itemId}`, itemData);
     return response.data;
@@ -95,12 +95,3 @@ export const updateItem = async (itemId: string, itemData: Item) => {
   }
 };
 
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

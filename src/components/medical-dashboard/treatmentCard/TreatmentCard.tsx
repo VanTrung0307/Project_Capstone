@@ -1,17 +1,17 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Col, Row } from 'antd';
+import { CalendarEvent } from 'api/calendar.api';
+import { AppDate, Dates } from 'constants/Dates';
+import { useResponsive } from 'hooks/useResponsive';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useResponsive } from 'hooks/useResponsive';
-import { TreatmentCalendar } from './TreatmentCalendar/TreatmentCalendar';
-import { TreatmentPanel } from './TreatmentPanel';
-import { AppDate, Dates } from 'constants/Dates';
-import { Col, Row } from 'antd';
-import { DashboardCard } from '../DashboardCard/DashboardCard';
-import { CalendarEvent, getUserCalendar } from 'api/calendar.api';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { Button } from '../../common/buttons/Button/Button';
-import { useAppSelector } from '@app/hooks/reduxHooks';
+import { DashboardCard } from '../DashboardCard/DashboardCard';
+import { TreatmentCalendar } from './TreatmentCalendar/TreatmentCalendar';
+import { TreatmentPanel } from './TreatmentPanel';
 
 export const TreatmentCard: React.FC = () => {
   const { isTablet } = useResponsive();
@@ -20,11 +20,11 @@ export const TreatmentCard: React.FC = () => {
   const [isDateClicked, setDateClicked] = useState(false);
   const [calendar, setCalendar] = useState<CalendarEvent[]>([]);
 
-  const user = useAppSelector((state) => state.user.user);
+  // const user = useAppSelector((state) => state.user.user);
 
-  useEffect(() => {
-    user && getUserCalendar(user?.id).then((res) => setCalendar(res));
-  }, [user]);
+  // useEffect(() => {
+  //   user && getUserCalendar(user?.id).then((res) => setCalendar(res));
+  // }, [user]);
 
   const { i18n, t } = useTranslation();
 

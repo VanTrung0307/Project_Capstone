@@ -1,19 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import {
-  ResetPasswordRequest,
-  login,
-  LoginRequest,
-  signUp,
-  SignUpRequest,
-  resetPassword,
-  verifySecurityCode,
-  SecurityCodePayload,
-  NewPasswordData,
-  setNewPassword,
-} from '@app/api/auth.api';
-import { setUser } from '@app/store/slices/userSlice';
+import { LoginRequest, loginAdmin } from '@app/api/FPT_3DMAP_API/Account';
 import { deleteToken, deleteUser, persistToken, readToken } from '@app/services/localStorage.service';
+import { setUser } from '@app/store/slices/userSlice';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 export interface AuthSlice {
   token: string | null;
@@ -23,32 +12,23 @@ const initialState: AuthSlice = {
   token: readToken(),
 };
 
-export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) =>
-  login(loginPayload).then((res) => {
-    dispatch(setUser(res.user));
-    persistToken(res.token);
+export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) => {
+  try {
+    const response = await loginAdmin(loginPayload);
 
-    return res.token;
-  }),
-);
+    if ('studentId' in response && 'token' in response) {
+      dispatch(setUser(response.studentId));
 
-export const doSignUp = createAsyncThunk('auth/doSignUp', async (signUpPayload: SignUpRequest) =>
-  signUp(signUpPayload),
-);
+      persistToken(response.token);
 
-export const doResetPassword = createAsyncThunk(
-  'auth/doResetPassword',
-  async (resetPassPayload: ResetPasswordRequest) => resetPassword(resetPassPayload),
-);
-
-export const doVerifySecurityCode = createAsyncThunk(
-  'auth/doVerifySecurityCode',
-  async (securityCodePayload: SecurityCodePayload) => verifySecurityCode(securityCodePayload),
-);
-
-export const doSetNewPassword = createAsyncThunk('auth/doSetNewPassword', async (newPasswordData: NewPasswordData) =>
-  setNewPassword(newPasswordData),
-);
+      return response.token;
+    } else {
+      throw new Error('Invalid response structure');
+    }
+  } catch (error) {
+    throw error;
+  }
+});
 
 export const doLogout = createAsyncThunk('auth/doLogout', (payload, { dispatch }) => {
   deleteToken();

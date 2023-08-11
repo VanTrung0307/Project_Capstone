@@ -1,23 +1,19 @@
 /* eslint-disable prettier/prettier */
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { useAppDispatch } from '@app/hooks/reduxHooks';
-import { doSignUp } from '@app/store/slices/authSlice';
-import { notificationController } from '@app/controllers/notificationController';
-import { ReactComponent as GoogleIcon } from '@app/assets/icons/google.svg';
 import { ReactComponent as FacebookIcon } from '@app/assets/icons/facebook.svg';
+import { ReactComponent as GoogleIcon } from '@app/assets/icons/google.svg';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import * as Auth from '@app/components/layouts/AuthLayout/AuthLayout.styles';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import * as S from './SignUpForm.styles';
 
-interface SignUpFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+// interface SignUpFormData {
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   password: string;
+// }
 
 const initValues = {
   firstName: 'Chris',
@@ -29,32 +25,32 @@ const initValues = {
 };
 
 export const SignUpForm: React.FC = () => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const [isLoading, setLoading] = useState(false);
+  // const navigate = useNavigate();
+  // const dispatch = useAppDispatch();
+  // const [isLoading, setLoading] = useState(false);
 
   const { t } = useTranslation();
 
-  const handleSubmit = (values: SignUpFormData) => {
-    setLoading(true);
-    dispatch(doSignUp(values))
-      .unwrap()
-      .then(() => {
-        notificationController.success({
-          message: t('auth.signUpSuccessMessage'),
-          description: t('auth.signUpSuccessDescription'),
-        });
-        navigate('/auth/login');
-      })
-      .catch((err) => {
-        notificationController.error({ message: err.message });
-        setLoading(false);
-      });
-  };
+  // const handleSubmit = (values: SignUpFormData) => {
+  //   setLoading(true);
+  //   dispatch(doSignUp(values))
+  //     .unwrap()
+  //     .then(() => {
+  //       notificationController.success({
+  //         message: t('auth.signUpSuccessMessage'),
+  //         description: t('auth.signUpSuccessDescription'),
+  //       });
+  //       navigate('/auth/login');
+  //     })
+  //     .catch((err) => {
+  //       notificationController.error({ message: err.message });
+  //       setLoading(false);
+  //     });
+  // };
 
   return (
     <Auth.FormWrapper>
-      <BaseForm layout="vertical" onFinish={handleSubmit} requiredMark="optional" initialValues={initValues}>
+      <BaseForm layout="vertical" requiredMark="optional" initialValues={initValues}>
         <S.Title>{t('common.signUp')}</S.Title>
         <Auth.FormItem
           name="firstName"
@@ -125,7 +121,7 @@ export const SignUpForm: React.FC = () => {
           </BaseForm.Item>
         </Auth.ActionsWrapper>
         <BaseForm.Item noStyle>
-          <Auth.SubmitButton type="primary" htmlType="submit" loading={isLoading}>
+          <Auth.SubmitButton type="primary" htmlType="submit">
             {t('common.signUp')}
           </Auth.SubmitButton>
         </BaseForm.Item>

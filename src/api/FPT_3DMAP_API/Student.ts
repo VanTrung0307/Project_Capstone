@@ -41,7 +41,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedStudent = async (pagination: Pagination) => {
+export const getPaginatedStudent = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<StudentList>(API_BASE_URL);
     const { data } = response.data;
@@ -76,7 +76,7 @@ export const getPaginatedStudent = async (pagination: Pagination) => {
   }
 };
 
-export const getStudenbySchoolById = async (schoolId: string, pagination: Pagination) => {
+export const getStudenbySchoolById = async (schoolId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
     const { data } = response.data;
@@ -111,7 +111,7 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
   }
 };
 
-export const uploadExcelStudent = async (schoolId: string, file: File) => {
+export const uploadExcelStudent = async (schoolId: string, file: File): Promise<void> => {
   if (!schoolId) {
     console.error('schoolId is undefined.');
     return;
@@ -132,7 +132,7 @@ export const uploadExcelStudent = async (schoolId: string, file: File) => {
   }
 };
 
-export const createStudent = async (studentData: Student) => {
+export const createStudent = async (studentData: Student): Promise<Student> => {
   try {
     const response = await axios.post<Student>(`${API_BASE_URL}/student`, studentData);
     return response.data;
@@ -142,7 +142,7 @@ export const createStudent = async (studentData: Student) => {
   }
 };
 
-export const updateStudent = async (id: string, studentData: updateStudentData) => {
+export const updateStudent = async (id: string, studentData: updateStudentData): Promise<Student> => {
   try {
     const response = await axios.put<Student>(`${API_BASE_URL}/${id}`, studentData);
     return response.data;

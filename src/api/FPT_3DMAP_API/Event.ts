@@ -26,7 +26,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedEvents = async (pagination: Pagination) => {
+export const getPaginatedEvents = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<EventList>(API_BASE_URL);
     const { data } = response.data;
@@ -61,7 +61,7 @@ export const getPaginatedEvents = async (pagination: Pagination) => {
   }
 };
 
-export const getEventById = async (eventId: string) => {
+export const getEventById = async (eventId: string): Promise<Event> => {
   try {
     const response = await axios.get<Event>(`${API_BASE_URL}/${eventId}`);
     return response.data;
@@ -71,7 +71,7 @@ export const getEventById = async (eventId: string) => {
   }
 };
 
-export const createEvent = async (eventData: Event) => {
+export const createEvent = async (eventData: Event): Promise<Event> => {
   try {
     const response = await axios.post<Event>(`${API_BASE_URL}/event`, eventData);
     return response.data;
@@ -81,7 +81,7 @@ export const createEvent = async (eventData: Event) => {
   }
 };
 
-export const updateEvent = async (eventId: string, eventData: Event) => {
+export const updateEvent = async (eventId: string, eventData: Event): Promise<Event> => {
   try {
     const response = await axios.put<Event>(`${API_BASE_URL}/${eventId}`, eventData);
     return response.data;

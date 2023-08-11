@@ -24,7 +24,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedAnswers = async (pagination: Pagination) => {
+export const getPaginatedAnswers = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<AnswerList>(API_BASE_URL);
     const { data } = response.data;
@@ -59,7 +59,7 @@ export const getPaginatedAnswers = async (pagination: Pagination) => {
   }
 };
 
-export const getAnswerById = async (answerId: string) => {
+export const getAnswerById = async (answerId: string): Promise<Answer> => {
   try {
     const response = await axios.get<Answer>(`${API_BASE_URL}/${answerId}`);
     return response.data;
@@ -69,7 +69,7 @@ export const getAnswerById = async (answerId: string) => {
   }
 };
 
-export const createAnswer = async (answerData: Answer) => {
+export const createAnswer = async (answerData: Answer): Promise<Answer> => {
   try {
     const response = await axios.post<Answer>(`${API_BASE_URL}/answer`, answerData);
     return response.data;
@@ -79,7 +79,7 @@ export const createAnswer = async (answerData: Answer) => {
   }
 };
 
-export const updateAnswer = async (answerId: string, answerData: Answer) => {
+export const updateAnswer = async (answerId: string, answerData: Answer): Promise<Answer> => {
   try {
     const response = await axios.put<Answer>(`${API_BASE_URL}/${answerId}`, answerData);
     return response.data;

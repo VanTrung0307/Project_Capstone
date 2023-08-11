@@ -27,7 +27,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedRoomLocations = async (pagination: Pagination) => {
+export const getPaginatedRoomLocations = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<RoomLocationList>(API_BASE_URL);
     const { data } = response.data;
@@ -62,7 +62,7 @@ export const getPaginatedRoomLocations = async (pagination: Pagination) => {
   }
 };
 
-export const getRoomLocationById = async (roomlocationId: string) => {
+export const getRoomLocationById = async (roomlocationId: string): Promise<RoomLocation> => {
   try {
     const response = await axios.get<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`);
     return response.data;
@@ -72,7 +72,7 @@ export const getRoomLocationById = async (roomlocationId: string) => {
   }
 };
 
-export const createRoomLocation = async (roomlocationData: RoomLocation) => {
+export const createRoomLocation = async (roomlocationData: RoomLocation): Promise<RoomLocation> => {
   try {
     const response = await axios.post<RoomLocation>(`${API_BASE_URL}/location`, roomlocationData);
     return response.data;
@@ -82,7 +82,7 @@ export const createRoomLocation = async (roomlocationData: RoomLocation) => {
   }
 };
 
-export const updateRoomLocation = async (roomlocationId: string, roomlocationData: RoomLocation) => {
+export const updateRoomLocation = async (roomlocationId: string, roomlocationData: RoomLocation): Promise<RoomLocation> => {
   try {
     const response = await axios.put<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`, roomlocationData);
     return response.data;
@@ -91,13 +91,3 @@ export const updateRoomLocation = async (roomlocationId: string, roomlocationDat
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

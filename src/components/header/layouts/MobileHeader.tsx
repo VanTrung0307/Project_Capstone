@@ -16,7 +16,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ toggleSider, isSider
   return (
     <Row justify="space-between" align="middle">
       <Col>
-        <ProfileDropdown />
+        <ProfileDropdown isLoggedIn={true}/>
       </Col>
 
       <Col>

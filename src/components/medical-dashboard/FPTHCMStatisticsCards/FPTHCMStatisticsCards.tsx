@@ -19,8 +19,6 @@ export const FPTHCMStatisticsCards: React.FC = () => {
     () =>
       statistics.map((st, index) => {
         const currentStatistic = ConfigFPTHCMStatistic.find((el) => el.id === st.id);
-        console.log('api',currentStatistic);
-        
 
         return currentStatistic ? (
           <Col

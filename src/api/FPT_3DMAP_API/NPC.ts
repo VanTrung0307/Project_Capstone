@@ -25,7 +25,7 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getPaginatedNpcs = async (pagination: Pagination) => {
+export const getPaginatedNpcs = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<NpcList>(API_BASE_URL);
     const { data } = response.data;
@@ -41,10 +41,10 @@ export const getPaginatedNpcs = async (pagination: Pagination) => {
 
     paginatedData.forEach((item) => {
       objectCount++;
-      console.log("Object", objectCount, ":", item);
+      console.log('Object', objectCount, ':', item);
     });
 
-    console.log("Total objects:", objectCount);
+    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -60,7 +60,7 @@ export const getPaginatedNpcs = async (pagination: Pagination) => {
   }
 };
 
-export const createNpc = async (npcData: Npc) => {
+export const createNpc = async (npcData: Npc): Promise<Npc> => {
   try {
     const response = await axios.post<Npc>(`${API_BASE_URL}/npc`, npcData);
     return response.data;
@@ -70,7 +70,7 @@ export const createNpc = async (npcData: Npc) => {
   }
 };
 
-export const getNpcById = async (npcId: string) => {
+export const getNpcById = async (npcId: string): Promise<Npc> => {
   try {
     const response = await axios.get<Npc>(`${API_BASE_URL}/${npcId}`);
     return response.data;
@@ -80,7 +80,7 @@ export const getNpcById = async (npcId: string) => {
   }
 };
 
-export const updateNpc = async (npcId: string, npcData: Npc) => {
+export const updateNpc = async (npcId: string, npcData: Npc): Promise<Npc> => {
   try {
     const response = await axios.put<Npc>(`${API_BASE_URL}/${npcId}`, npcData);
     return response.data;
@@ -89,13 +89,3 @@ export const updateNpc = async (npcId: string, npcData: Npc) => {
     throw error;
   }
 };
-
-// export const deletePlayer = async (playerId: string) => {
-//   try {
-//     await axios.delete(`${API_BASE_URL}/${playerId}`);
-//     // No response data is needed for delete operations
-//   } catch (error) {
-//     console.error('Error deleting player:', error);
-//     throw error;
-//   }
-// };

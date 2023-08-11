@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import axios, { AxiosError, AxiosResponse } from 'axios';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axios, { AxiosResponse } from 'axios';
 
 export type Register = {
   email: string;
@@ -11,9 +12,22 @@ export type Register = {
 };
 
 export type Login = {
-  email: string;
+  username: string;
   password: string;
 };
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  studentId: string;
+  schoolId: string;
+  email: string;
+  token: string;
+  refreshToken: string;
+}
 
 export type Refreshtoken = {
   accessToken: string;
@@ -30,51 +44,26 @@ export type BadRequest = {
 
 const API_BASE_URL = 'http://anhkiet-001-site1.htempurl.com/api/Accounts/';
 
-const handleSuccess = (response: AxiosResponse) => {
-  return {
-    status: response.status,
-    data: response.data,
-  };
-};
-
-const handleBadRequest = (error: AxiosError<BadRequest>) => {
-  return {
-    status: error.response?.status,
-    error: error.response?.data,
-  };
-};
-
-const handleServerError = (error: AxiosError) => {
-  return {
-    status: error.response?.status,
-    error: 'Server Error',
-  };
-};
-
-// GET /signin-google
-export const signInWithGoogle = () => {
-  return axios.get(`${API_BASE_URL}signin-google`);
-};
-
 // GET /callback
-export const callback = () => {
+export const callback = (): Promise<AxiosResponse<any>> => {
   return axios.get(`${API_BASE_URL}callback`);
 };
 
-// POST /register
-export const register = (userData: Register) => {
-  return axios.post(`${API_BASE_URL}register`, userData).then(handleSuccess).catch(handleBadRequest);
-};
-
 // POST /login
-export const login = (credentials: Login) => {
-  return axios.post(`${API_BASE_URL}login`, credentials).then(handleSuccess).catch(handleBadRequest);
-};
+export const loginAdmin = async (credentials: LoginRequest): Promise<LoginResponse> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}loginadmin`, credentials);
 
-// POST /refreshtoken
-export const refreshToken = (refreshToken: string) => {
-  return axios
-    .post(`${API_BASE_URL}refreshtoken`, { refreshToken })
-    .then(handleSuccess)
-    .catch(handleServerError);
+    const adaptedResponse: LoginResponse = {
+      studentId: response.data.data.studentId,
+      schoolId: response.data.data.schoolId,
+      email: response.data.data.email,
+      token: response.data.data.token,
+      refreshToken: response.data.data.refreshToken,
+    };
+
+    return adaptedResponse;
+  } catch (error) {
+    throw error;
+  }
 };

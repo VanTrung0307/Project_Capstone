@@ -8,13 +8,14 @@ interface HeaderProps {
   toggleSider: () => void;
   isSiderOpened: boolean;
   isTwoColumnsLayout: boolean;
+  isLoggedIn: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ toggleSider, isSiderOpened, isTwoColumnsLayout }) => {
+export const Header: React.FC<HeaderProps> = ({ toggleSider, isSiderOpened, isTwoColumnsLayout, isLoggedIn }) => {
   const { isTablet } = useResponsive();
 
   return isTablet ? (
-    <DesktopHeader isTwoColumnsLayout={isTwoColumnsLayout} />
+    <DesktopHeader isTwoColumnsLayout={isTwoColumnsLayout} isLoggedIn={isLoggedIn} />
   ) : (
     <MobileHeader toggleSider={toggleSider} isSiderOpened={isSiderOpened} />
   );

@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { SearchOutlined } from '@ant-design/icons';
-import { Pagination, Rank, getPaginatedRanks, updateRank } from '@app/api/FPT_3DMAP_API/Rank';
+import { Player, getPaginatedPlayers, Pagination } from '@app/api/FPT_3DMAP_API/Player';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Space } from 'antd';
+import { Form, Input } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -63,74 +63,21 @@ export const RankTable: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Rank[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: Rank) => record.id === editingKey;
+  const isEditing = (record: Player) => record.id === editingKey;
 
   const [form] = Form.useForm();
-
-  const save = async (key: React.Key) => {
-    try {
-      const row = await form.validateFields();
-      const newData = [...data.data];
-      const index = newData.findIndex((item) => key === item.id);
-
-      let item;
-
-      if (index > -1) {
-        item = newData[index];
-        const updatedItem = {
-          ...item,
-          ...row,
-        };
-
-        Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === '') {
-            updatedItem[field] = null;
-          }
-        });
-
-        console.log('Updated null Rank:', updatedItem);
-
-        newData.splice(index, 1, updatedItem);
-      } else {
-        newData.push(row);
-      }
-
-      setData((prevData) => ({ ...prevData, loading: true }));
-      setEditingKey('');
-
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setData({ ...data, data: newData, loading: false });
-        await updateRank(key.toString(), row);
-        console.log('Rank data updated successfully');
-      } catch (error) {
-        console.error('Error updating Rank data:', error);
-        if (index > -1 && item) {
-          newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
-        }
-      }
-    } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
-    }
-  };
 
   const cancel = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<Rank> & { key: React.Key }) => {
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
-  };
-
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Rank) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Player) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -145,7 +92,7 @@ export const RankTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedRanks(pagination).then((res) => {
+      getPaginatedPlayers(pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
@@ -163,31 +110,31 @@ export const RankTable: React.FC = () => {
     cancel();
   };
 
-  const columns: ColumnsType<Rank> = [
+  const columns: ColumnsType<Player> = [
     {
-      title: t('Tên bảng xếp hạng'),
-      dataIndex: 'name',
-      render: (text: string, record: Rank) => {
+      title: t('Username'),
+      dataIndex: 'nickname',
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'name';
+        const dataIndex: keyof Player = 'nickname';
         return editable ? (
           <Form.Item
-            key={record.name}
+            key={record.nickname}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a name' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.nickname, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Rank) =>
-        record.name.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Player) =>
+        record.eventName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -214,28 +161,28 @@ export const RankTable: React.FC = () => {
     },
     {
       title: t('Tên người chơi'),
-      dataIndex: 'playerId',
-      render: (text: string, record: Rank) => {
+      dataIndex: 'studentName',
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'playerId';
+        const dataIndex: keyof Player = 'studentName';
         return editable ? (
           <Form.Item
-            key={record.playerId}
+            key={record.studentName}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a playerId' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.playerId, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.studentName, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
         );
       },
-      onFilter: (value: string | number | boolean, record: Rank) =>
-        record.playerId.toLowerCase().includes(value.toString().toLowerCase()),
+      onFilter: (value: string | number | boolean, record: Player) =>
+        record.studentName.toLowerCase().includes(value.toString().toLowerCase()),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
         const handleSearch = () => {
           confirm();
@@ -261,21 +208,21 @@ export const RankTable: React.FC = () => {
       filtered: searchValue !== '',
     },
     {
-      title: t('Sự kiện'),
-      dataIndex: 'eventId',
-      render: (text: string, record: Rank) => {
+      title: t('Tổng thời gian'),
+      dataIndex: 'totalPoint',
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'eventId';
+        const dataIndex: keyof Player = 'totalPoint';
         return editable ? (
           <Form.Item
-            key={record.eventId}
+            key={record.totalPoint}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a eventId' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.eventId, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.totalPoint, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -284,58 +231,25 @@ export const RankTable: React.FC = () => {
       },
     },
     {
-      title: t('Thứ hạng'),
-      dataIndex: 'place',
-      width: '8%',
-      render: (text: string, record: Rank) => {
+      title: t('Tổng điểm'),
+      dataIndex: 'totalPoint',
+      render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Rank = 'place';
+        const dataIndex: keyof Player = 'totalPoint';
         return editable ? (
           <Form.Item
-            key={record.place}
+            key={record.totalPoint}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a place' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.place, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.totalPoint, dataIndex)}
             />
           </Form.Item>
         ) : (
           <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Chức năng'),
-      dataIndex: 'actions',
-      width: '8%',
-      render: (text: string, record: Rank) => {
-        const editable = isEditing(record);
-        return (
-          <Space>
-            {editable ? (
-              <>
-                <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
-                </Button>
-                <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  type="ghost"
-                  disabled={editingKey === record.id}
-                  onClick={() => edit({ ...record, key: record.id })}
-                >
-                  {t('common.edit')}
-                </Button>
-              </>
-            )}
-          </Space>
         );
       },
     },
@@ -357,7 +271,7 @@ export const RankTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1000 }}
         bordered
       />
     </Form>

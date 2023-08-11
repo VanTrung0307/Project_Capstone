@@ -1,13 +1,11 @@
 /* eslint-disable prettier/prettier */
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { notificationController } from '@app/controllers/notificationController';
-import { useAppDispatch } from '@app/hooks/reduxHooks';
-import { doSetNewPassword } from '@app/store/slices/authSlice';
-import * as S from './NewPasswordForm.styles';
 import * as Auth from '@app/components/layouts/AuthLayout/AuthLayout.styles';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import * as S from './NewPasswordForm.styles';
 
 interface NewPasswordFormData {
   password: string;
@@ -22,29 +20,11 @@ const initStates = {
 export const NewPasswordForm: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const [isLoading, setLoading] = useState(false);
-
-  const handleSubmit = (values: NewPasswordFormData) => {
-    setLoading(true);
-    dispatch(doSetNewPassword({ newPassword: values.password }))
-      .unwrap()
-      .then(() => {
-        navigate('/auth/login');
-        notificationController.success({
-          message: t('newPassword.successMessage'),
-          description: t('newPassword.successDescription'),
-        });
-      })
-      .catch((err) => {
-        notificationController.error({ message: err.message });
-        setLoading(false);
-      });
-  };
 
   return (
     <Auth.FormWrapper>
-      <BaseForm layout="vertical" onFinish={handleSubmit} requiredMark="optional" initialValues={initStates}>
+      <BaseForm layout="vertical" requiredMark="optional" initialValues={initStates}>
         <Auth.BackWrapper onClick={() => navigate(-1)}>
           <Auth.BackIcon />
           {t('common.back')}

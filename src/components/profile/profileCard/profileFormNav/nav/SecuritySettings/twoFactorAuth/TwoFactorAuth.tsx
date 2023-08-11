@@ -1,16 +1,6 @@
 /* eslint-disable prettier/prettier */
-import React, { useCallback, useMemo, useState } from 'react';
-import { Col, Row } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { BaseButtonsForm } from '@app/components/common/forms/BaseButtonsForm/BaseButtonsForm';
-import { TwoFactorOptions } from '@app/components/profile/profileCard/profileFormNav/nav/SecuritySettings/twoFactorAuth/TwoFactorOptions/TwoFactorOptions';
-import { TwoFactorSwitch } from '@app/components/profile/profileCard/profileFormNav/nav/SecuritySettings/twoFactorAuth/TwoFactorSwitch/TwoFactorSwitch';
-import { Button } from '@app/components/common/buttons/Button/Button';
-import { SecurityCodeForm } from '@app/components/auth/SecurityCodeForm/SecurityCodeForm';
-import { notificationController } from '@app/controllers/notificationController';
-import { setUser } from '@app/store/slices/userSlice';
-import { useAppDispatch, useAppSelector } from '@app/hooks/reduxHooks';
 import { TwoFactorAuthOption } from '@app/interfaces/interfaces';
+import React from 'react';
 import * as S from './TwoFactorAuth.styles';
 
 export interface CurrentOption {
@@ -21,44 +11,44 @@ export interface CurrentOption {
 export type TwoFactorAuthOptionState = TwoFactorAuthOption | null;
 
 export const TwoFactorAuth: React.FC = () => {
-  const user = useAppSelector((state) => state.user.user);
+  // const user = useAppSelector((state) => state.user.user);
 
-  const isNeedToShowVerifyBtn = useMemo(
-    () => (user?.email.name && !user?.email.verified) || (user?.phone.number && !user?.phone.verified),
-    [user],
-  );
+  // const isNeedToShowVerifyBtn = useMemo(
+  //   () => (user?.email.name && !user?.email.verified) || (user?.phone.number && !user?.phone.verified),
+  //   [user],
+  // );
 
-  const [isFieldsChanged, setFieldsChanged] = useState(Boolean(isNeedToShowVerifyBtn));
-  const [isLoading, setLoading] = useState(false);
+  // const [isFieldsChanged, setFieldsChanged] = useState(Boolean(isNeedToShowVerifyBtn));
+  // const [isLoading, setLoading] = useState(false);
 
-  const [isEnabled, setEnabled] = useState(Boolean(user?.email.verified || user?.phone.verified));
-  const [selectedOption, setSelectedOption] = useState<TwoFactorAuthOptionState>('email');
-  const [isClickedVerify, setClickedVerify] = useState(false);
+  // const [isEnabled, setEnabled] = useState(Boolean(user?.email.verified || user?.phone.verified));
+  // const [selectedOption, setSelectedOption] = useState<TwoFactorAuthOptionState>('email');
+  // const [isClickedVerify, setClickedVerify] = useState(false);
 
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
 
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
-  const onClickVerify = () => {
-    setClickedVerify(true);
-  };
+  // const onClickVerify = () => {
+  //   setClickedVerify(true);
+  // };
 
-  const onVerify = useCallback(() => {
-    if (user && selectedOption) {
-      setLoading(false);
-      setFieldsChanged(false);
-      setClickedVerify(false);
-      notificationController.success({ message: t('common.success') });
+  // const onVerify = useCallback(() => {
+  //   if (user && selectedOption) {
+  //     setLoading(false);
+  //     setFieldsChanged(false);
+  //     setClickedVerify(false);
+  //     notificationController.success({ message: t('common.success') });
 
-      const newUser = { ...user, [selectedOption]: { ...user[selectedOption], verified: true } };
+  //     // const newUser = { ...user, [selectedOption]: { ...user[selectedOption], verified: true } };
 
-      dispatch(setUser(newUser));
-    }
-  }, [dispatch, selectedOption, t, user]);
+  //     dispatch(setUser(newUser));
+  //   }
+  // }, [dispatch, selectedOption, t, user]);
 
   return (
     <>
-      <BaseButtonsForm
+      {/* <BaseButtonsForm
         name="twoFactorAuth"
         requiredMark="optional"
         isFieldsChanged={isFieldsChanged}
@@ -87,15 +77,14 @@ export const TwoFactorAuth: React.FC = () => {
             </Col>
           )}
         </Row>
-      </BaseButtonsForm>
+      </BaseButtonsForm> */}
       <S.AuthModal
         destroyOnClose
-        open={isClickedVerify}
+        // open={isClickedVerify}
         footer={false}
         closable={false}
-        onCancel={() => setClickedVerify(false)}
       >
-        <SecurityCodeForm onBack={() => setClickedVerify(false)} onFinish={onVerify} />
+        {/* <SecurityCodeForm onBack={() => setClickedVerify(false)}/> */}
       </S.AuthModal>
     </>
   );

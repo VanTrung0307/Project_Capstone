@@ -1,15 +1,15 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { CalendarEvent } from '@app/api/calendar.api';
+import { Doctor, getDoctorsData } from '@app/api/doctors.api';
+import { Carousel } from '@app/components/common/Carousel/Carousel';
+import { DashboardCard } from '@app/components/medical-dashboard/DashboardCard/DashboardCard';
+import { Dates } from '@app/constants/Dates';
+import { BREAKPOINTS } from '@app/styles/themes/constants';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DashboardCard } from '@app/components/medical-dashboard/DashboardCard/DashboardCard';
-import { Carousel } from '@app/components/common/Carousel/Carousel';
 import { DoctorCard } from '../DoctorCard/DoctorCard';
-import { Dates } from '@app/constants/Dates';
-import { CalendarEvent, getUserCalendar } from '@app/api/calendar.api';
-import { Doctor, getDoctorsData } from '@app/api/doctors.api';
-import { useAppSelector } from '@app/hooks/reduxHooks';
 import * as S from './FavoritesDoctorsCard.styles';
-import { BREAKPOINTS } from '@app/styles/themes/constants';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const NextArrow = (props: any) => {
@@ -27,7 +27,7 @@ export const FavoritesDoctorsCard: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [calendar, setCalendar] = useState<CalendarEvent[]>([]);
 
-  const user = useAppSelector((state) => state.user.user);
+  // const user = useAppSelector((state) => state.user.user);
 
   const today = Dates.getToday();
 
@@ -35,9 +35,9 @@ export const FavoritesDoctorsCard: React.FC = () => {
     getDoctorsData().then((res) => setDoctors(res));
   }, []);
 
-  useEffect(() => {
-    user && getUserCalendar(user.id).then((res) => setCalendar(res));
-  }, [user]);
+  // useEffect(() => {
+  //   user && getUserCalendar(user.id).then((res) => setCalendar(res));
+  // }, [user]);
 
   const pastEvents = useMemo(
     () => calendar.filter((event) => Dates.getDate(event.date).isBefore(today)),
