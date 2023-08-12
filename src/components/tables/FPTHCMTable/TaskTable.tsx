@@ -21,7 +21,7 @@ import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInp
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const TaskTable: React.FC = () => {
@@ -128,28 +128,28 @@ export const TaskTable: React.FC = () => {
         });
 
       try {
-        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 1000 });
+        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 10 });
         setLocations(locationResponse.data);
       } catch (error) {
         console.error('Error fetching locations:', error);
       }
 
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
         setMajors(majorResponse.data);
       } catch (error) {
         console.error('Error fetching majors:', error);
       }
 
       try {
-        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 });
+        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 10 });
         setNpcs(npcResponse.data);
       } catch (error) {
         console.error('Error fetching npcs:', error);
       }
 
       try {
-        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 1000 });
+        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 10 });
         setItems(itemResponse.data);
       } catch (error) {
         console.error('Error fetching items:', error);
@@ -467,7 +467,7 @@ export const TaskTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái tọa độ là cần thiết' }]}
+            rules={[{ required: true, message: 'Trạng thái là cần thiết' }]}
           >
             <Select
               value={text}
@@ -563,7 +563,7 @@ export const TaskTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Location ----'}
+                  placeholder={'---- Chọn tọa độ ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {locations.map((location) => (
@@ -580,7 +580,9 @@ export const TaskTable: React.FC = () => {
             <Label>{'Tên NPC'}</Label>
             <InputContainer>
               <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select placeholder={'---- Select NPC ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
+                <Select 
+                  placeholder={'---- Chọn NPC ----'} 
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
                   {npcs.map((npc) => (
                     <Option key={npc.id} value={npc.id}>
                       {npc.name}
@@ -596,7 +598,8 @@ export const TaskTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Major ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn ngành ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {majors.map((major) => (
@@ -632,7 +635,7 @@ export const TaskTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="itemID">
                 <Select
-                  placeholder={'---- Select Item ----'}
+                  placeholder={'---- Chọn vật phẩm (Optional) ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {items.map((item) => (
@@ -650,7 +653,7 @@ export const TaskTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>

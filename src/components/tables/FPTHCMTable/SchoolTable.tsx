@@ -421,7 +421,7 @@ export const SchoolTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
@@ -434,7 +434,7 @@ export const SchoolTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

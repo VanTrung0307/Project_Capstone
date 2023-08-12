@@ -93,7 +93,7 @@ export const PlayerTable: React.FC = () => {
 
   const columns: ColumnsType<Player> = [
     {
-      title: t('Tên học sinh đã tham gia'),
+      title: t('Tên học sinh'),
       dataIndex: 'studentName',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
@@ -177,7 +177,7 @@ export const PlayerTable: React.FC = () => {
             key={record.totalPoint}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a totalPoint' }]}
+            rules={[{ required: false }]}
           ></Form.Item>
         ) : (
           <span>{text}</span>
@@ -195,7 +195,7 @@ export const PlayerTable: React.FC = () => {
             key={record.totalTime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a totalTime' }]}
+            rules={[{ required: false }]}
           ></Form.Item>
         ) : (
           <span>{text}</span>
@@ -213,7 +213,7 @@ export const PlayerTable: React.FC = () => {
             key={record.createdAt}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a createdAt' }]}
+            rules={[{ required: true, message: 'Người tạo là cần thiết' }]}
           ></Form.Item>
         ) : (
           <span>{formatDateTime(record.createdAt)}</span>
@@ -225,7 +225,7 @@ export const PlayerTable: React.FC = () => {
   return (
     <Form form={form} component={false}>
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
@@ -252,7 +252,7 @@ export const PlayerTable: React.FC = () => {
         pagination={data.pagination}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

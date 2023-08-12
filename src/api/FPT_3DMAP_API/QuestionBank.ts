@@ -21,7 +21,7 @@ export type addQuestion = {
   id: string;
 };
 
-export type updateQuestion = {
+export type updateQuestionData = {
   answerId: string;
   majorId: string;
   name: string;
@@ -99,7 +99,7 @@ export const createQuestion = async (questionData: addQuestion): Promise<Questio
   }
 };
 
-export const updateQuestion = async (id: string, questionData: updateQuestion): Promise<Question> => {
+export const updateQuestion = async (id: string, questionData: updateQuestionData): Promise<Question> => {
   try {
     const response = await axios.put<Question>(`${API_BASE_URL}/${id}`, questionData);
     return response.data;

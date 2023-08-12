@@ -203,8 +203,12 @@ export const NPCTable: React.FC = () => {
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
         const openDescriptionModal = () => {
-          setDialogueModalVisible(true);
-          setSelectedDialogue(text);
+          if (!editable && text?.length > maxTextLength) {
+            setDialogueModalVisible(true);
+            if (!editable) {
+              setSelectedDialogue(text);
+            }
+          }
         };
 
         return (
@@ -215,7 +219,9 @@ export const NPCTable: React.FC = () => {
                   openDescriptionModal();
                 }
               }}
-              style={{ cursor: text?.length > maxTextLength ? 'pointer' : 'default' }}
+              style={{ 
+                cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
+              }}
             >
               {editable ? (
                 <Form.Item key={record.introduce} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
@@ -367,7 +373,7 @@ export const NPCTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
@@ -380,7 +386,7 @@ export const NPCTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

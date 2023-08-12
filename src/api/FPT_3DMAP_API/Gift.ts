@@ -19,6 +19,16 @@ export type addGift = {
   decription: string;
   status: string;
   quantity: number;
+  id: string;
+};
+
+export type updateGiftData = {
+  eventId: string;
+  name: string;
+  decription: string;
+  status: string;
+  quantity: number;
+  id: string;
 };
 
 export type GiftList = {
@@ -91,9 +101,9 @@ export const createGift = async (giftData: addGift): Promise<Gift> => {
   }
 };
 
-export const updateGift = async (giftId: string, giftData: Gift): Promise<Gift> => {
+export const updateGift = async (id: string, giftData: updateGiftData): Promise<Gift> => {
   try {
-    const response = await axios.put<Gift>(`${API_BASE_URL}/${giftId}`, giftData);
+    const response = await axios.put<Gift>(`${API_BASE_URL}/${id}`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error updating gift:', error);

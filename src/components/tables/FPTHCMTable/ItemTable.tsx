@@ -182,7 +182,31 @@ export const ItemTable: React.FC = () => {
     value: taskType,
   }));
 
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState('');
+
   const columns: ColumnsType<Item> = [
+    {
+      title: t('Hình ảnh'),
+      dataIndex: 'imageUrl',
+      width: '8%',
+      onFilter: (value, record) => record.imageUrl === value,
+      render: (text: string, record: Item) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Item = 'imageUrl';
+        return editable ? (
+          <Form.Item
+            key={record.imageUrl}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hình ảnh là cần thiết' }]}
+          >
+          </Form.Item>
+        ) : (
+          <span><Avatar src={record.imageUrl} alt="Hình ảnh" /></span>
+        );
+      },
+    },
     {
       title: t('Tên vật phẩm'),
       dataIndex: 'name',
@@ -203,10 +227,7 @@ export const ItemTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span style={imageWithNameStyles}>
-            <Avatar src={record.imageUrl} alt="Hình ảnh" />
-            {text}
-          </span>
+          <span>{text}</span>
         );
       },
     },
@@ -237,29 +258,9 @@ export const ItemTable: React.FC = () => {
       },
     },
     {
-      title: t('Mô tả'),
-      dataIndex: 'description',
-      render: (text: string, record: Item) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Item = 'description';
-        const maxTextLength = 255;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
-        return editable ? (
-          <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
-            <TextArea
-              autoSize={{ maxRows: 6 }}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
-        );
-      },
-    },
-    {
       title: t('Điểm thưởng'),
       dataIndex: 'price',
+      width: '10%',
       render: (text: number, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'price';
@@ -323,12 +324,12 @@ export const ItemTable: React.FC = () => {
           <Form.Item
             key={record.id}
             name={dataIndex}
-            initialValue={text.toString()}
+            initialValue={text}
             rules={[{ required: true, message: 'Giới hạn trao đổi vật phẩm là cần thiết' }]}
           >
             <Select
               value={text}
-              onChange={(value) => handleInputChange(value.toString(), record.limitExchange.toString(), dataIndex)}
+              onChange={(value) => handleInputChange(value?.toString(), record.limitExchange.toString(), dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {selectOptions.map((option) => (
@@ -340,6 +341,62 @@ export const ItemTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{text === true ? 'Có giới hạn' : 'Không giới hạn'}</span>
+        );
+      },
+    },
+    {
+      title: t('Mô tả'),
+      dataIndex: 'description',
+      render: (text: string, record: Item) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Item = 'description';
+        const maxTextLength = 50;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
+
+        const openDescriptionModal = () => {
+          if (!editable && text?.length > maxTextLength) {
+            setDescriptionModalVisible(true);
+            if (!editable) {
+              setSelectedDescription(text);
+            }
+          }
+        };
+
+        return (
+          <>
+            <div
+              onClick={() => {
+                if (text?.length > maxTextLength) {
+                  openDescriptionModal();
+                }
+              }}
+              style={{ 
+                cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
+              }}
+            >
+              {editable ? (
+                <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+                  <TextArea
+                    autoSize={{ maxRows: 6 }}
+                    value={record[dataIndex]}
+                    onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+                  />
+                </Form.Item>
+              ) : (
+                <>
+                  <span>{truncatedText !== null ? truncatedText : 'Chưa có thông tin'}</span>
+                </>
+              )}
+            </div>
+            <Modal
+              title={t('Mô tả')}
+              visible={descriptionModalVisible}
+              onCancel={() => setDescriptionModalVisible(false)}
+              footer={null}
+            >
+              <p>{selectedDescription}</p>
+            </Modal>
+          </>
         );
       },
     },
@@ -507,7 +564,8 @@ export const ItemTable: React.FC = () => {
                 rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
               >
                 <Select
-                  placeholder={'---- Select LimitExchange ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn giới hạn ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="true">{'Có giới hạn'}</Option>
@@ -522,7 +580,7 @@ export const ItemTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
@@ -535,7 +593,7 @@ export const ItemTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
@@ -565,7 +623,7 @@ export const ItemTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

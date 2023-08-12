@@ -30,6 +30,7 @@ const initialPagination: Pagination = {
 
 export const QuestionBankTable: React.FC = () => {
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Question[]; pagination: Pagination; loading: boolean }>({
@@ -130,14 +131,14 @@ export const QuestionBankTable: React.FC = () => {
         });
 
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
         setMajors(majorResponse.data);
       } catch (error) {
         console.error('Error fetching majors:', error);
       }
 
       try {
-        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 1000 });
+        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 10 });
         setAnswers(answerResponse.data);
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -176,16 +177,16 @@ export const QuestionBankTable: React.FC = () => {
       try {
         const createdQuestion = await createQuestion(newData);
 
-        const selectedMajor = majors.find((major) => major.name === newData.majorName);
+        const selectedMajor = majors.find((major) => major.id === newData.majorId);
 
-        const selectedAnswer = answers.find((answer) => answer.answerName === newData.answerName);
+        const selectedAnswer = answers.find((answer) => answer.id === newData.answerId);
 
         if (selectedMajor) {
-          newData.majorId = selectedMajor.name;
+          newData.majorId = selectedMajor.id;
         }
 
         if (selectedAnswer) {
-          newData.answerId = selectedAnswer.answerName;
+          newData.answerId = selectedAnswer.id;
         }
 
         newData.id = createdQuestion.id;
@@ -218,10 +219,14 @@ export const QuestionBankTable: React.FC = () => {
     value: majorName,
   }));
 
+  const [answerModalVisible, setAnswerModalVisible] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+
   const columns: ColumnsType<Question> = [
     {
       title: t('Tên câu hỏi'),
       dataIndex: 'name',
+      width: '25%',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'name';
@@ -230,10 +235,10 @@ export const QuestionBankTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên câu hỏi là cần thiết' }]}
+            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
           >
-            <Input
-              maxLength={100}
+            <TextArea
+              autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -247,6 +252,7 @@ export const QuestionBankTable: React.FC = () => {
       title: t('Tên ngành'),
       dataIndex: 'majorName',
       filters: majorNameFilters,
+      width: '15%',
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
@@ -259,8 +265,9 @@ export const QuestionBankTable: React.FC = () => {
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
+              style={{maxWidth: '212.03px'}}
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.majorId, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
@@ -281,33 +288,72 @@ export const QuestionBankTable: React.FC = () => {
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'answerId';
-        return editable ? (
-          <Form.Item
-            key={record.answerId}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a answerName' }]}
-          >
-            <Select
-              value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+        const maxTextLength = 50;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
+
+        const openAnswerModal = () => {
+          if (!editable && text?.length > maxTextLength) {
+            setAnswerModalVisible(true);
+            if (!editable) {
+              setSelectedAnswer(text);
+            }
+          }
+        };
+
+        return (
+          <>
+            <div
+              onClick={() => {
+                if (text?.length > maxTextLength) {
+                  openAnswerModal();
+                }
+              }}
+              style={{ 
+                cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
+              }}
             >
-              {answers.map((answer) => (
-                <Select.Option key={answer.id} value={answer.id}>
-                  {answer.answerName}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
+              {editable ? (
+                <Form.Item 
+                  key={record.answerId} 
+                  name={dataIndex} 
+                  initialValue={text} 
+                  rules={[{ required: false }]}
+                >
+                  <Select
+                    style={{maxWidth: '212.03px'}}
+                    value={record[dataIndex]}
+                    onChange={(value) => handleInputChange(value, record.answerId, dataIndex)}
+                    suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                  >
+                    {answers.map((answer) => (
+                      <Select.Option key={answer.id} value={answer.id}>
+                        {answer.answerName}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              ) : (
+                <>
+                  <span>{truncatedText}</span>
+                </>
+              )}
+            </div>
+            <Modal
+              title={t('Nội dung CÂU TRẢ LỜI ĐÚNG')}
+              visible={answerModalVisible}
+              onCancel={() => setAnswerModalVisible(false)}
+              footer={null}
+            >
+              <p>{selectedAnswer}</p>
+            </Modal>
+          </>
         );
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      width: '15%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -410,7 +456,7 @@ export const QuestionBankTable: React.FC = () => {
             <Label>{'Tên câu hỏi'}</Label>
             <InputContainer>
               <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
-                <Input maxLength={100} />
+                <Input maxLength={1000} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -420,7 +466,8 @@ export const QuestionBankTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Major ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn ngành ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {majors.map((major) => (
@@ -434,11 +481,12 @@ export const QuestionBankTable: React.FC = () => {
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Câu trả lời'}</Label>
+            <Label>{'Câu trả lời đúng'}</Label>
             <InputContainer>
               <BaseForm.Item name="answerId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Answer ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn câu trả lời ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {answers.map((answer) => (
@@ -456,11 +504,12 @@ export const QuestionBankTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
-                  <Option value="ACTIVE">{'Đang hoạt động'}</Option>
-                  <Option value="INACTIVE">{'Không hoạt động'}</Option>
+                  <Option value="ACTIVE">{'ACTIVE'}</Option>
+                  <Option value="INACTIVE">{'INACTIVE'}</Option>
                 </Select>
               </BaseForm.Item>
             </InputContainer>
@@ -469,7 +518,7 @@ export const QuestionBankTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
@@ -499,7 +548,7 @@ export const QuestionBankTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1200 }}
         bordered
       />
     </Form>

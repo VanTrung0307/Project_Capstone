@@ -390,7 +390,7 @@ export const EventTable: React.FC = () => {
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select placeholder={'---- Select Status ----'}>
+                <Select placeholder={'---- Chọn trạng thái ----'}>
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
                   <Option value="INACTIVE">{'INACTIVE'}</Option>
                 </Select>
@@ -401,7 +401,7 @@ export const EventTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

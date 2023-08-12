@@ -19,7 +19,7 @@ import styled from 'styled-components';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 5,
+  pageSize: 10,
 };
 
 export const GiftTable: React.FC = () => {
@@ -163,7 +163,7 @@ export const GiftTable: React.FC = () => {
       try {
         const createdGift = await createGift(newData);
 
-        const selectedEvent = events.find((event) => event.name === newData.eventName);
+        const selectedEvent = events.find((event) => event.id === newData.eventId);
 
         if (selectedEvent) {
           newData.eventId = selectedEvent.id;
@@ -231,16 +231,22 @@ export const GiftTable: React.FC = () => {
       onFilter: (value, record) => record.eventName === value,
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'eventName';
+        const dataIndex: keyof Gift = 'eventId';
         return editable ? (
-          <Form.Item key={record.eventName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item
+            key={record.eventId}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
+          >
             <Select
+              style={{maxWidth: '212.03px'}}
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.eventName, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.eventId, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {events.map((event) => (
-                <Select.Option key={event.id} value={event.name}>
+                <Select.Option key={event.id} value={event.id}>
                   {event.name}
                 </Select.Option>
               ))}
@@ -260,6 +266,7 @@ export const GiftTable: React.FC = () => {
         return editable ? (
           <Form.Item key={record.quantity} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
+              style={{maxWidth: '150px'}}
               type="number"
               min={0}
               value={record[dataIndex]}
@@ -277,7 +284,7 @@ export const GiftTable: React.FC = () => {
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'decription';
-        const maxTextLength = 255;
+        const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
           <Form.Item key={record.decription} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
@@ -314,6 +321,7 @@ export const GiftTable: React.FC = () => {
             rules={[{ required: true, message: 'Trạng thái phần qùa là cần thiết' }]}
           >
             <Select
+              style={{maxWidth: '212.03px'}}
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -422,7 +430,8 @@ export const GiftTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Event ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn sự kiện ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {events.map((event) => (
@@ -439,7 +448,8 @@ export const GiftTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  style={{maxWidth: '256px'}}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
@@ -452,7 +462,7 @@ export const GiftTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

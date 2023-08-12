@@ -300,7 +300,7 @@ export const RoomAndLocationTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái tọa độ là cần thiết' }]}
+            rules={[{ required: true, message: 'Trạng thái là cần thiết' }]}
           >
             <Select
               value={text}
@@ -423,7 +423,7 @@ export const RoomAndLocationTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Status ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
@@ -436,7 +436,7 @@ export const RoomAndLocationTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

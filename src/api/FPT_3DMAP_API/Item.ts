@@ -15,6 +15,30 @@ export type Item = {
   id: string;
 };
 
+export type addItem = {
+  name: string;
+  price: number;
+  description: string;
+  type: string;
+  limitExchange: boolean; //boolean
+  quantity: number;
+  imageUrl: string;
+  status: string;
+  id: string;
+};
+
+export type updateItemData = {
+  name: string;
+  price: number;
+  description: string;
+  type: string;
+  limitExchange: boolean; //boolean
+  quantity: number;
+  imageUrl: string;
+  status: string;
+  id: string;
+};
+
 export type ItemList = {
   data: Item[];
 };
@@ -75,9 +99,9 @@ export const getItemById = async (itemId: string): Promise<Item> => {
   }
 };
 
-export const createItem = async (itemData: Item): Promise<Item> => {
+export const createItem = async (itemData: addItem): Promise<Item> => {
   try {
-    const response = await axios.post<Item>(`${API_BASE_URL}/Item`, itemData);
+    const response = await axios.post<Item>(`${API_BASE_URL}/item`, itemData);
     return response.data;
   } catch (error) {
     console.error('Error creating item:', error);
@@ -85,9 +109,9 @@ export const createItem = async (itemData: Item): Promise<Item> => {
   }
 };
 
-export const updateItem = async (itemId: string, itemData: Item): Promise<Item> => {
+export const updateItem = async (id: string, itemData: updateItemData): Promise<Item> => {
   try {
-    const response = await axios.put<Item>(`${API_BASE_URL}/${itemId}`, itemData);
+    const response = await axios.put<Item>(`${API_BASE_URL}/${id}`, itemData);
     return response.data;
   } catch (error) {
     console.error('Error updating item:', error);

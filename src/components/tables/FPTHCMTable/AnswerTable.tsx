@@ -214,6 +214,7 @@ export const AnswerTable: React.FC = () => {
             rules={[{ required: true, message: 'Chọn dạng câu trả lời là cần thiết"' }]}
           >
             <Select
+              style={{maxWidth: '212.03px'}}
               value={text}
               onChange={(value) => handleInputChange(value.toString(), record.isRight.toString(), dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -308,7 +309,7 @@ export const AnswerTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="isRight" rules={[{ required: true, message: t('Dạng câu trả lời là cần thiết') }]}>
                 <Select
-                  placeholder="---- Select QuestionType ----"
+                  placeholder="---- Chọn loại câu hỏi ----"
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="true">{'Câu trả lời đúng'}</Option>
@@ -321,7 +322,7 @@ export const AnswerTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
