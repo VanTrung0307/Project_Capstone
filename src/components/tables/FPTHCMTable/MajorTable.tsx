@@ -197,7 +197,7 @@ export const MajorTable: React.FC = () => {
       },
     },
     {
-      title: t('Mô tả'),
+      title: t('Mô tả (Nhấn vào để xem cho tiết)'),
       dataIndex: 'description',
       render: (text: string, record: Major) => {
         const editable = isEditing(record);

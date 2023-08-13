@@ -1,11 +1,21 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
+import { EventTask, addEventTask, createEventTask } from '@app/api/FPT_3DMAP_API/EventTask';
 import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
 import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
-import { Pagination, Task, TaskEvent, createTask, getPaginatedTasks, getTaskbyEventId, updateTask } from '@app/api/FPT_3DMAP_API/Task';
+import {
+  Pagination,
+  Task,
+  TaskEvent,
+  getPaginatedTasks,
+  getTaskbyEventId,
+  updateTask,
+} from '@app/api/FPT_3DMAP_API/Task';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
@@ -15,10 +25,10 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
-import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useParams } from 'react-router-dom';
+import styled from 'styled-components';
+import { EditableCell } from '../editableTable/EditableCell';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -34,6 +44,7 @@ export const TaskEventTable: React.FC = () => {
     pagination: initialPagination,
     loading: false,
   });
+  const [tasks, setTask] = useState<Task[]>([]);
   const [locations, setLocations] = useState<RoomLocation[]>([]);
   const [npcs, setNpcs] = useState<Npc[]>([]);
   const [majors, setMajors] = useState<Major[]>([]);
@@ -112,6 +123,7 @@ export const TaskEventTable: React.FC = () => {
 
   const { isMounted } = useMounted();
   const { eventId } = useParams<{ eventId: string | undefined }>();
+  const [event, setEvent] = useState<Event | undefined>(undefined);
   const [originalData, setOriginalData] = useState<TaskEvent[]>([]);
 
   const fetch = useCallback(
@@ -142,6 +154,13 @@ export const TaskEventTable: React.FC = () => {
       }
 
       try {
+        const taskResponse = await getPaginatedTasks({ current: 1, pageSize: 1000 });
+        setTask(taskResponse.data);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      }
+
+      try {
         const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
         setMajors(majorResponse.data);
       } catch (error) {
@@ -166,6 +185,21 @@ export const TaskEventTable: React.FC = () => {
   );
 
   useEffect(() => {
+    if (eventId) {
+      const pagination: Pagination = { current: 1, pageSize: 5 };
+
+      getPaginatedEvents(pagination)
+        .then((response) => {
+          const eventData = response.data.find((event) => event.id === eventId);
+          setEvent(eventData);
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated events:', error);
+        });
+    }
+  }, [eventId]);
+
+  useEffect(() => {
     fetch(initialPagination);
   }, [fetch]);
 
@@ -176,72 +210,43 @@ export const TaskEventTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
+  const [eventTask, setEventTask] = useState<EventTask[]>([]);
+
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Task = {
-        name: values.name,
-        locationId: values.locationId,
-        locationName: values.locationName,
-        npcId: values.npcId,
-        npcName: values.npcName,
-        majorId: values.majorId,
-        majorName: values.majorName,
-        type: values.type,
+      const newEventTask: addEventTask = {
+        taskId: values.taskId,
+        eventId: values.eventId,
+        startTime: values.startTime,
+        endTime: values.endTime,
+        priority: values.priority,
         point: values.point,
-        itemId: values?.itemId,
-        itemName: values.itemName,
-        status: values.status,
-        id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdTask = await createTask(newData);
+        const createdEventTask = await createEventTask(newEventTask);
 
-        const selectedLocation = locations.find((location) => location.id === newData.locationId);
-
-        const selectedMajor = majors.find((major) => major.id === newData.majorId);
-
-        const selectedNpc = majors.find((npc) => npc.id === newData.npcId);
-
-        const selectedItem = majors.find((item) => item.id === newData.itemId);
-
-        if (selectedLocation) {
-          newData.locationId = selectedLocation.id;
-        }
-
-        if (selectedMajor) {
-          newData.majorId = selectedMajor.id;
-        }
-
-        if (selectedNpc) {
-          newData.npcId = selectedNpc.id;
-        }
-
-        if (selectedItem) {
-          newData.itemId = selectedItem.id;
-        }
-
-        newData.id = createdTask.id;
-
-        setData((prevData) => ({
+        setEventTask((prevData) => ({
           ...prevData,
-          data: [...prevData.data, createdTask],
+          data: [...prevData, createdEventTask],
           loading: false,
         }));
 
+        fetch(data.pagination);
+
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Task data created successfully');
+        console.log('Event Task data created successfully');
 
         getPaginatedTasks(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
-        console.error('Error creating Task data:', error);
+        console.error('Error creating Event Task data:', error);
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
@@ -517,7 +522,7 @@ export const TaskEventTable: React.FC = () => {
   `;
 
   return (
-    <Form form={form} component={false}>
+    <Form form={form} component={false} initialValues={{ eventId }}>
       <Button
         type="primary"
         onClick={() => setIsBasicModalOpen(true)}
@@ -535,23 +540,14 @@ export const TaskEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên nhiệm vụ'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
-                <Input />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Tên địa điểm'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}>
+              <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Location ----'}
+                  placeholder={'---- Chọn Nhiệm Vụ ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
-                  {locations.map((location) => (
-                    <Option key={location.id} value={location.id}>
-                      {location.locationName}
+                  {tasks.map((tasks) => (
+                    <Option key={tasks.id} value={tasks.id}>
+                      {tasks.name}
                     </Option>
                   ))}
                 </Select>
@@ -560,43 +556,37 @@ export const TaskEventTable: React.FC = () => {
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Tên NPC'}</Label>
+            <Label>{'Tên sự kiện'}</Label>
             <InputContainer>
-              <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select placeholder={'---- Select NPC ----'} suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-                  {npcs.map((npc) => (
-                    <Option key={npc.id} value={npc.id}>
-                      {npc.name}
-                    </Option>
-                  ))}
-                </Select>
+              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+                {event?.name}
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Tên ngành nghề'}</Label>
+            <Label>{'Thời gian bắt đầu'}</Label>
             <InputContainer>
-              <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Select Major ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {majors.map((major) => (
-                    <Option key={major.id} value={major.id}>
-                      {major.name}
-                    </Option>
-                  ))}
-                </Select>
+              <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
+                <Input type="datetime-local" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Loại nhiệm vụ'}</Label>
+            <Label>{'Thời gian kết thúc'}</Label>
             <InputContainer>
-              <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
-                <Input maxLength={100} />
+              <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
+                <Input type="datetime-local" />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+
+          <FlexContainer>
+            <Label>{'Số lượng'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
+                <Input type="number" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -609,36 +599,12 @@ export const TaskEventTable: React.FC = () => {
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
-
+          
           <FlexContainer>
-            <Label>{'Tên vật phẩm'}</Label>
+            <Label>{'Điểm thưởng'}</Label>
             <InputContainer>
-              <BaseForm.Item name="itemID">
-                <Select
-                  placeholder={'---- Select Item ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {items.map((item) => (
-                    <Option key={item.id} value={item?.id}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Status'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Select Status ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
+              <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+                <Input type="number" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>

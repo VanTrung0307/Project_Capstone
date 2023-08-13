@@ -9,7 +9,7 @@ export const SchoolTables: React.FC = () => {
   return (
     <>
       <S.FPTHCMTablesWrapper>
-        <S.Card id="basic-table" title={t('Bảng Trường Trung học Phổ Thôngg')} padding="1.25rem 1.25rem 0">
+        <S.Card id="basic-table" title={t('Bảng Trường Trung học Phổ Thông')} padding="1.25rem 1.25rem 0">
           <SchoolTable />
         </S.Card>
       </S.FPTHCMTablesWrapper>

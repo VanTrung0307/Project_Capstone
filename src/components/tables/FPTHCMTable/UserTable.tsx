@@ -504,7 +504,7 @@ export const UserTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="schoolId">
                 <Select
-                  placeholder={'---- Select School ----'}
+                  placeholder={'---- Chọn Trường ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   {schools.map((school) => (
@@ -536,11 +536,11 @@ export const UserTable: React.FC = () => {
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Status'}</Label>
+            <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
                 <Select
-                  placeholder={'---- Select Phone Number ----'}
+                  placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>

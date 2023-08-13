@@ -637,6 +637,7 @@ export const TaskTable: React.FC = () => {
                 <Select
                   placeholder={'---- Chọn vật phẩm (Optional) ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                  style={{ width: '255px' }}
                 >
                   {items.map((item) => (
                     <Option key={item.id} value={item?.id}>

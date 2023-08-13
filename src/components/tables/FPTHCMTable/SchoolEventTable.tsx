@@ -24,6 +24,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { EventSchool, addEventSchool, createEventSchool } from '@app/api/FPT_3DMAP_API/EventSchool';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -114,22 +116,49 @@ export const SchoolEventTable: React.FC = () => {
 
   const { isMounted } = useMounted();
   const { eventId } = useParams<{ eventId: string | undefined }>();
+  const [event, setEvent] = useState<Event | undefined>(undefined);
+  const [school, setSchool] = useState<School[]>([]);
   const [originalData, setOriginalData] = useState<SchoolEvent[]>([]);
 
   const fetch = useCallback(
-    (pagination: Pagination) => {
+    async (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
       if (eventId) {
-        getSchoolbyEventId(eventId, pagination).then((res) => {
+        try {
+          const res = await getSchoolbyEventId(eventId, pagination);
           if (isMounted.current) {
             setOriginalData(res.data);
             setData({ data: res.data, pagination: res.pagination, loading: false });
           }
-        });
+        } catch (error) {
+          console.error('Error fetching schools:', error);
+        }
+      }
+
+      try {
+        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
+        setSchool(schoolResponse.data);
+      } catch (error) {
+        console.error('Error fetching schools:', error);
       }
     },
     [isMounted, eventId],
   );
+
+  useEffect(() => {
+    if (eventId) {
+      const pagination: Pagination = { current: 1, pageSize: 5 };
+
+      getPaginatedEvents(pagination)
+        .then((response) => {
+          const eventData = response.data.find((event) => event.id === eventId);
+          setEvent(eventData);
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated events:', error);
+        });
+    }
+  }, [eventId]);
 
   useEffect(() => {
     fetch(initialPagination);
@@ -142,28 +171,30 @@ export const SchoolEventTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
+  const [eventSchool, setEventSchool] = useState<EventSchool[]>([]);
+
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
 
-      const newData: SchoolEvent = {
-        name: values.name,
-        phoneNumber: values.phoneNumber,
-        email: values.email,
-        address: values.address,
+      const newData: addEventSchool = {
+        eventId: values.eventId,
+        schoolId: values.schoolId,
+        invitationLetter: values.invitationLetter,
         status: values.status,
-        id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdSchool = await createSchool(newData);
-        setData((prevData) => ({
+        const createdEventSchool = await createEventSchool(newData);
+        setEventSchool((prevData) => ({
           ...prevData,
-          data: [...prevData.data, createdSchool],
+          data: [...prevData, createdEventSchool],
           loading: false,
         }));
+
+        fetch(data.pagination);
         form.resetFields();
         setIsBasicModalOpen(false);
         console.log('School data created successfully');
@@ -335,7 +366,7 @@ export const SchoolEventTable: React.FC = () => {
                   {t('common.edit')}
                 </Button>
                 <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
-                  {t('Detail')}
+                  {t('Student')}
                 </Button>
               </>
             )}
@@ -360,7 +391,7 @@ export const SchoolEventTable: React.FC = () => {
   `;
 
   return (
-    <Form form={form} component={false}>
+    <Form form={form} component={false} initialValues={{ eventId }}>
       <Button
         type="primary"
         onClick={() => setIsBasicModalOpen(true)}
@@ -376,37 +407,38 @@ export const SchoolEventTable: React.FC = () => {
       >
         <S.FormContent>
           <FlexContainer>
+            <Label>{'Tên sự kiện'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+                {event?.name}
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+
+          <FlexContainer>
             <Label>{'Tên trường'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
-                <Input />
+              <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+                <Select
+                  placeholder={'---- Chọn trường ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                  style={{width: '255px'}}
+                >
+                  {school.map((school) => (
+                    <Option key={school.id} value={school.id}>
+                      {school.name}
+                    </Option>
+                  ))}
+                </Select>
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Email'}</Label>
+            <Label>{'Thư mời'}</Label>
             <InputContainer>
-              <BaseForm.Item name="email">
-                <Input />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Số điện thoại'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="phoneNumber">
-                <Input type="tel" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Địa chỉ'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="address">
-                <TextArea autoSize={{ maxRows: 3 }} />
+              <BaseForm.Item name="invitationLetter" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
+                <TextArea value="invitationLetter" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -415,10 +447,7 @@ export const SchoolEventTable: React.FC = () => {
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Select Status ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
+                <Select placeholder={'---- Chọn trạng thái ----'}>
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
                   <Option value="INACTIVE">{'INACTIVE'}</Option>
                 </Select>

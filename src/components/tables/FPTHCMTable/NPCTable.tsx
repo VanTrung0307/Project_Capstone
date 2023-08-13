@@ -194,7 +194,7 @@ export const NPCTable: React.FC = () => {
       },
     },
     {
-      title: t('Lời đối thoại'),
+      title: t('Lời đối thoại (Nhấn vào để xem cho tiết)'),
       dataIndex: 'introduce',
       render: (text: string, record: Npc) => {
         const editable = isEditing(record);

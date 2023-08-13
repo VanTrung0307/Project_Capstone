@@ -500,7 +500,7 @@ export const QuestionBankTable: React.FC = () => {
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Status'}</Label>
+            <Label>Trạng thái</Label>
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
                 <Select
