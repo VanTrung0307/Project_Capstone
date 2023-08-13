@@ -4,9 +4,11 @@ import { DownOutlined } from '@ant-design/icons';
 import {
   Pagination,
   School,
+  SchoolEvent,
   createSchool,
   getPaginatedSchools,
-  updateSchool
+  getSchoolbyEventId,
+  updateSchool,
 } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
@@ -19,7 +21,7 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 
@@ -28,18 +30,18 @@ const initialPagination: Pagination = {
   pageSize: 10,
 };
 
-export const SchoolTable: React.FC = () => {
+export const SchoolEventTable: React.FC = () => {
   const { t } = useTranslation();
   const { TextArea } = Input;
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: School[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: SchoolEvent[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: School) => record.id === editingKey;
+  const isEditing = (record: SchoolEvent) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -95,12 +97,12 @@ export const SchoolTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<School> & { key: React.Key }) => {
+  const edit = (record: Partial<SchoolEvent> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof School) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof SchoolEvent) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -111,19 +113,22 @@ export const SchoolTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const [originalData, setOriginalData] = useState<School[]>([]);
+  const { eventId } = useParams<{ eventId: string | undefined }>();
+  const [originalData, setOriginalData] = useState<SchoolEvent[]>([]);
 
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedSchools(pagination).then((res) => {
-        if (isMounted.current) {
-          setOriginalData(res.data);
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      if (eventId) {
+        getSchoolbyEventId(eventId, pagination).then((res) => {
+          if (isMounted.current) {
+            setOriginalData(res.data);
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
+      }
     },
-    [isMounted],
+    [isMounted, eventId],
   );
 
   useEffect(() => {
@@ -141,7 +146,7 @@ export const SchoolTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: School = {
+      const newData: SchoolEvent = {
         name: values.name,
         phoneNumber: values.phoneNumber,
         email: values.email,
@@ -181,7 +186,7 @@ export const SchoolTable: React.FC = () => {
     navigate(`/students/${schoolId}`);
   };
 
-  const columns: ColumnsType<School> = [
+  const columns: ColumnsType<SchoolEvent> = [
     {
       title: t('Tên trường'),
       dataIndex: 'name',

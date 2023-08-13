@@ -64,6 +64,8 @@ const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
 const Event = React.lazy(() => import('@app/pages/EventPage'));
 const School = React.lazy(() => import('@app/pages/SchoolPage'));
+const SchoolEvent = React.lazy(() => import('@app/pages/SchoolEventPage'));
+const TaskEvent = React.lazy(() => import('@app/pages/TaskEventPage'));
 const Student = React.lazy(() => import('@app/pages/StudentPage'));
 const Task = React.lazy(() => import('@app/pages/TaskPage'));
 const Major = React.lazy(() => import('@app/pages/MajorPage'));
@@ -145,10 +147,10 @@ export const AppRouter: React.FC = () => {
             <Route path="players" element={<Player />} />
             <Route path="rooms-location" element={<RoomVsLocation />} />
             <Route path="events" element={<Event />} />
-            <Route path="schools/:eventId" element={<School />} />
             <Route path="school" element={<School />} />
+            <Route path="schools/:eventId" element={<SchoolEvent />} />
+            <Route path="tasks/:eventId" element={<TaskEvent />} />
             <Route path="students/:schoolId" element={<Student />} />
-            <Route path="students/:eventId/:schoolId" element={<Student />} />
             <Route path="tasks" element={<Task />} />
             <Route path="majors" element={<Major />} />
             <Route path="questionbanks" element={<QuestionBank />} />

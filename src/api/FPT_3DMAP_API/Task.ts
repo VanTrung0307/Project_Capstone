@@ -19,6 +19,17 @@ export type Task = {
   id: string;
 };
 
+export type TaskEvent = {
+  id: string;
+  locationName: string;
+  majorName: string;
+  npcName: string;
+  itemName: string;
+  name: string;
+  type: string;
+  status: string;
+};
+
 export type addTask = {
   locationId: string;
   majorId: string;
@@ -47,6 +58,10 @@ export type TaskList = {
   data: Task[];
 };
 
+export type TaskEventList = {
+  data: TaskEvent[];
+};
+
 export interface Pagination {
   current?: number;
   pageSize?: number;
@@ -55,6 +70,10 @@ export interface Pagination {
 
 export interface PaginationData {
   data: Task[];
+  pagination: Pagination;
+}
+export interface PaginationTaskEventData {
+  data: TaskEvent[];
   pagination: Pagination;
 }
 
@@ -69,15 +88,6 @@ export const getPaginatedTasks = async (pagination: Pagination): Promise<Paginat
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
@@ -119,6 +129,32 @@ export const updateTask = async (id: string, taskData: updateTaskData): Promise<
     return response.data;
   } catch (error) {
     console.error('Error updating task:', error);
+    throw error;
+  }
+};
+
+export const getTaskbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationTaskEventData> => {
+  try {
+    const response = await axios.get<TaskEventList>(`${API_BASE_URL}/GetTaskByEventTaskWithEventId/${eventId}`);
+    const { data } = response.data;
+    const { current = 1, pageSize = 5 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated schools:', error);
     throw error;
   }
 };

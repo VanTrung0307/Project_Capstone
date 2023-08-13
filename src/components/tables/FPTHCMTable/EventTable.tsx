@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/Task';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -97,11 +98,24 @@ export const EventTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleDetailClick = async (eventId: string) => {
+  const handleSchoolClick = async (eventId: string) => {
     try {
       const pagination = { current: 1, pageSize: 5 };
       const result = await getSchoolbyEventId(eventId, pagination);
       navigate(`/schools/${eventId}`);
+
+      console.log('Paginated School List:', result.data);
+      console.log('Pagination Info:', result.pagination);
+    } catch (error) {
+      console.error('Error fetching paginated schools:', error);
+    }
+  };
+
+  const handleTaskClick = async (eventId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 5 };
+      const result = await getTaskbyEventId(eventId, pagination);
+      navigate(`/tasks/${eventId}`);
 
       console.log('Paginated School List:', result.data);
       console.log('Pagination Info:', result.pagination);
@@ -321,8 +335,11 @@ export const EventTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
-                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
-                  {t('Detail')}
+                <Button type="ghost" onClick={() => handleSchoolClick(record.id)}>
+                  {t('School')}
+                </Button>
+                <Button type="ghost" onClick={() => handleTaskClick(record.id)}>
+                  {t('Task')}
                 </Button>
               </>
             )}
