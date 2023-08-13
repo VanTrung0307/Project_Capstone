@@ -1,15 +1,15 @@
 /* eslint-disable prettier/prettier */
-import { SearchOutlined } from '@ant-design/icons';
-import { Player, getPaginatedPlayers, Pagination } from '@app/api/FPT_3DMAP_API/Player';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Pagination, Player, getRankedPlayers } from '@app/api/FPT_3DMAP_API/Player';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input } from 'antd';
+import { Form, Input, Select } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
-import { Button } from 'components/common/buttons/Button/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CSSProperties } from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -18,49 +18,6 @@ const initialPagination: Pagination = {
 
 export const RankTable: React.FC = () => {
   const { t } = useTranslation();
-
-  const filterDropdownStyles: CSSProperties = {
-    height: '50px',
-    maxWidth: '300px',
-    width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)',
-    border: '2px solid white',
-    right: '10px',
-  };
-
-  const inputStyles = {
-    height: '100%',
-    width: '100%',
-    outline: 'none',
-    fontSize: '18px',
-    fontWeight: '400',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '0 155px 0 25px',
-    backgroundColor: '#25284B',
-    color: 'white',
-  };
-
-  const buttonStyles: CSSProperties = {
-    height: '30px',
-    width: '60px',
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    right: '20px',
-    fontSize: '16px',
-    fontWeight: '400',
-    color: '#fff',
-    border: 'none',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    backgroundColor: '#4070f4',
-    cursor: 'pointer',
-  };
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
@@ -88,14 +45,32 @@ export const RankTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
+  const [eventId, setEventId] = useState<string>('');
+  const [schoolId, setSchoolId] = useState<string>('');
+
+  const [events, setEvents] = useState<Event[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
 
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedPlayers(pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
+
+      getPaginatedEvents({ current: 1, pageSize: 10 }).then((paginationData) => {
+        const eventsData = paginationData.data;
+        setEvents(eventsData);
+        const firstEventId = eventsData.length > 0 ? eventsData[0].id : '';
+
+        getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
+          const schoolsData = paginationData.data;
+          setSchools(schoolsData);
+          const firstSchoolId = schoolsData.length > 0 ? schoolsData[0].id : '';
+
+          getRankedPlayers(firstEventId, firstSchoolId, pagination).then((res) => {
+            if (isMounted.current) {
+              setData({ data: res.data, pagination: res.pagination, loading: false });
+            }
+          });
+        });
       });
     },
     [isMounted],
@@ -207,6 +182,32 @@ export const RankTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
+      <Select
+        value={eventId || (events.length > 0 ? events[0].id : undefined)}
+        onChange={(value) => setEventId(value)}
+        placeholder="Select Event"
+        style={{ width: 200, marginRight: 10, marginBottom: 10 }}
+      >
+        {events.map((event) => (
+          <Select.Option key={event.id} value={event.id}>
+            {event.name}
+          </Select.Option>
+        ))}
+      </Select>
+
+      <Select
+        value={schoolId || (schools.length > 0 ? schools[0].id : undefined)}
+        onChange={(value) => setSchoolId(value)}
+        placeholder="Select School"
+        style={{ width: 200, marginRight: 10, marginBottom: 10 }}
+      >
+        {schools.map((school) => (
+          <Select.Option key={school.id} value={school.id}>
+            {school.name}
+          </Select.Option>
+        ))}
+      </Select>
+
       <Table
         components={{
           body: {

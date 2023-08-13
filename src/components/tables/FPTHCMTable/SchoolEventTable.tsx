@@ -1,8 +1,17 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import { Event, Pagination, createEvent, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
-import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/School';
+import {
+  Pagination,
+  School,
+  SchoolEvent,
+  createSchool,
+  getPaginatedSchools,
+  getSchoolbyEventId,
+  updateSchool,
+} from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
@@ -12,39 +21,27 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { EditableCell } from '../editableTable/EditableCell';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/Task';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
   pageSize: 10,
 };
 
-export const EventTable: React.FC = () => {
+export const SchoolEventTable: React.FC = () => {
   const { t } = useTranslation();
+  const { TextArea } = Input;
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Event[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: SchoolEvent[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const formatDateTime = (isoDateTime: number) => {
-    const dateTime = new Date(isoDateTime);
-    const year = dateTime.getFullYear();
-    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
-    const day = String(dateTime.getDate()).padStart(2, '0');
-    const hours = String(dateTime.getHours()).padStart(2, '0');
-    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
-    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
-    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
-  };
-
-  const isEditing = (record: Event) => record.id === editingKey;
+  const isEditing = (record: SchoolEvent) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -62,6 +59,15 @@ export const EventTable: React.FC = () => {
           ...item,
           ...row,
         };
+
+        Object.keys(updatedItem).forEach((field) => {
+          if (updatedItem[field] === '') {
+            updatedItem[field] = null;
+          }
+        });
+
+        console.log('Updated null Major:', updatedItem);
+
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -73,10 +79,10 @@ export const EventTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateEvent(key.toString(), row);
-        console.log('Event data updated successfully');
+        await updateSchool(key.toString(), row);
+        console.log('School data updated successfully');
       } catch (error) {
-        console.error('Error updating Event data:', error);
+        console.error('Error updating school data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
@@ -91,40 +97,12 @@ export const EventTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<Event> & { key: React.Key }) => {
+  const edit = (record: Partial<SchoolEvent> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const navigate = useNavigate();
-
-  const handleSchoolClick = async (eventId: string) => {
-    try {
-      const pagination = { current: 1, pageSize: 5 };
-      const result = await getSchoolbyEventId(eventId, pagination);
-      navigate(`/schools/${eventId}`);
-
-      console.log('Paginated School List:', result.data);
-      console.log('Pagination Info:', result.pagination);
-    } catch (error) {
-      console.error('Error fetching paginated schools:', error);
-    }
-  };
-
-  const handleTaskClick = async (eventId: string) => {
-    try {
-      const pagination = { current: 1, pageSize: 5 };
-      const result = await getTaskbyEventId(eventId, pagination);
-      navigate(`/tasks/${eventId}`);
-
-      console.log('Paginated School List:', result.data);
-      console.log('Pagination Info:', result.pagination);
-    } catch (error) {
-      console.error('Error fetching paginated schools:', error);
-    }
-  };
-
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Event) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof SchoolEvent) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -135,19 +113,22 @@ export const EventTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const [originalData, setOriginalData] = useState<Event[]>([]);
+  const { eventId } = useParams<{ eventId: string | undefined }>();
+  const [originalData, setOriginalData] = useState<SchoolEvent[]>([]);
 
   const fetch = useCallback(
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedEvents(pagination).then((res) => {
-        if (isMounted.current) {
-          setOriginalData(res.data);
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      if (eventId) {
+        getSchoolbyEventId(eventId, pagination).then((res) => {
+          if (isMounted.current) {
+            setOriginalData(res.data);
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
+      }
     },
-    [isMounted],
+    [isMounted, eventId],
   );
 
   useEffect(() => {
@@ -165,10 +146,11 @@ export const EventTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Event = {
+      const newData: SchoolEvent = {
         name: values.name,
-        startTime: values.startTime,
-        endTime: values.endTime,
+        phoneNumber: values.phoneNumber,
+        email: values.email,
+        address: values.address,
         status: values.status,
         id: values.id,
       };
@@ -176,21 +158,21 @@ export const EventTable: React.FC = () => {
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdEvent = await createEvent(newData);
+        const createdSchool = await createSchool(newData);
         setData((prevData) => ({
           ...prevData,
-          data: [...prevData.data, createdEvent],
+          data: [...prevData.data, createdSchool],
           loading: false,
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Event data created successfully');
+        console.log('School data created successfully');
 
-        getPaginatedEvents(data.pagination).then((res) => {
+        getPaginatedSchools(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
-        console.error('Error creating event data:', error);
+        console.error('Error creating School data:', error);
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
@@ -198,19 +180,25 @@ export const EventTable: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<Event> = [
+  const navigate = useNavigate();
+
+  const handleDetailClick = (schoolId: string) => {
+    navigate(`/students/${schoolId}`);
+  };
+
+  const columns: ColumnsType<SchoolEvent> = [
     {
-      title: t('Tên sự kiện'),
+      title: t('Tên trường'),
       dataIndex: 'name',
-      render: (text: string, record: Event) => {
+      render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'name';
+        const dataIndex: keyof School = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
           >
             <Input
               maxLength={100}
@@ -224,50 +212,62 @@ export const EventTable: React.FC = () => {
       },
     },
     {
-      title: t('Thời gian bắt đầu'),
-      dataIndex: 'startTime',
-      render: (text: number, record: Event) => {
+      title: t('Email'),
+      dataIndex: 'email',
+      render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'startTime';
+        const dataIndex: keyof School = 'email';
         return editable ? (
-          <Form.Item
-            key={record.startTime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
-          >
+          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
-              type="datetime-local"
+              type="email"
+              maxLength={100}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.startTime, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{formatDateTime(record.startTime)}</span>
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
     {
-      title: t('Thời gian kết thúc'),
-      dataIndex: 'endTime',
-      render: (text: number, record: Event) => {
+      title: t('Địa chỉ nhà trường'),
+      dataIndex: 'address',
+      render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'endTime';
+        const dataIndex: keyof School = 'address';
+        const maxTextLength = 255;
+        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item
-            key={record.endTime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
-          >
-            <Input
-              type="datetime-local"
+          <Form.Item key={record.address} name={dataIndex} initialValue={text}>
+            <TextArea
+              autoSize={{ maxRows: 3 }}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{formatDateTime(record.endTime)}</span>
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+        );
+      },
+    },
+    {
+      title: t('Điện thoại'),
+      dataIndex: 'phoneNumber',
+      render: (text: number, record: School) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof School = 'phoneNumber';
+        return editable ? (
+          <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
+            <Input
+              type="tel"
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -279,9 +279,9 @@ export const EventTable: React.FC = () => {
         { text: 'INACTIVE', value: 'INACTIVE' },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (text: string, record: Event) => {
+      render: (text: string, record: School) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'status';
+        const dataIndex: keyof School = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -290,7 +290,7 @@ export const EventTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái sự kiện là cần thiết' }]}
+            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
           >
             <Select
               value={text}
@@ -312,14 +312,13 @@ export const EventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
-      render: (text: string, record: Event) => {
+      render: (text: string, record: School) => {
         const editable = isEditing(record);
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.id)}>
+                <Button type="primary" onClick={() => save(record.id.toString())}>
                   {t('common.save')}
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -335,11 +334,8 @@ export const EventTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
-                <Button type="ghost" onClick={() => handleSchoolClick(record.id)}>
-                  {t('School')}
-                </Button>
-                <Button type="ghost" onClick={() => handleTaskClick(record.id)}>
-                  {t('Task')}
+                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
+                  {t('Detail')}
                 </Button>
               </>
             )}
@@ -373,41 +369,56 @@ export const EventTable: React.FC = () => {
         Thêm mới
       </Button>
       <Modal
-        title={'Thêm mới SỰ KIỆN'}
+        title={'Thêm TRƯỜNG'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>
           <FlexContainer>
-            <Label>{'Tên sự kiện'}</Label>
+            <Label>{'Tên trường'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
-                <Input maxLength={100} />
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
+                <Input />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
+
           <FlexContainer>
-            <Label>{'Thời gian bắt đầu'}</Label>
+            <Label>{'Email'}</Label>
             <InputContainer>
-              <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
-                <Input type="datetime-local" />
+              <BaseForm.Item name="email">
+                <Input />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
+
           <FlexContainer>
-            <Label>{'Thời gian kết thúc'}</Label>
+            <Label>{'Số điện thoại'}</Label>
             <InputContainer>
-              <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
-                <Input type="datetime-local" />
+              <BaseForm.Item name="phoneNumber">
+                <Input type="tel" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
+
+          <FlexContainer>
+            <Label>{'Địa chỉ'}</Label>
+            <InputContainer>
+              <BaseForm.Item name="address">
+                <TextArea autoSize={{ maxRows: 3 }} />
+              </BaseForm.Item>
+            </InputContainer>
+          </FlexContainer>
+
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select placeholder={'---- Chọn trạng thái ----'}>
+                <Select
+                  placeholder={'---- Select Status ----'}
+                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                >
                   <Option value="ACTIVE">{'ACTIVE'}</Option>
                   <Option value="INACTIVE">{'INACTIVE'}</Option>
                 </Select>
@@ -418,7 +429,7 @@ export const EventTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Tìm kiếm..."
+        placeholder="Search..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

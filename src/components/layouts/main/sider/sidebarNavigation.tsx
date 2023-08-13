@@ -8,8 +8,7 @@ import {
   InboxOutlined,
   QuestionCircleOutlined,
   RobotOutlined,
-  TrophyOutlined,
-  UserOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import React from 'react';
 import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';

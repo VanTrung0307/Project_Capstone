@@ -16,6 +16,19 @@ export type Player = {
   id: string;
 };
 
+interface PlayerData {
+  studentId: string;
+  studentName: string;
+  eventId: string;
+  nickname: string;
+  passcode: string;
+  createdAt: string;
+  totalPoint: number;
+  totalTime: number;
+  isplayer: boolean;
+  id: string;
+}
+
 export type PlayerList = {
   data: Player[];
 };
@@ -35,7 +48,7 @@ export const getPaginatedPlayers = async (pagination: Pagination): Promise<Pagin
   try {
     const response = await axios.get<PlayerList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -57,6 +70,36 @@ export const getPaginatedPlayers = async (pagination: Pagination): Promise<Pagin
   }
 };
 
+export const getRankedPlayers = async (
+  eventId: string,
+  schoolId: string,
+  pagination: Pagination,
+): Promise<PaginationData> => {
+  try {
+    const response = await axios.get<PlayerList>(`${API_BASE_URL}/GetRankedPlayer/${eventId}/${schoolId}`);
+    const { data } = response.data;
+    const { current = 1, pageSize = 10 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching ranked players:', error);
+    throw error;
+  }
+};
+
 export const getPlayerById = async (playerId: string): Promise<Player> => {
   try {
     const response = await axios.get<Player>(`${API_BASE_URL}/${playerId}`);
@@ -66,32 +109,6 @@ export const getPlayerById = async (playerId: string): Promise<Player> => {
     throw error;
   }
 };
-
-interface PlayerData {
-  studentId: string;
-  studentName: string;
-  eventId: string;
-  nickname: string;
-  passcode: string;
-  createdAt: string;
-  totalPoint: number;
-  totalTime: number;
-  isplayer: boolean;
-  id: string;
-}
-
-interface PlayerData {
-  studentId: string;
-  studentName: string;
-  eventId: string;
-  nickname: string;
-  passcode: string;
-  createdAt: string;
-  totalPoint: number;
-  totalTime: number;
-  isplayer: boolean;
-  id: string;
-}
 
 export const createPlayer = async ({
   studentId,

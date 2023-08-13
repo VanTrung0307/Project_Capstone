@@ -6,10 +6,10 @@ import {
   School,
   createSchool,
   getPaginatedSchools,
-  getSchoolbyEventId,
-  updateSchool,
+  updateSchool
 } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag } from 'antd';
@@ -19,10 +19,9 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -112,7 +111,6 @@ export const SchoolTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const { eventId } = useParams<{ eventId: string | undefined }>();
   const [originalData, setOriginalData] = useState<School[]>([]);
 
   const fetch = useCallback(
@@ -124,16 +122,8 @@ export const SchoolTable: React.FC = () => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       });
-      if (eventId) {
-        getSchoolbyEventId(eventId, pagination).then((res) => {
-          if (isMounted.current) {
-            setOriginalData(res.data);
-            setData({ data: res.data, pagination: res.pagination, loading: false });
-          }
-        });
-      }
     },
-    [isMounted, eventId],
+    [isMounted],
   );
 
   useEffect(() => {

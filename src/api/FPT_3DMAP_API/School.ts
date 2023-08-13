@@ -12,8 +12,21 @@ export type School = {
   id: string;
 };
 
+export type SchoolEvent = {
+  name: string;
+  phoneNumber: number;
+  email: string;
+  address: string;
+  status: string;
+  id: string;
+};
+
 export type SchoolList = {
   data: School[];
+};
+
+export type SchoolEventList = {
+  data: SchoolEvent[];
 };
 
 export interface Pagination {
@@ -24,6 +37,10 @@ export interface Pagination {
 
 export interface PaginationData {
   data: School[];
+  pagination: Pagination;
+}
+export interface PaginationSchoolEventData {
+  data: SchoolEvent[];
   pagination: Pagination;
 }
 
@@ -83,9 +100,9 @@ export const updateSchool = async (schoolId: string, schoolData: School): Promis
   }
 };
 
-export const getSchoolbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationData> => {
+export const getSchoolbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationSchoolEventData> => {
   try {
-    const response = await axios.get<SchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
+    const response = await axios.get<SchoolEventList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -94,15 +111,6 @@ export const getSchoolbyEventId = async (eventId: string, pagination: Pagination
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
