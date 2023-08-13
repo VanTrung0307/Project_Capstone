@@ -1,6 +1,8 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { Pagination, Player, getRankedPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Select } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
@@ -8,8 +10,6 @@ import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
-import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -56,24 +56,20 @@ export const RankTable: React.FC = () => {
       setData((tableData) => ({ ...tableData, loading: true }));
 
       getPaginatedEvents({ current: 1, pageSize: 10 }).then((paginationData) => {
-        const eventsData = paginationData.data;
-        setEvents(eventsData);
-        const firstEventId = eventsData.length > 0 ? eventsData[0].id : '';
+        setEvents(paginationData.data);
+      });
 
-        getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
-          const schoolsData = paginationData.data;
-          setSchools(schoolsData);
-          const firstSchoolId = schoolsData.length > 0 ? schoolsData[0].id : '';
+      getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
+        setSchools(paginationData.data);
+      });
 
-          getRankedPlayers(firstEventId, firstSchoolId, pagination).then((res) => {
-            if (isMounted.current) {
-              setData({ data: res.data, pagination: res.pagination, loading: false });
-            }
-          });
-        });
+      getRankedPlayers(eventId, schoolId, pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
       });
     },
-    [isMounted],
+    [isMounted, eventId, schoolId],
   );
 
   useEffect(() => {
@@ -183,11 +179,11 @@ export const RankTable: React.FC = () => {
   return (
     <Form form={form} component={false}>
       <Select
-        value={eventId || (events.length > 0 ? events[0].id : undefined)}
+        value={eventId}
         onChange={(value) => setEventId(value)}
-        placeholder="Select Event"
-        style={{ width: 200, marginRight: 10, marginBottom: 10 }}
+        style={{ width: 300, marginRight: 10, marginBottom: 10 }}
       >
+        {!eventId && <Select.Option value="">Select Event</Select.Option>}
         {events.map((event) => (
           <Select.Option key={event.id} value={event.id}>
             {event.name}
@@ -196,11 +192,11 @@ export const RankTable: React.FC = () => {
       </Select>
 
       <Select
-        value={schoolId || (schools.length > 0 ? schools[0].id : undefined)}
+        value={schoolId}
         onChange={(value) => setSchoolId(value)}
-        placeholder="Select School"
-        style={{ width: 200, marginRight: 10, marginBottom: 10 }}
+        style={{ width: 300, marginRight: 10, marginBottom: 10 }}
       >
+        {!schoolId && <Select.Option value="">Select School</Select.Option>}
         {schools.map((school) => (
           <Select.Option key={school.id} value={school.id}>
             {school.name}
