@@ -138,7 +138,7 @@ export const StudentTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
-    action: `http://anhkiet-001-site1.htempurl.com/api/Students/student/${schoolId}`,
+    action: `http://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {
@@ -146,6 +146,7 @@ export const StudentTable: React.FC = () => {
       }
       if (status === 'done') {
         message.success(t('uploads.successUpload', { name: info.file.name }));
+        fetch(data.pagination);
       } else if (status === 'error') {
         message.error(t('uploads.failedUpload', { name: info.file.name }));
       }

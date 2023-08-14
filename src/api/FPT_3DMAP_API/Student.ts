@@ -103,7 +103,7 @@ export const uploadExcelStudent = async (schoolId: string, file: File): Promise<
   formData.append('file', file);
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/student/${schoolId}`, formData, {
+    const response = await axios.post(`${API_BASE_URL}/student-getbyschool/${schoolId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

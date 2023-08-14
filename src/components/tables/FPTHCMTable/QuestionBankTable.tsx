@@ -1,5 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Upload } from '@app/components/common/Upload/Upload';
+import { DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { Answer, getPaginatedAnswers } from '@app/api/FPT_3DMAP_API/Answer';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import {
@@ -12,7 +14,7 @@ import {
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -438,6 +440,24 @@ export const QuestionBankTable: React.FC = () => {
     flex: 1;
   `;
 
+  const uploadProps = {
+    name: 'file',
+    multiple: true,
+    action: `http://anhkiet-001-site1.htempurl.com/api/Questions/upload-excel-question`,
+    onChange: (info: any) => {
+      const { status } = info.file;
+      if (status !== 'uploading') {
+        console.log(info.file, info.fileList);
+      }
+      if (status === 'done') {
+        message.success(t('uploads.successUpload', { name: info.file.name }));
+        fetch(data.pagination);
+      } else if (status === 'error') {
+        message.error(t('uploads.failedUpload', { name: info.file.name }));
+      }
+    },
+  };
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -518,6 +538,12 @@ export const QuestionBankTable: React.FC = () => {
           </FlexContainer>
         </S.FormContent>
       </Modal>
+
+      <Upload {...uploadProps}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
+          {t('uploads.clickToUpload')}
+        </Button>
+      </Upload>
 
       <SearchInput
         placeholder="Tìm kiếm..."
