@@ -232,11 +232,12 @@ export const GiftTable: React.FC = () => {
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'eventId';
+        const userInteracted = record[dataIndex] !== record.eventName;
         return editable ? (
           <Form.Item
             key={record.eventId}
             name={dataIndex}
-            initialValue={text}
+            initialValue={userInteracted ? record[dataIndex] : text}
             rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
           >
             <Select

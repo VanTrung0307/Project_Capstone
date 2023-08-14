@@ -77,15 +77,17 @@ export const QuestionBankTable: React.FC = () => {
       setEditingKey('');
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setData({ ...data, data: newData, loading: false });
         await updateQuestion(key.toString(), row);
+        setData((prevData) => ({ ...prevData, loading: true }));
+        getPaginatedQuestions(data.pagination).then((res) => {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        });
         console.log('Question data updated successfully');
       } catch (error) {
         console.error('Error updating Question data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
+          setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {
@@ -226,7 +228,6 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Tên câu hỏi'),
       dataIndex: 'name',
-      width: '25%',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'name';
@@ -252,20 +253,20 @@ export const QuestionBankTable: React.FC = () => {
       title: t('Tên ngành'),
       dataIndex: 'majorName',
       filters: majorNameFilters,
-      width: '15%',
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'majorId';
+        const userInteracted = record[dataIndex] !== record.majorName;
         return editable ? (
           <Form.Item
             key={record.majorId}
             name={dataIndex}
-            initialValue={text}
+            initialValue={userInteracted ? record[dataIndex] : text}
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
-              style={{maxWidth: '212.03px'}}
+              style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.majorId, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -288,6 +289,7 @@ export const QuestionBankTable: React.FC = () => {
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'answerId';
+        const userInteracted = record[dataIndex] !== record.answerName;
         const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
@@ -308,19 +310,19 @@ export const QuestionBankTable: React.FC = () => {
                   openAnswerModal();
                 }
               }}
-              style={{ 
+              style={{
                 cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
               }}
             >
               {editable ? (
-                <Form.Item 
-                  key={record.answerId} 
-                  name={dataIndex} 
-                  initialValue={text} 
+                <Form.Item
+                  key={record.answerId}
+                  name={dataIndex}
+                  initialValue={userInteracted ? record[dataIndex] : text}
                   rules={[{ required: false }]}
                 >
                   <Select
-                    style={{maxWidth: '212.03px'}}
+                    style={{ maxWidth: '212.03px' }}
                     value={record[dataIndex]}
                     onChange={(value) => handleInputChange(value, record.answerId, dataIndex)}
                     suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -466,7 +468,7 @@ export const QuestionBankTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn ngành ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
@@ -485,7 +487,7 @@ export const QuestionBankTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="answerId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn câu trả lời ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
@@ -504,7 +506,7 @@ export const QuestionBankTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >

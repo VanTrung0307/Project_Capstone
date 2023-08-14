@@ -26,7 +26,6 @@ export type updateQuestionData = {
   majorId: string;
   name: string;
   status: string;
-  id: string;
 };
 
 export type QuestionList = {
@@ -55,15 +54,6 @@ export const getPaginatedQuestions = async (pagination: Pagination): Promise<Pag
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-
-    let objectCount = 0;
-
-    paginatedData.forEach((item) => {
-      objectCount++;
-      console.log('Object', objectCount, ':', item);
-    });
-
-    console.log('Total objects:', objectCount);
 
     return {
       data: paginatedData,
