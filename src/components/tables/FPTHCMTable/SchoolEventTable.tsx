@@ -26,6 +26,7 @@ import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { EventSchool, addEventSchool, createEventSchool } from '@app/api/FPT_3DMAP_API/EventSchool';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -147,7 +148,7 @@ export const SchoolEventTable: React.FC = () => {
 
   useEffect(() => {
     if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 5 };
+      const pagination: Pagination = { current: 1, pageSize: 10 };
 
       getPaginatedEvents(pagination)
         .then((response) => {
@@ -213,17 +214,27 @@ export const SchoolEventTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleDetailClick = (schoolId: string) => {
-    navigate(`/students/${schoolId}`);
+  const handleDetailClick = (schoolId: string, eventId: string) => {
+    navigate(`/students/${schoolId}/${eventId}`);
+  };
+
+  const handleStudentClick = async (schoolId: string, eventId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 10 };
+      navigate(`/student/${schoolId}/${eventId}`);
+      await getStudenbySchoolandEventId(schoolId, eventId, pagination);
+    } catch (error) {
+      console.error('Error fetching paginated schools:', error);
+    }
   };
 
   const columns: ColumnsType<SchoolEvent> = [
     {
       title: t('Tên trường'),
       dataIndex: 'name',
-      render: (text: string, record: School) => {
+      render: (text: string, record: SchoolEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'name';
+        const dataIndex: keyof SchoolEvent = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -245,9 +256,9 @@ export const SchoolEventTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
-      render: (text: string, record: School) => {
+      render: (text: string, record: SchoolEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'email';
+        const dataIndex: keyof SchoolEvent = 'email';
         return editable ? (
           <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
@@ -265,9 +276,9 @@ export const SchoolEventTable: React.FC = () => {
     {
       title: t('Địa chỉ nhà trường'),
       dataIndex: 'address',
-      render: (text: string, record: School) => {
+      render: (text: string, record: SchoolEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'address';
+        const dataIndex: keyof SchoolEvent = 'address';
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
@@ -286,9 +297,9 @@ export const SchoolEventTable: React.FC = () => {
     {
       title: t('Điện thoại'),
       dataIndex: 'phoneNumber',
-      render: (text: number, record: School) => {
+      render: (text: number, record: SchoolEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'phoneNumber';
+        const dataIndex: keyof SchoolEvent = 'phoneNumber';
         return editable ? (
           <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
             <Input
@@ -310,9 +321,9 @@ export const SchoolEventTable: React.FC = () => {
         { text: 'INACTIVE', value: 'INACTIVE' },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (text: string, record: School) => {
+      render: (text: string, record: SchoolEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof School = 'status';
+        const dataIndex: keyof SchoolEvent = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -343,7 +354,7 @@ export const SchoolEventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      render: (text: string, record: School) => {
+      render: (text: string, record: SchoolEvent) => {
         const editable = isEditing(record);
         return (
           <Space>
@@ -365,7 +376,14 @@ export const SchoolEventTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
-                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
+                <Button
+                  type="ghost"
+                  onClick={() => {
+                    if (eventId) {
+                      handleStudentClick(record.id, eventId);
+                    }
+                  }}
+                >
                   {t('Student')}
                 </Button>
               </>
@@ -422,7 +440,7 @@ export const SchoolEventTable: React.FC = () => {
                 <Select
                   placeholder={'---- Chọn trường ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                  style={{width: '255px'}}
+                  style={{ width: '255px' }}
                 >
                   {school.map((school) => (
                     <Option key={school.id} value={school.id}>

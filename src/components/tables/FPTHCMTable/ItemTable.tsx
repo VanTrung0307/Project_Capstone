@@ -1,19 +1,20 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { Item, Pagination, createItem, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Avatar, Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import Upload from 'antd/lib/upload/Upload';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import styled, { CSSProperties } from 'styled-components';
+import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -23,12 +24,6 @@ const initialPagination: Pagination = {
 export const ItemTable: React.FC = () => {
   const { t } = useTranslation();
   const { TextArea } = Input;
-
-  const imageWithNameStyles: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  };
 
   const [editingKey, setEditingKey] = useState<number | string>('');
   const [data, setData] = useState<{ data: Item[]; pagination: Pagination; loading: boolean }>({
@@ -77,12 +72,14 @@ export const ItemTable: React.FC = () => {
         setData({ ...data, data: newData, loading: false });
         await updateItem(key.toString(), row);
         console.log('Item data updated successfully');
+        fetch(data.pagination);
       } catch (error) {
         console.error('Error updating Item data:', error);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
+        fetch(data.pagination);
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -91,6 +88,7 @@ export const ItemTable: React.FC = () => {
 
   const cancel = () => {
     setEditingKey('');
+    fetch(data.pagination);
   };
 
   const edit = (record: Partial<Item> & { key: React.Key }) => {
@@ -185,15 +183,19 @@ export const ItemTable: React.FC = () => {
   const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState('');
 
+  const handleDeleteImage = (record: Item) => {
+    const updatedData = data.data.map((item) => (item.id === record.id ? { ...item, imageUrl: '' } : item));
+    setData((prevData) => ({ ...prevData, data: updatedData }));
+  };
+
   const columns: ColumnsType<Item> = [
     {
       title: t('Hình ảnh'),
       dataIndex: 'imageUrl',
-      width: '8%',
-      onFilter: (value, record) => record.imageUrl === value,
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
         const dataIndex: keyof Item = 'imageUrl';
+
         return editable ? (
           <Form.Item
             key={record.imageUrl}
@@ -201,9 +203,37 @@ export const ItemTable: React.FC = () => {
             initialValue={text}
             rules={[{ required: true, message: 'Hình ảnh là cần thiết' }]}
           >
+            {text ? (
+              <>
+                <div style={{ position: 'relative' }}>
+                  <Avatar style={{ width: '50px', height: '50px', borderRadius: '10px' }} src={text} alt="Hình ảnh" />
+                  <Button
+                    style={{ position: 'absolute', top: '0', right: '0', width: '20px', height: '20px' }}
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteImage(record)}
+                  />
+                </div>
+              </>
+            ) : (
+              <Upload
+                customRequest={(options) => {
+                  options;
+                }}
+                showUploadList={false}
+              >
+                {' '}
+                <Button icon={<UploadOutlined />}>{t('uploads.directory')}</Button>
+              </Upload>
+            )}
           </Form.Item>
         ) : (
-          <span><Avatar src={record.imageUrl} alt="Hình ảnh" /></span>
+          <span>
+            <Avatar
+              style={{ width: '50px', height: '50px', borderRadius: '10px' }}
+              src={record.imageUrl}
+              alt="Hình ảnh"
+            />
+          </span>
         );
       },
     },
@@ -370,7 +400,7 @@ export const ItemTable: React.FC = () => {
                   openDescriptionModal();
                 }
               }}
-              style={{ 
+              style={{
                 cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
               }}
             >
@@ -564,7 +594,7 @@ export const ItemTable: React.FC = () => {
                 rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
               >
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn giới hạn ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >

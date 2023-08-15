@@ -15,6 +15,17 @@ export type Student = {
   status: string;
 };
 
+export type EventStudent = {
+  id: string;
+  schoolname: string;
+  fullname: string;
+  email: string;
+  phonenumber: number;
+  graduateYear: string;
+  classname: string;
+  status: string;
+};
+
 export type updateStudentData = {
   schoolId: string;
   fullname: string;
@@ -30,6 +41,10 @@ export type StudentList = {
   data: Student[];
 };
 
+export type EventStudentList = {
+  data: EventStudent[];
+};
+
 export interface Pagination {
   current?: number;
   pageSize?: number;
@@ -38,6 +53,10 @@ export interface Pagination {
 
 export interface PaginationData {
   data: Student[];
+  pagination: Pagination;
+}
+export interface EventStudentData {
+  data: EventStudent[];
   pagination: Pagination;
 }
 
@@ -71,7 +90,36 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
   try {
     const response = await axios.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated schools:', error);
+    throw error;
+  }
+};
+export const getStudenbySchoolandEventId = async (
+  schoolId: string,
+  eventId: string,
+  pagination: Pagination,
+): Promise<EventStudentData> => {
+  try {
+    const response = await axios.get<EventStudentList>(`${API_BASE_URL}/${schoolId}/${eventId}`);
+    const { data } = response.data;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;

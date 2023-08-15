@@ -102,12 +102,9 @@ export const EventTable: React.FC = () => {
 
   const handleSchoolClick = async (eventId: string) => {
     try {
-      const pagination = { current: 1, pageSize: 5 };
-      const result = await getSchoolbyEventId(eventId, pagination);
+      const pagination = { current: 1, pageSize: 10 };
+      await getSchoolbyEventId(eventId, pagination);
       navigate(`/schools/${eventId}`);
-
-      console.log('Paginated School List:', result.data);
-      console.log('Pagination Info:', result.pagination);
     } catch (error) {
       console.error('Error fetching paginated schools:', error);
     }

@@ -13,7 +13,7 @@ export const TaskEventTables: React.FC<TaskTablesProps> = ({ eventId }) => {
 
   useEffect(() => {
     if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 5 };
+      const pagination: Pagination = { current: 1, pageSize: 10 };
 
       getPaginatedEvents(pagination)
         .then((response) => {

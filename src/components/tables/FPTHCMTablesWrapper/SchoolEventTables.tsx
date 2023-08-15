@@ -13,10 +13,11 @@ export const SchoolEventTables: React.FC<SchoolTablesProps> = ({ eventId }) => {
 
   useEffect(() => {
     if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 5 };
+      const pagination: Pagination = { current: 1, pageSize: 10 };
 
       getPaginatedEvents(pagination)
         .then((response) => {
+          console.log('API Response:', response);
           const eventData = response.data.find((event) => event.id === eventId);
           setEvent(eventData);
         })
@@ -26,6 +27,7 @@ export const SchoolEventTables: React.FC<SchoolTablesProps> = ({ eventId }) => {
     }
   }, [eventId]);
 
+  console.log('eventname', event ? event.name : '');
   return (
     <>
       <S.FPTHCMTablesWrapper>

@@ -259,12 +259,10 @@ export const QuestionBankTable: React.FC = () => {
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'majorId';
-        const userInteracted = record[dataIndex] !== record.majorName;
         return editable ? (
           <Form.Item
             key={record.majorId}
             name={dataIndex}
-            initialValue={userInteracted ? record[dataIndex] : text}
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
@@ -291,7 +289,6 @@ export const QuestionBankTable: React.FC = () => {
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
         const dataIndex: keyof Question = 'answerId';
-        const userInteracted = record[dataIndex] !== record.answerName;
         const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
@@ -317,12 +314,7 @@ export const QuestionBankTable: React.FC = () => {
               }}
             >
               {editable ? (
-                <Form.Item
-                  key={record.answerId}
-                  name={dataIndex}
-                  initialValue={userInteracted ? record[dataIndex] : text}
-                  rules={[{ required: false }]}
-                >
+                <Form.Item key={record.answerId} name={dataIndex} rules={[{ required: false }]}>
                   <Select
                     style={{ maxWidth: '212.03px' }}
                     value={record[dataIndex]}

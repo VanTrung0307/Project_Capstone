@@ -232,16 +232,14 @@ export const GiftTable: React.FC = () => {
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'eventId';
-        const userInteracted = record[dataIndex] !== record.eventName;
         return editable ? (
           <Form.Item
             key={record.eventId}
             name={dataIndex}
-            initialValue={userInteracted ? record[dataIndex] : text}
             rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
           >
             <Select
-              style={{maxWidth: '212.03px'}}
+              style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.eventId, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -267,7 +265,7 @@ export const GiftTable: React.FC = () => {
         return editable ? (
           <Form.Item key={record.quantity} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Input
-              style={{maxWidth: '150px'}}
+              style={{ maxWidth: '150px' }}
               type="number"
               min={0}
               value={record[dataIndex]}
@@ -322,7 +320,7 @@ export const GiftTable: React.FC = () => {
             rules={[{ required: true, message: 'Trạng thái phần qùa là cần thiết' }]}
           >
             <Select
-              style={{maxWidth: '212.03px'}}
+              style={{ maxWidth: '212.03px' }}
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -431,7 +429,7 @@ export const GiftTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn sự kiện ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
@@ -449,7 +447,7 @@ export const GiftTable: React.FC = () => {
             <InputContainer>
               <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
                 <Select
-                  style={{maxWidth: '256px'}}
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >

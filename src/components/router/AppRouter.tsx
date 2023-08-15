@@ -67,6 +67,7 @@ const School = React.lazy(() => import('@app/pages/SchoolPage'));
 const SchoolEvent = React.lazy(() => import('@app/pages/SchoolEventPage'));
 const TaskEvent = React.lazy(() => import('@app/pages/TaskEventPage'));
 const Student = React.lazy(() => import('@app/pages/StudentPage'));
+const StudentEvent = React.lazy(() => import('@app/pages/EventStudentPage'));
 const Task = React.lazy(() => import('@app/pages/TaskPage'));
 const Major = React.lazy(() => import('@app/pages/MajorPage'));
 const QuestionBank = React.lazy(() => import('@app/pages/QuestionBankPage'));
@@ -151,6 +152,7 @@ export const AppRouter: React.FC = () => {
             <Route path="schools/:eventId" element={<SchoolEvent />} />
             <Route path="tasks/:eventId" element={<TaskEvent />} />
             <Route path="students/:schoolId" element={<Student />} />
+            <Route path="student/:schoolId/:eventId" element={<StudentEvent />} />
             <Route path="tasks" element={<Task />} />
             <Route path="majors" element={<Major />} />
             <Route path="questionbanks" element={<QuestionBank />} />

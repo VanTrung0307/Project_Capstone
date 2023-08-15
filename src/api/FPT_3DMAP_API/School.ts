@@ -48,7 +48,7 @@ export const getPaginatedSchools = async (pagination: Pagination): Promise<Pagin
   try {
     const response = await axios.get<SchoolList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -104,7 +104,7 @@ export const getSchoolbyEventId = async (eventId: string, pagination: Pagination
   try {
     const response = await axios.get<SchoolEventList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
