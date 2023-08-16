@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Prizes`;
 
@@ -48,7 +48,7 @@ export interface PaginationData {
 
 export const getPaginatedGifts = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<GiftList>(API_BASE_URL);
+    const response = await httpApi.get<GiftList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -83,7 +83,7 @@ export const getPaginatedGifts = async (pagination: Pagination): Promise<Paginat
 
 export const getGiftById = async (giftId: string): Promise<Gift> => {
   try {
-    const response = await axios.get<Gift>(`${API_BASE_URL}/${giftId}`);
+    const response = await httpApi.get<Gift>(`${API_BASE_URL}/${giftId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching gift:', error);
@@ -93,7 +93,7 @@ export const getGiftById = async (giftId: string): Promise<Gift> => {
 
 export const createGift = async (giftData: addGift): Promise<Gift> => {
   try {
-    const response = await axios.post<Gift>(`${API_BASE_URL}/Gift`, giftData);
+    const response = await httpApi.post<Gift>(`${API_BASE_URL}/Gift`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error creating gift:', error);
@@ -103,7 +103,7 @@ export const createGift = async (giftData: addGift): Promise<Gift> => {
 
 export const updateGift = async (id: string, giftData: updateGiftData): Promise<Gift> => {
   try {
-    const response = await axios.put<Gift>(`${API_BASE_URL}/${id}`, giftData);
+    const response = await httpApi.put<Gift>(`${API_BASE_URL}/${id}`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error updating gift:', error);

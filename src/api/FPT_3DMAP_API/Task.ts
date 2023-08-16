@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Tasks`;
 
@@ -79,7 +79,7 @@ export interface PaginationTaskEventData {
 
 export const getPaginatedTasks = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<TaskList>(API_BASE_URL);
+    const response = await httpApi.get<TaskList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -105,7 +105,7 @@ export const getPaginatedTasks = async (pagination: Pagination): Promise<Paginat
 
 export const getTaskById = async (taskId: string): Promise<Task> => {
   try {
-    const response = await axios.get<Task>(`${API_BASE_URL}/${taskId}`);
+    const response = await httpApi.get<Task>(`${API_BASE_URL}/${taskId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching task:', error);
@@ -115,7 +115,7 @@ export const getTaskById = async (taskId: string): Promise<Task> => {
 
 export const createTask = async (taskData: addTask): Promise<Task> => {
   try {
-    const response = await axios.post<Task>(`${API_BASE_URL}/task`, taskData);
+    const response = await httpApi.post<Task>(`${API_BASE_URL}/task`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error creating task:', error);
@@ -125,7 +125,7 @@ export const createTask = async (taskData: addTask): Promise<Task> => {
 
 export const updateTask = async (id: string, taskData: updateTaskData): Promise<Task> => {
   try {
-    const response = await axios.put<Task>(`${API_BASE_URL}/${id}`, taskData);
+    const response = await httpApi.put<Task>(`${API_BASE_URL}/${id}`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error updating task:', error);
@@ -135,7 +135,7 @@ export const updateTask = async (id: string, taskData: updateTaskData): Promise<
 
 export const getTaskbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationTaskEventData> => {
   try {
-    const response = await axios.get<TaskEventList>(`${API_BASE_URL}/GetTaskByEventTaskWithEventId/${eventId}`);
+    const response = await httpApi.get<TaskEventList>(`${API_BASE_URL}/GetTaskByEventTaskWithEventId/${eventId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;

@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Answers`;
 
@@ -26,7 +27,7 @@ export interface PaginationData {
 
 export const getPaginatedAnswers = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<AnswerList>(API_BASE_URL);
+    const response = await httpApi.get<AnswerList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;

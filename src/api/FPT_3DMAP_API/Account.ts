@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosResponse } from 'axios';
+import { httpApi } from '../http.api';
 
 export type Register = {
   email: string;
@@ -52,7 +53,7 @@ export const callback = (): Promise<AxiosResponse<any>> => {
 // POST /login
 export const loginAdmin = async (credentials: LoginRequest): Promise<LoginResponse> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}loginadmin`, credentials);
+    const response = await httpApi.post(`${API_BASE_URL}loginadmin`, credentials);
 
     const adaptedResponse: LoginResponse = {
       studentId: response.data.data.studentId,

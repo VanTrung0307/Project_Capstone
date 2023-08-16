@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Schools`;
 
@@ -46,7 +46,7 @@ export interface PaginationSchoolEventData {
 
 export const getPaginatedSchools = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<SchoolList>(API_BASE_URL);
+    const response = await httpApi.get<SchoolList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
@@ -72,7 +72,7 @@ export const getPaginatedSchools = async (pagination: Pagination): Promise<Pagin
 
 export const getSchoolById = async (schoolId: string): Promise<School> => {
   try {
-    const response = await axios.get<School>(`${API_BASE_URL}/${schoolId}`);
+    const response = await httpApi.get<School>(`${API_BASE_URL}/${schoolId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching school:', error);
@@ -82,7 +82,7 @@ export const getSchoolById = async (schoolId: string): Promise<School> => {
 
 export const createSchool = async (schoolData: School): Promise<School> => {
   try {
-    const response = await axios.post<School>(`${API_BASE_URL}/school`, schoolData);
+    const response = await httpApi.post<School>(`${API_BASE_URL}/school`, schoolData);
     return response.data;
   } catch (error) {
     console.error('Error creating school:', error);
@@ -92,7 +92,7 @@ export const createSchool = async (schoolData: School): Promise<School> => {
 
 export const updateSchool = async (schoolId: string, schoolData: School): Promise<School> => {
   try {
-    const response = await axios.put<School>(`${API_BASE_URL}/${schoolId}`, schoolData);
+    const response = await httpApi.put<School>(`${API_BASE_URL}/${schoolId}`, schoolData);
     return response.data;
   } catch (error) {
     console.error('Error updating school:', error);
@@ -100,9 +100,12 @@ export const updateSchool = async (schoolId: string, schoolData: School): Promis
   }
 };
 
-export const getSchoolbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationSchoolEventData> => {
+export const getSchoolbyEventId = async (
+  eventId: string,
+  pagination: Pagination,
+): Promise<PaginationSchoolEventData> => {
   try {
-    const response = await axios.get<SchoolEventList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
+    const response = await httpApi.get<SchoolEventList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;

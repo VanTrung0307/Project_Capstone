@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Items`;
 
@@ -56,7 +56,7 @@ export interface PaginationData {
 
 export const getPaginatedItems = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<ItemList>(API_BASE_URL);
+    const response = await httpApi.get<ItemList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -82,7 +82,7 @@ export const getPaginatedItems = async (pagination: Pagination): Promise<Paginat
 
 export const getItemById = async (itemId: string): Promise<Item> => {
   try {
-    const response = await axios.get<Item>(`${API_BASE_URL}/${itemId}`);
+    const response = await httpApi.get<Item>(`${API_BASE_URL}/${itemId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching item:', error);
@@ -92,7 +92,7 @@ export const getItemById = async (itemId: string): Promise<Item> => {
 
 export const createItem = async (itemData: addItem): Promise<Item> => {
   try {
-    const response = await axios.post<Item>(`${API_BASE_URL}/item`, itemData);
+    const response = await httpApi.post<Item>(`${API_BASE_URL}/item`, itemData);
     return response.data;
   } catch (error) {
     console.error('Error creating item:', error);
@@ -102,7 +102,7 @@ export const createItem = async (itemData: addItem): Promise<Item> => {
 
 export const updateItem = async (id: string, itemData: updateItemData): Promise<Item> => {
   try {
-    const response = await axios.put<Item>(`${API_BASE_URL}/${id}`, itemData);
+    const response = await httpApi.put<Item>(`${API_BASE_URL}/${id}`, itemData);
     return response.data;
   } catch (error) {
     console.error('Error updating item:', error);

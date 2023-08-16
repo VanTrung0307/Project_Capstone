@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Questions`;
 
@@ -45,7 +45,7 @@ export interface PaginationData {
 
 export const getPaginatedQuestions = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<QuestionList>(API_BASE_URL);
+    const response = await httpApi.get<QuestionList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -71,7 +71,7 @@ export const getPaginatedQuestions = async (pagination: Pagination): Promise<Pag
 
 export const getQuestionById = async (questionId: string): Promise<Question> => {
   try {
-    const response = await axios.get<Question>(`${API_BASE_URL}/${questionId}`);
+    const response = await httpApi.get<Question>(`${API_BASE_URL}/${questionId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching question:', error);
@@ -81,7 +81,7 @@ export const getQuestionById = async (questionId: string): Promise<Question> => 
 
 export const createQuestion = async (questionData: addQuestion): Promise<Question> => {
   try {
-    const response = await axios.post<Question>(`${API_BASE_URL}/question`, questionData);
+    const response = await httpApi.post<Question>(`${API_BASE_URL}/question`, questionData);
     return response.data;
   } catch (error) {
     console.error('Error creating question:', error);
@@ -91,7 +91,7 @@ export const createQuestion = async (questionData: addQuestion): Promise<Questio
 
 export const updateQuestion = async (id: string, questionData: updateQuestionData): Promise<Question> => {
   try {
-    const response = await axios.put<Question>(`${API_BASE_URL}/${id}`, questionData);
+    const response = await httpApi.put<Question>(`${API_BASE_URL}/${id}`, questionData);
     return response.data;
   } catch (error) {
     console.error('Error updating question:', error);

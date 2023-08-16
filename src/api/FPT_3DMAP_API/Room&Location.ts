@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Locations`;
 
@@ -29,7 +29,7 @@ export interface PaginationData {
 
 export const getPaginatedRoomLocations = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<RoomLocationList>(API_BASE_URL);
+    const response = await httpApi.get<RoomLocationList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -55,7 +55,7 @@ export const getPaginatedRoomLocations = async (pagination: Pagination): Promise
 
 export const getRoomLocationById = async (roomlocationId: string): Promise<RoomLocation> => {
   try {
-    const response = await axios.get<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`);
+    const response = await httpApi.get<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching roomlocation:', error);
@@ -65,7 +65,7 @@ export const getRoomLocationById = async (roomlocationId: string): Promise<RoomL
 
 export const createRoomLocation = async (roomlocationData: RoomLocation): Promise<RoomLocation> => {
   try {
-    const response = await axios.post<RoomLocation>(`${API_BASE_URL}/location`, roomlocationData);
+    const response = await httpApi.post<RoomLocation>(`${API_BASE_URL}/location`, roomlocationData);
     return response.data;
   } catch (error) {
     console.error('Error creating roomlocation:', error);
@@ -75,7 +75,7 @@ export const createRoomLocation = async (roomlocationData: RoomLocation): Promis
 
 export const updateRoomLocation = async (roomlocationId: string, roomlocationData: RoomLocation): Promise<RoomLocation> => {
   try {
-    const response = await axios.put<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`, roomlocationData);
+    const response = await httpApi.put<RoomLocation>(`${API_BASE_URL}/${roomlocationId}`, roomlocationData);
     return response.data;
   } catch (error) {
     console.error('Error updating roomlocation:', error);

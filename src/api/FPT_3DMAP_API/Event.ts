@@ -1,5 +1,7 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+
+import { httpApi } from "../http.api";
+
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Events`;
 
@@ -28,7 +30,7 @@ export interface PaginationData {
 
 export const getPaginatedEvents = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<EventList>(API_BASE_URL);
+    const response = await httpApi.get<EventList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
@@ -56,7 +58,7 @@ export const getPaginatedEvents = async (pagination: Pagination): Promise<Pagina
 
 export const getEventById = async (eventId: string): Promise<Event> => {
   try {
-    const response = await axios.get<Event>(`${API_BASE_URL}/${eventId}`);
+    const response = await httpApi.get<Event>(`${API_BASE_URL}/${eventId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching event:', error);
@@ -66,7 +68,7 @@ export const getEventById = async (eventId: string): Promise<Event> => {
 
 export const createEvent = async (eventData: Event): Promise<Event> => {
   try {
-    const response = await axios.post<Event>(`${API_BASE_URL}/event`, eventData);
+    const response = await httpApi.post<Event>(`${API_BASE_URL}/event`, eventData);
     return response.data;
   } catch (error) {
     console.error('Error creating event:', error);
@@ -76,7 +78,7 @@ export const createEvent = async (eventData: Event): Promise<Event> => {
 
 export const updateEvent = async (eventId: string, eventData: Event): Promise<Event> => {
   try {
-    const response = await axios.put<Event>(`${API_BASE_URL}/${eventId}`, eventData);
+    const response = await httpApi.put<Event>(`${API_BASE_URL}/${eventId}`, eventData);
     return response.data;
   } catch (error) {
     console.error('Error updating event:', error);

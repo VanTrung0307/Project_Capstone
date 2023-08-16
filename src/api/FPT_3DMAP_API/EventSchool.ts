@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/SchoolEvents`;
 
@@ -26,7 +26,7 @@ export interface Pagination {
 
 export const createEventSchool = async (taskData: addEventSchool): Promise<EventSchool> => {
   try {
-    const response = await axios.post<EventSchool>(`${API_BASE_URL}/schoolevent`, taskData);
+    const response = await httpApi.post<EventSchool>(`${API_BASE_URL}/schoolevent`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error creating task:', error);

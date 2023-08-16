@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/EventTasks`;
 
@@ -30,7 +30,7 @@ export interface Pagination {
 
 export const createEventTask = async (taskData: addEventTask): Promise<EventTask> => {
   try {
-    const response = await axios.post<EventTask>(`${API_BASE_URL}/eventtask`, taskData);
+    const response = await httpApi.post<EventTask>(`${API_BASE_URL}/eventtask`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error creating task:', error);

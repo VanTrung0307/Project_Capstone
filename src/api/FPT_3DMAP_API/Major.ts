@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Major`;
 
@@ -27,7 +27,7 @@ export interface PaginationData {
 
 export const getPaginatedMajors = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<MajorList>(API_BASE_URL);
+    const response = await httpApi.get<MajorList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -53,7 +53,7 @@ export const getPaginatedMajors = async (pagination: Pagination): Promise<Pagina
 
 export const getMajorById = async (majorId: string): Promise<Major> => {
   try {
-    const response = await axios.get<Major>(`${API_BASE_URL}/${majorId}`);
+    const response = await httpApi.get<Major>(`${API_BASE_URL}/${majorId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching major:', error);
@@ -63,7 +63,7 @@ export const getMajorById = async (majorId: string): Promise<Major> => {
 
 export const createMajor = async (majorData: Major): Promise<Major> => {
   try {
-    const response = await axios.post<Major>(`${API_BASE_URL}/major`, majorData);
+    const response = await httpApi.post<Major>(`${API_BASE_URL}/major`, majorData);
     return response.data;
   } catch (error) {
     console.error('Error creating major:', error);
@@ -73,7 +73,7 @@ export const createMajor = async (majorData: Major): Promise<Major> => {
 
 export const updateMajor = async (majorId: string, majorData: Major): Promise<Major> => {
   try {
-    const response = await axios.put<Major>(`${API_BASE_URL}/${majorId}`, majorData);
+    const response = await httpApi.put<Major>(`${API_BASE_URL}/${majorId}`, majorData);
     return response.data;
   } catch (error) {
     console.error('Error updating major:', error);

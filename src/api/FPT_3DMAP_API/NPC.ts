@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Npcs`;
 
@@ -27,7 +27,7 @@ export interface PaginationData {
 
 export const getPaginatedNpcs = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<NpcList>(API_BASE_URL);
+    const response = await httpApi.get<NpcList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 5 } = pagination;
     const total = data.length;
@@ -53,7 +53,7 @@ export const getPaginatedNpcs = async (pagination: Pagination): Promise<Paginati
 
 export const createNpc = async (npcData: Npc): Promise<Npc> => {
   try {
-    const response = await axios.post<Npc>(`${API_BASE_URL}/npc`, npcData);
+    const response = await httpApi.post<Npc>(`${API_BASE_URL}/npc`, npcData);
     return response.data;
   } catch (error) {
     console.error('Error creating npc:', error);
@@ -63,7 +63,7 @@ export const createNpc = async (npcData: Npc): Promise<Npc> => {
 
 export const getNpcById = async (npcId: string): Promise<Npc> => {
   try {
-    const response = await axios.get<Npc>(`${API_BASE_URL}/${npcId}`);
+    const response = await httpApi.get<Npc>(`${API_BASE_URL}/${npcId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching npc:', error);
@@ -73,7 +73,7 @@ export const getNpcById = async (npcId: string): Promise<Npc> => {
 
 export const updateNpc = async (npcId: string, npcData: Npc): Promise<Npc> => {
   try {
-    const response = await axios.put<Npc>(`${API_BASE_URL}/${npcId}`, npcData);
+    const response = await httpApi.put<Npc>(`${API_BASE_URL}/${npcId}`, npcData);
     return response.data;
   } catch (error) {
     console.error('Error updating npc:', error);
