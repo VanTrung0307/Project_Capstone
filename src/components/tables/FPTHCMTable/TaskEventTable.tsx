@@ -1,24 +1,26 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import { EventTask, addEventTask, createEventTask } from '@app/api/FPT_3DMAP_API/EventTask';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import {
+  EventTask,
+  TaskByEvent,
+  addEventTask,
+  createEventTask,
+  getTaskbyEventId,
+  updateEventTask,
+  updateEventTaskData,
+} from '@app/api/FPT_3DMAP_API/EventTask';
 import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
 import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
-import {
-  Pagination,
-  Task,
-  TaskEvent,
-  getPaginatedTasks,
-  getTaskbyEventId,
-  updateTask,
-} from '@app/api/FPT_3DMAP_API/Task';
+import { Pagination, Task, getPaginatedTasks, updateTask } from '@app/api/FPT_3DMAP_API/Task';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -28,7 +30,6 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -39,18 +40,19 @@ export const TaskEventTable: React.FC = () => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: TaskEvent[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: TaskByEvent[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
   const [tasks, setTask] = useState<Task[]>([]);
+  const { eventId } = useParams<{ eventId: string | undefined }>();
   const [locations, setLocations] = useState<RoomLocation[]>([]);
   const [npcs, setNpcs] = useState<Npc[]>([]);
   const [majors, setMajors] = useState<Major[]>([]);
   const [items, setItems] = useState<Item[]>([]);
 
-  const isEditing = (record: TaskEvent) => record.id === editingKey;
+  const isEditing = (record: TaskByEvent) => record.eventtaskId === editingKey;
 
   const [form] = Form.useForm();
 
@@ -58,7 +60,7 @@ export const TaskEventTable: React.FC = () => {
     try {
       const row = await form.validateFields();
       const newData = [...data.data];
-      const index = newData.findIndex((item) => key === item.id);
+      const index = newData.findIndex((item) => key === item.eventtaskId);
 
       let item;
 
@@ -67,6 +69,7 @@ export const TaskEventTable: React.FC = () => {
         const updatedItem = {
           ...item,
           ...row,
+          eventId: eventId,
         };
 
         Object.keys(updatedItem).forEach((field) => {
@@ -75,7 +78,7 @@ export const TaskEventTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Task:', updatedItem);
+        message.warn('Updated null Task:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -88,17 +91,18 @@ export const TaskEventTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateTask(key.toString(), row);
-        console.log('Task data updated successfully');
+        await updateEventTask(key.toString(), row);
+        fetch(data.pagination);
+        message.success('Task data updated successfully');
       } catch (error) {
-        console.error('Error updating Task data:', error);
+        message.error('Error updating Task data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -106,14 +110,14 @@ export const TaskEventTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<TaskEvent> & { key: React.Key }) => {
+  const edit = (record: Partial<TaskByEvent> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof TaskEvent) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof TaskByEvent) => {
     const updatedData = data.data.map((record) => {
-      if (record.id === key) {
+      if (record.eventtaskId === key) {
         return { ...record, [dataIndex]: value };
       }
       return record;
@@ -122,63 +126,30 @@ export const TaskEventTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const { eventId } = useParams<{ eventId: string | undefined }>();
+
   const [event, setEvent] = useState<Event | undefined>(undefined);
-  const [originalData, setOriginalData] = useState<TaskEvent[]>([]);
+  const [originalData, setOriginalData] = useState<TaskByEvent[]>([]);
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
-      if (eventId === undefined) {
-        console.error('School ID is missing in the URL.');
-        return;
-      }
-
       setData((tableData) => ({ ...tableData, loading: true }));
-      getTaskbyEventId(eventId, pagination)
-        .then((res) => {
+      if (eventId) {
+        try {
+          const res = await getTaskbyEventId(eventId, pagination);
           if (isMounted.current) {
             setOriginalData(res.data);
             setData({ data: res.data, pagination: res.pagination, loading: false });
           }
-        })
-        .catch((error) => {
-          console.error('Error fetching paginated tasks:', error);
-          setData((tableData) => ({ ...tableData, loading: false }));
-        });
-
-      try {
-        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 1000 });
-        setLocations(locationResponse.data);
-      } catch (error) {
-        console.error('Error fetching locations:', error);
+        } catch (error) {
+          message.error('Error fetching tasks');
+        }
       }
 
       try {
-        const taskResponse = await getPaginatedTasks({ current: 1, pageSize: 1000 });
+        const taskResponse = await getPaginatedTasks({ current: 1, pageSize: 10 });
         setTask(taskResponse.data);
       } catch (error) {
-        console.error('Error fetching locations:', error);
-      }
-
-      try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 1000 });
-        setMajors(majorResponse.data);
-      } catch (error) {
-        console.error('Error fetching majors:', error);
-      }
-
-      try {
-        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 });
-        setNpcs(npcResponse.data);
-      } catch (error) {
-        console.error('Error fetching npcs:', error);
-      }
-
-      try {
-        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 1000 });
-        setItems(itemResponse.data);
-      } catch (error) {
-        console.error('Error fetching items:', error);
+        message.error('Error fetching locations');
       }
     },
     [isMounted, eventId],
@@ -186,7 +157,7 @@ export const TaskEventTable: React.FC = () => {
 
   useEffect(() => {
     if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 5 };
+      const pagination: Pagination = { current: 1, pageSize: 10 };
 
       getPaginatedEvents(pagination)
         .then((response) => {
@@ -194,7 +165,7 @@ export const TaskEventTable: React.FC = () => {
           setEvent(eventData);
         })
         .catch((error) => {
-          console.error('Error fetching paginated events:', error);
+          message.error('Error fetching paginated events:', error);
         });
     }
   }, [eventId]);
@@ -240,54 +211,49 @@ export const TaskEventTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Event Task data created successfully');
-
-        getPaginatedTasks(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Event Task data created successfully');
       } catch (error) {
-        console.error('Error creating Event Task data:', error);
+        message.error('Error creating Event Task data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
-  const uniqueMajorNames = new Set(data.data.map((record) => record.majorName));
-  const majorNameFilters = Array.from(uniqueMajorNames).map((majorName) => ({
-    text: majorName,
-    value: majorName,
-  }));
+  const formatDateTime = (isoDateTime: number) => {
+    const dateTime = new Date(isoDateTime);
+    const year = dateTime.getFullYear();
+    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  };
 
-  const uniqueTaskTypes = new Set(data.data.map((record) => record.type));
-  const taskTypeFilters = Array.from(uniqueTaskTypes).map((taskType) => ({
-    text: taskType,
-    value: taskType,
-  }));
-
-  const columns: ColumnsType<TaskEvent> = [
+  const columns: ColumnsType<TaskByEvent> = [
     {
-      title: t('Địa điểm'),
-      dataIndex: 'locationName',
-      render: (text: string, record: TaskEvent) => {
+      title: t('Tên nhiệm vụ'),
+      dataIndex: 'name',
+      render: (text: string, record: TaskByEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'locationName';
+        const dataIndex: keyof TaskByEvent = 'taskId';
         return editable ? (
           <Form.Item
-            key={record.locationName}
+            key={record.taskId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Địa điểm là cần thiết' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.locationName, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.taskId, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
-              {locations.map((location) => (
-                <Select.Option key={location.id} value={location.id}>
-                  {location.locationName}
+              {tasks.map((tasks) => (
+                <Select.Option key={tasks.id} value={tasks.id}>
+                  {tasks.name}
                 </Select.Option>
               ))}
             </Select>
@@ -300,109 +266,22 @@ export const TaskEventTable: React.FC = () => {
       showSorterTooltip: false,
     },
     {
-      title: t('Tên Ngành'),
-      dataIndex: 'majorName',
-      filters: majorNameFilters,
-      onFilter: (value, record) => record.majorName === value,
-      render: (text: string, record: TaskEvent) => {
+      title: t('Tên sự kiện'),
+      dataIndex: 'eventName',
+      render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'majorName';
+        const dataIndex: keyof TaskByEvent = 'eventId';
         return editable ? (
           <Form.Item
-            key={record.majorName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
-          >
-            <Select
-              value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {majors.map((major) => (
-                <Select.Option key={major.id} value={major.id}>
-                  {major.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
-      title: t('Tên NPC'),
-      dataIndex: 'npcName',
-      render: (text: string, record: TaskEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'npcName';
-        return editable ? (
-          <Form.Item
-            key={record.npcName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên NPC là cần thiết' }]}
-          >
-            <Select
-              value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.npcName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {npcs.map((npc) => (
-                <Select.Option key={npc.id} value={npc.id}>
-                  {npc.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-      showSorterTooltip: false,
-    },
-    {
-      title: t('Vật phẩm'),
-      dataIndex: 'itemName',
-      render: (text: string, record: TaskEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'itemName';
-        return editable ? (
-          <Form.Item key={record.itemName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
-            <Select
-              value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.itemName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {items.map((item) => (
-                <Select.Option key={item.id} value={item.id}>
-                  {item.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : 'Không có'}</span>
-        );
-      },
-    },
-    {
-      title: t('Tên nhiệm vụ'),
-      dataIndex: 'name',
-      render: (text: string, record: TaskEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'name';
-        return editable ? (
-          <Form.Item
-            key={record.name}
+            key={record.eventId}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
           >
             <Input
+              disabled
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.eventName, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -411,16 +290,37 @@ export const TaskEventTable: React.FC = () => {
       },
     },
     {
-      title: t('Loại nhiệm vụ'),
-      dataIndex: 'type',
-      filters: taskTypeFilters,
-      onFilter: (value, record) => record.type === value,
-      render: (text: string, record: TaskEvent) => {
+      title: t('Điểm thưởng'),
+      dataIndex: 'point',
+      render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'type';
+        const dataIndex: keyof TaskByEvent = 'point';
         return editable ? (
           <Form.Item
-            key={record.type}
+            key={record.point}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
+          >
+            <Input
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text}</span>
+        );
+      },
+    },
+    {
+      title: t('Mức độ'),
+      dataIndex: 'priority',
+      render: (text: number, record: TaskByEvent) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof TaskByEvent = 'priority';
+        return editable ? (
+          <Form.Item
+            key={record.priority}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a type' }]}
@@ -428,7 +328,7 @@ export const TaskEventTable: React.FC = () => {
             <Input
               maxLength={100}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.priority, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -437,55 +337,67 @@ export const TaskEventTable: React.FC = () => {
       },
     },
     {
-      title: t('Trạng thái'),
-      dataIndex: 'status',
-      filters: [
-        { text: 'ACTIVE', value: 'ACTIVE' },
-        { text: 'INACTIVE', value: 'INACTIVE' },
-      ],
-      onFilter: (value, record) => record.status === value,
-      render: (text: string, record: TaskEvent) => {
+      title: t('Thời gian bắt đầu'),
+      dataIndex: 'starttime',
+      render: (text: string, record: TaskByEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof TaskEvent = 'status';
-
-        const statusOptions = ['ACTIVE', 'INACTIVE'];
-
+        const dataIndex: keyof TaskByEvent = 'starttime';
         return editable ? (
           <Form.Item
-            key={record.status}
+            key={record.starttime}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái tọa độ là cần thiết' }]}
+            rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
           >
-            <Select
-              value={text}
-              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {statusOptions.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}
-                </Select.Option>
-              ))}
-            </Select>
+            <Input
+              type="datetime-local"
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.starttime, dataIndex)}
+            />
           </Form.Item>
         ) : (
-          <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+          <span>{formatDateTime(record.starttime)}</span>
+        );
+      },
+    },
+    {
+      title: t('Thời gian kết thúc'),
+      dataIndex: 'endtime',
+      render: (text: string, record: TaskByEvent) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof TaskByEvent = 'endtime';
+        return editable ? (
+          <Form.Item
+            key={record.endtime}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
+          >
+            <Input
+              type="datetime-local"
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{formatDateTime(record.endtime)}</span>
         );
       },
     },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      render: (text: string, record: TaskEvent) => {
+      render: (text: string, record: TaskByEvent) => {
         const editable = isEditing(record);
+
         return (
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.id)}>
+                <Button type="primary" onClick={() => save(record.eventtaskId)}>
                   {t('common.save')}
                 </Button>
+
                 <Button type="ghost" onClick={cancel}>
                   {t('common.cancel')}
                 </Button>
@@ -494,8 +406,8 @@ export const TaskEventTable: React.FC = () => {
               <>
                 <Button
                   type="ghost"
-                  disabled={editingKey === record.id}
-                  onClick={() => edit({ ...record, key: record.id })}
+                  disabled={editingKey === record.eventtaskId}
+                  onClick={() => edit({ ...record, key: record.eventtaskId })}
                 >
                   {t('common.edit')}
                 </Button>
@@ -558,9 +470,7 @@ export const TaskEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên sự kiện'}</Label>
             <InputContainer>
-              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
-                {event?.name}
-              </BaseForm.Item>
+              <BaseForm.Item name="eventId">{event?.name}</BaseForm.Item>
             </InputContainer>
           </FlexContainer>
 
@@ -568,7 +478,7 @@ export const TaskEventTable: React.FC = () => {
             <Label>{'Thời gian bắt đầu'}</Label>
             <InputContainer>
               <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
-                <Input type="datetime-local" />
+                <Input type="datetime-local" required />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -577,13 +487,13 @@ export const TaskEventTable: React.FC = () => {
             <Label>{'Thời gian kết thúc'}</Label>
             <InputContainer>
               <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
-                <Input type="datetime-local" />
+                <Input type="datetime-local" required />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
 
           <FlexContainer>
-            <Label>{'Số lượng'}</Label>
+            <Label>{'Mức độ'}</Label>
             <InputContainer>
               <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
                 <Input type="number" />
@@ -591,15 +501,6 @@ export const TaskEventTable: React.FC = () => {
             </InputContainer>
           </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Điểm thưởng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          
           <FlexContainer>
             <Label>{'Điểm thưởng'}</Label>
             <InputContainer>
@@ -622,7 +523,7 @@ export const TaskEventTable: React.FC = () => {
         }}
         onChange={(e) => {
           if (e.target.value.trim() === '') {
-            setData((prevData) => ({ ...prevData, data: originalData }));
+            setOriginalData((prevData) => ({ ...prevData, data: originalData }));
           }
         }}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}

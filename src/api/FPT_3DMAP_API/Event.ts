@@ -1,15 +1,14 @@
 /* eslint-disable prettier/prettier */
 
-import { httpApi } from "../http.api";
-
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Events`;
 
 export type Event = {
   name: string;
   startTime: number;
-  endTime: number
-  status: string; 
+  endTime: number;
+  status: string;
   id: string;
 };
 
@@ -39,8 +38,6 @@ export const getPaginatedEvents = async (pagination: Pagination): Promise<Pagina
     const endIndex = startIndex + pageSize;
 
     const paginatedData = data.slice(startIndex, endIndex);
-    console.log(paginatedData);
-    
 
     return {
       data: paginatedData,

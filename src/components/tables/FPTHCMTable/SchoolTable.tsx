@@ -1,18 +1,13 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import {
-  Pagination,
-  School,
-  createSchool,
-  getPaginatedSchools,
-  updateSchool
-} from '@app/api/FPT_3DMAP_API/School';
+import { Pagination, School, createSchool, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -64,9 +59,7 @@ export const SchoolTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Major:', updatedItem);
-
-        newData.splice(index, 1, updatedItem);
+        message.warn('Updated null Major:', updatedItem);
       } else {
         newData.push(row);
       }
@@ -78,16 +71,17 @@ export const SchoolTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        console.log('School data updated successfully');
+        message.success('Cập nhật thành công');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error updating school data:', error);
+        message.error('Cập nhật không thành công');
+        fetch(data.pagination);
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -118,8 +112,9 @@ export const SchoolTable: React.FC = () => {
       setData((tableData) => ({ ...tableData, loading: true }));
       getPaginatedSchools(pagination).then((res) => {
         if (isMounted.current) {
-          setOriginalData(res.data);
-          setData({ data: res.data, pagination: res.pagination, loading: false });
+          const sortedData = res.data.slice().reverse();
+          setOriginalData(sortedData);
+          setData({ data: sortedData, pagination: res.pagination, loading: false });
         }
       });
     },
@@ -141,6 +136,18 @@ export const SchoolTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
+      Object.keys(values).forEach((key) => {
+        if (typeof values[key] === 'string') {
+          values[key] = values[key].trim();
+        }
+      });
+
+      const hasEmptyValues = Object.values(values).some((value) => value === '');
+      if (hasEmptyValues) {
+        message.error('Phải nhập đầy đủ thông tin');
+        return;
+      }
+
       const newData: School = {
         name: values.name,
         phoneNumber: values.phoneNumber,
@@ -150,28 +157,34 @@ export const SchoolTable: React.FC = () => {
         id: values.id,
       };
 
-      setData((prevData) => ({ ...prevData, loading: true }));
-
-      try {
-        const createdSchool = await createSchool(newData);
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdSchool],
-          loading: false,
-        }));
-        form.resetFields();
-        setIsBasicModalOpen(false);
-        console.log('School data created successfully');
-
-        getPaginatedSchools(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
+      const isDuplicate = data.data.some((school) => {
+        return Object.keys(values).every((key) => {
+          return (school as any)[key] === values[key];
         });
-      } catch (error) {
-        console.error('Error creating School data:', error);
-        setData((prevData) => ({ ...prevData, loading: false }));
+      });
+
+      if (isDuplicate) {
+        message.error('Dữ liệu đã tồn tại');
+      } else {
+        try {
+          const createdSchool = await createSchool(newData);
+
+          setData((prevData) => ({
+            ...prevData,
+            data: [createdSchool, ...prevData.data],
+            loading: false,
+          }));
+          form.resetFields();
+          setIsBasicModalOpen(false);
+          message.success('Thêm trường thành công');
+          fetch(data.pagination);
+        } catch (error) {
+          message.error('Thêm trường không thành công');
+          setData((prevData) => ({ ...prevData, loading: false }));
+        }
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Phải nhập đầy đủ thông tin');
     }
   };
 
@@ -193,7 +206,7 @@ export const SchoolTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên trường' }]}
           >
             <Input
               maxLength={100}
@@ -209,11 +222,17 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
+      width: '15%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'email';
         return editable ? (
-          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item
+            key={record.email}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hãy nhập email của trường' }]}
+          >
             <Input
               type="email"
               maxLength={100}
@@ -227,7 +246,7 @@ export const SchoolTable: React.FC = () => {
       },
     },
     {
-      title: t('Địa chỉ nhà trường'),
+      title: t('Địa chỉ'),
       dataIndex: 'address',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
@@ -235,7 +254,12 @@ export const SchoolTable: React.FC = () => {
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item key={record.address} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.address}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hãy nhập địa chỉ trường' }]}
+          >
             <TextArea
               autoSize={{ maxRows: 3 }}
               value={record[dataIndex]}
@@ -254,7 +278,12 @@ export const SchoolTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'phoneNumber';
         return editable ? (
-          <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.phoneNumber}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hãy nhập số điẹn thoại của trường' }]}
+          >
             <Input
               type="tel"
               value={record[dataIndex]}
@@ -262,7 +291,7 @@ export const SchoolTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+          <span>0{text}</span>
         );
       },
     },
@@ -285,7 +314,7 @@ export const SchoolTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập trạng thái' }]}
           >
             <Select
               value={text}
@@ -327,10 +356,10 @@ export const SchoolTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
                 <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
-                  {t('Detail')}
+                  Danh sách học sinh
                 </Button>
               </>
             )}
@@ -348,6 +377,10 @@ export const SchoolTable: React.FC = () => {
 
   const Label = styled.label`
     flex: 0 0 200px;
+    ::before {
+      content: '* ';
+      color: red;
+    }
   `;
 
   const InputContainer = styled.div`
@@ -373,7 +406,20 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên trường'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên trường là cần thiết') }]}>
+              <BaseForm.Item
+                name="name"
+                rules={[
+                  { required: true, message: t('Hãy nhập tên trường') },
+                  {
+                    pattern: /^[^\d\W].*$/,
+                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                  },
+                  {
+                    max: 100,
+                    message: 'Tên trường không được vượt quá 100 ký tự',
+                  },
+                ]}
+              >
                 <Input />
               </BaseForm.Item>
             </InputContainer>
@@ -382,7 +428,20 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Email'}</Label>
             <InputContainer>
-              <BaseForm.Item name="email">
+              <BaseForm.Item
+                name="email"
+                rules={[
+                  { required: true, message: t('Hãy nhập email trường') },
+                  {
+                    pattern: /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-][a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]*@gmail\.com$/,
+                    message: 'Email phải có định dạng name@gmail.com và không có ký tự đặc biệt ở đầu',
+                  },
+                  {
+                    max: 100,
+                    message: 'Email không được vượt quá 100 ký tự',
+                  },
+                ]}
+              >
                 <Input />
               </BaseForm.Item>
             </InputContainer>
@@ -391,7 +450,16 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Số điện thoại'}</Label>
             <InputContainer>
-              <BaseForm.Item name="phoneNumber">
+              <BaseForm.Item
+                name="phoneNumber"
+                rules={[
+                  { required: true, message: t('Hãy nhập số điện thoại của trường') },
+                  {
+                    pattern: /^[0][0-9]{9,11}$/,
+                    message: 'Số điện thoại không hợp lệ',
+                  },
+                ]}
+              >
                 <Input type="tel" />
               </BaseForm.Item>
             </InputContainer>
@@ -400,8 +468,17 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Địa chỉ'}</Label>
             <InputContainer>
-              <BaseForm.Item name="address">
-                <TextArea autoSize={{ maxRows: 3 }} />
+              <BaseForm.Item
+                name="address"
+                rules={[
+                  { required: true, message: t('Hãy nhập địa chỉ của trường') },
+                  {
+                    max: 1000,
+                    message: 'Tên trường không được vượt quá 1000 ký tự',
+                  },
+                ]}
+              >
+                <TextArea />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -409,8 +486,9 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Hãy nhập trạng thái') }]}>
                 <Select
+                  style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn trạng thái ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
@@ -454,7 +532,7 @@ export const SchoolTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

@@ -63,7 +63,7 @@ export const EventStudentTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Major:', updatedItem);
+        message.warning('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -77,16 +77,16 @@ export const EventStudentTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        console.log('School data updated successfully');
+        message.success('School updated successfully');
       } catch (error) {
-        console.error('Error updating school data:', error);
+        message.error('Error updating school data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -123,7 +123,7 @@ export const EventStudentTable: React.FC = () => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       } catch (error) {
-        console.error('Error fetching schools:', error);
+        message.error('Error fetching schools');
       }
     }
   };
@@ -146,7 +146,7 @@ export const EventStudentTable: React.FC = () => {
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
+        message.warn(`${name} ${status}`);
       }
       if (status === 'done') {
         message.success(t('uploads.successUpload', { name: info.file.name }));
@@ -157,59 +157,40 @@ export const EventStudentTable: React.FC = () => {
     },
   };
 
-  const [isAddPlayerModalVisible, setIsAddPlayerModalVisible] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [selectOptions, setSelectOptions] = useState<Event[]>([]);
-  const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | undefined>(undefined);
-
-  const initialFormData = {};
-
-  const fetchSelectOptions = async () => {
+  const handleSavePlayer = async (studentId: string, eventId: string, fullname: string) => {
     try {
-      const pagination = { current: 1, pageSize: 10 };
-      const response = await getPaginatedEvents(pagination);
-      setSelectOptions(response.data);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    }
-  };
-
-  const handleAddPlayer = (studentId: string) => {
-    setSelectedStudentId(studentId);
-    setIsAddPlayerModalVisible(true);
-    fetchSelectOptions();
-    setFormData(initialFormData);
-  };
-
-  const handleSavePlayer = async () => {
-    setIsAddPlayerModalVisible(false);
-
-    try {
-      if (selectedStudentId && selectedOption) {
+      if (studentId && eventId) {
         await createPlayer({
-          studentId: selectedStudentId,
-          studentName: '',
-          eventId: selectedOption,
+          studentId: studentId,
+          eventId: eventId,
           nickname: '',
           passcode: '',
           createdAt: new Date().toISOString(),
           totalPoint: 0,
           totalTime: 0,
           isplayer: true,
-          id: '',
         });
 
-        message.success('Player added successfully');
+        message.success(`${fullname} added successfully`);
       }
     } catch (error) {
-      console.error('Error adding player:', error);
+      message.error('Error adding player');
       message.error('Failed to add player');
     }
   };
 
-  const handleCancelPlayer = () => {
-    setIsAddPlayerModalVisible(false);
+  const handleGeneratePasscode = async () => {
+    try {
+      if (eventId) {
+        for (const record of data.data) {
+          await handleSavePlayer(record.id, eventId, record.fullname);
+        }
+        fetchData(data.pagination);
+        message.success('Passcodes generated successfully');
+      }
+    } catch (error) {
+      message.error('Error generating passcodes');
+    }
   };
 
   const uniqueClassnames = new Set(data.data.map((record) => record.classname));
@@ -381,31 +362,6 @@ export const EventStudentTable: React.FC = () => {
                 >
                   {t('common.edit')}
                 </Button>
-                <Button type="ghost" onClick={() => handleAddPlayer(record.id)}>
-                  Become Player
-                </Button>
-                <Modal
-                  title="Add Player"
-                  visible={isAddPlayerModalVisible}
-                  onOk={handleSavePlayer}
-                  onCancel={handleCancelPlayer}
-                >
-                  <Form>
-                    <Form.Item label="Select Event">
-                      <Select
-                        value={selectedOption}
-                        onChange={(value) => setSelectedOption(value)}
-                        placeholder="Select an event"
-                      >
-                        {selectOptions.map((event) => (
-                          <Select.Option key={event.id} value={event.id}>
-                            {event.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Form>
-                </Modal>
               </>
             )}
           </Space>
@@ -421,6 +377,17 @@ export const EventStudentTable: React.FC = () => {
           {t('uploads.clickToUpload')}
         </Button>
       </Upload>
+
+      {eventId && (
+        <Button
+          type="primary"
+          onClick={handleGeneratePasscode}
+          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 220px' }}
+        >
+          Generate Passcode
+        </Button>
+      )}
+
       <SearchInput
         placeholder="Search..."
         allowClear

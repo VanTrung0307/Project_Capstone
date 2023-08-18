@@ -4,7 +4,7 @@ import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { Pagination, Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
 import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form } from 'antd';
+import { Form, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -57,7 +57,7 @@ export const PlayerTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error('Error fetching paginated players:', error);
+          message.error('Error fetching paginated players:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
@@ -65,13 +65,13 @@ export const PlayerTable: React.FC = () => {
         const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        message.error('Error fetching events');
       }
       try {
         const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 });
         setStudents(studentResponse.data);
       } catch (error) {
-        console.error('Error fetching students:', error);
+        message.error('Error fetching students');
       }
     },
     [isMounted],

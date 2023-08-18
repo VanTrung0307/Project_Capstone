@@ -4,7 +4,7 @@ import { Major, Pagination, createMajor, getPaginatedMajors, updateMajor } from 
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -56,7 +56,7 @@ export const MajorTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Major:', updatedItem);
+        message.warn('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -70,16 +70,16 @@ export const MajorTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateMajor(key.toString(), row);
-        console.log('Major data updated successfully');
+        message.success('Major data updated successfully');
       } catch (error) {
-        console.error('Error updating Major data:', error);
+        message.error('Error updating Major data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -151,17 +151,14 @@ export const MajorTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Major data created successfully');
-
-        getPaginatedMajors(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Major data created successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error creating Major data:', error);
+        message.error('Error creating Major data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
@@ -222,7 +219,7 @@ export const MajorTable: React.FC = () => {
                   openDescriptionModal();
                 }
               }}
-              style={{ 
+              style={{
                 cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
               }}
             >

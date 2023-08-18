@@ -12,7 +12,7 @@ import {
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { FilterCheckboxGroup } from '@app/components/nft-dashboard/recentActivity/recentActivityFilters/RecentActivityStatusFilter/RecentActivityStatusFilter.styles';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -65,7 +66,7 @@ export const RoomAndLocationTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Room&Location:', updatedItem);
+        message.success('Updated null Room&Location:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -79,16 +80,17 @@ export const RoomAndLocationTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateRoomLocation(key.toString(), row);
-        console.log('Room location data updated successfully');
+        message.success('Room location data updated successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error updating room location data:', error);
+        message.error('Error updating room location data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -170,17 +172,14 @@ export const RoomAndLocationTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('RoomLocation data created successfully');
-
-        getPaginatedRoomLocations(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('RoomLocation data created successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error creating RoomLocation data:', error);
+        message.error('Error creating RoomLocation data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 

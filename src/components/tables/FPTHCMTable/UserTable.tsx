@@ -7,7 +7,7 @@ import { Pagination, Student, createStudent, getPaginatedStudent, updateStudent 
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -64,16 +64,17 @@ export const UserTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateStudent(key.toString(), row);
-        console.log('Student data updated successfully');
+        message.success('Student data updated successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error updating Student data:', error);
+        message.error('Error updating Student data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.success('Validate Failed');
     }
   };
 
@@ -98,7 +99,7 @@ export const UserTable: React.FC = () => {
       });
       setData((prevData) => ({ ...prevData, data: updatedData }));
     } else {
-      console.error('Selected school not found.');
+      message.error('Selected school not found.');
     }
   };
 
@@ -116,14 +117,14 @@ export const UserTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error('Error fetching paginated users:', error);
+          message.error('Error fetching paginated users:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
       try {
         const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
         setSchools(schoolResponse.data);
       } catch (error) {
-        console.error('Error fetching schools:', error);
+        message.error('Error fetching schools');
       }
     },
     [isMounted],
@@ -177,17 +178,14 @@ export const UserTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Student data created successfully');
-
-        getPaginatedStudent(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Student data created successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error creating Student data:', error);
+        message.error('Error creating Student data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
@@ -451,13 +449,6 @@ export const UserTable: React.FC = () => {
 
   return (
     <Form form={form}>
-      <Button
-        type="default"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '150px', margin: '15px 20px' }}
-      >
-        Import Excel
-      </Button>
       <Button
         type="primary"
         onClick={() => setIsBasicModalOpen(true)}

@@ -5,7 +5,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Avatar, Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Avatar, Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import Upload from 'antd/lib/upload/Upload';
 import { Table } from 'components/common/Table/Table';
@@ -57,7 +57,7 @@ export const ItemTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Item:', updatedItem);
+        message.warn('Updated null Item:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -71,10 +71,10 @@ export const ItemTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateItem(key.toString(), row);
-        console.log('Item data updated successfully');
+        message.success('Item data updated successfully');
         fetch(data.pagination);
       } catch (error) {
-        console.error('Error updating Item data:', error);
+        message.error('Error updating Item data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
@@ -82,7 +82,7 @@ export const ItemTable: React.FC = () => {
         fetch(data.pagination);
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -160,17 +160,17 @@ export const ItemTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Item data created successfully');
+        message.success('Item data created successfully');
 
         getPaginatedItems(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
-        console.error('Error creating Item data:', error);
+        message.error('Error creating Item data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 

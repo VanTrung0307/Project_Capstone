@@ -48,14 +48,13 @@ export const LoginForm: React.FC = () => {
         dispatch(setUser(studentId));
 
         persistToken(token);
-
+        notificationController.success({ message: 'Đăng nhập thành công' });
         navigate('/');
       } else {
-        notificationController.error({ message: 'Login failed.' });
+        notificationController.error({ message: 'Tài khoản hoặc mật khẩu sai' });
       }
     } catch (err) {
-      console.error('Error Logging In:', err);
-      notificationController.error({ message: 'An error occurred while logging in.' });
+      notificationController.error({ message: 'Tài khoản không thuộc hệ thống' });
     } finally {
       setLoading(false);
     }

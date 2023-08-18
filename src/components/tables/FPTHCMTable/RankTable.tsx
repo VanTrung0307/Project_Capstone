@@ -53,7 +53,7 @@ export const RankTable: React.FC = () => {
 
   const fetch = useCallback(
     (pagination: Pagination) => {
-      setData((tableData) => ({ ...tableData, loading: true }));
+      setData((tableData) => ({ ...tableData, loading: false }));
 
       getPaginatedEvents({ current: 1, pageSize: 10 }).then((paginationData) => {
         setEvents(paginationData.data);

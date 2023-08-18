@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Players`;
 
@@ -18,7 +19,6 @@ export type Player = {
 
 interface PlayerData {
   studentId: string;
-  studentName: string;
   eventId: string;
   nickname: string;
   passcode: string;
@@ -26,7 +26,6 @@ interface PlayerData {
   totalPoint: number;
   totalTime: number;
   isplayer: boolean;
-  id: string;
 }
 
 export type PlayerList = {
@@ -102,7 +101,7 @@ export const getRankedPlayers = async (
 
 export const getPlayerById = async (playerId: string): Promise<Player> => {
   try {
-    const response = await axios.get<Player>(`${API_BASE_URL}/${playerId}`);
+    const response = await httpApi.get<Player>(`${API_BASE_URL}/${playerId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching player:', error);
@@ -112,7 +111,6 @@ export const getPlayerById = async (playerId: string): Promise<Player> => {
 
 export const createPlayer = async ({
   studentId,
-  studentName,
   eventId,
   nickname,
   passcode,
@@ -120,12 +118,10 @@ export const createPlayer = async ({
   totalPoint,
   totalTime,
   isplayer,
-  id,
 }: PlayerData): Promise<Player> => {
   try {
     const playerData: PlayerData = {
       studentId,
-      studentName,
       eventId,
       nickname,
       passcode,
@@ -133,10 +129,9 @@ export const createPlayer = async ({
       totalPoint,
       totalTime,
       isplayer,
-      id,
     };
 
-    const response = await axios.post(`${API_BASE_URL}/player`, playerData);
+    const response = await httpApi.post(`${API_BASE_URL}/player`, playerData);
     return response.data;
   } catch (error) {
     console.error('Error creating player:', error);

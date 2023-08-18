@@ -99,32 +99,3 @@ export const updateSchool = async (schoolId: string, schoolData: School): Promis
     throw error;
   }
 };
-
-export const getSchoolbyEventId = async (
-  eventId: string,
-  pagination: Pagination,
-): Promise<PaginationSchoolEventData> => {
-  try {
-    const response = await httpApi.get<SchoolEventList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
-    const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
-    const total = data.length;
-
-    const startIndex = (current - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    const paginatedData = data.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedData,
-      pagination: {
-        current,
-        pageSize,
-        total,
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching paginated schools:', error);
-    throw error;
-  }
-};

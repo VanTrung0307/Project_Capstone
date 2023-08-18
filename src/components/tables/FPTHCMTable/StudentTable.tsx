@@ -58,7 +58,7 @@ export const StudentTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Major:', updatedItem);
+        message.warn('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -72,16 +72,17 @@ export const StudentTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        console.log('School data updated successfully');
+        message.success('School data updated successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error updating school data:', error);
+        message.error('Error updating school data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.success('Validate Failed');
     }
   };
 
@@ -111,7 +112,7 @@ export const StudentTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       if (schoolId === undefined) {
-        console.error('School ID is missing in the URL.');
+        message.error('School ID is missing in the URL.');
         return;
       }
 
@@ -142,7 +143,7 @@ export const StudentTable: React.FC = () => {
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
+        message.warn(`${name} ${status}`);
       }
       if (status === 'done') {
         message.success(t('uploads.successUpload', { name: info.file.name }));
@@ -167,7 +168,7 @@ export const StudentTable: React.FC = () => {
       const response = await getPaginatedEvents(pagination);
       setSelectOptions(response.data);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      message.error('Error fetching events');
     }
   };
 
@@ -185,7 +186,6 @@ export const StudentTable: React.FC = () => {
       if (selectedStudentId && selectedOption) {
         await createPlayer({
           studentId: selectedStudentId,
-          studentName: '',
           eventId: selectedOption,
           nickname: '',
           passcode: '',
@@ -193,13 +193,12 @@ export const StudentTable: React.FC = () => {
           totalPoint: 0,
           totalTime: 0,
           isplayer: true,
-          id: '',
         });
 
         message.success('Player added successfully');
       }
     } catch (error) {
-      console.error('Error adding player:', error);
+      message.error('Error adding player');
       message.error('Failed to add player');
     }
   };

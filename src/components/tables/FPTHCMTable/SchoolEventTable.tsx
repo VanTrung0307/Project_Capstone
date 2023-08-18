@@ -7,14 +7,13 @@ import {
   SchoolEvent,
   createSchool,
   getPaginatedSchools,
-  getSchoolbyEventId,
   updateSchool,
 } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -24,7 +23,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { EventSchool, addEventSchool, createEventSchool } from '@app/api/FPT_3DMAP_API/EventSchool';
+import {
+  EventSchool,
+  SchoolByEvent,
+  addEventSchool,
+  createEventSchool,
+  getSchoolbyEventId,
+} from '@app/api/FPT_3DMAP_API/EventSchool';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
 
@@ -38,13 +43,13 @@ export const SchoolEventTable: React.FC = () => {
   const { TextArea } = Input;
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: SchoolEvent[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: EventSchool[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: SchoolEvent) => record.id === editingKey;
+  const isEditing = (record: EventSchool) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -69,7 +74,7 @@ export const SchoolEventTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Major:', updatedItem);
+        message.success('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -83,16 +88,16 @@ export const SchoolEventTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        console.log('School data updated successfully');
+        message.success('School updated successfully');
       } catch (error) {
-        console.error('Error updating school data:', error);
+        message.error('Error updating school data:');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed:');
     }
   };
 
@@ -100,12 +105,12 @@ export const SchoolEventTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const edit = (record: Partial<SchoolEvent> & { key: React.Key }) => {
+  const edit = (record: Partial<EventSchool> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof SchoolEvent) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof EventSchool) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -119,7 +124,7 @@ export const SchoolEventTable: React.FC = () => {
   const { eventId } = useParams<{ eventId: string | undefined }>();
   const [event, setEvent] = useState<Event | undefined>(undefined);
   const [school, setSchool] = useState<School[]>([]);
-  const [originalData, setOriginalData] = useState<SchoolEvent[]>([]);
+  const [originalData, setOriginalData] = useState<EventSchool[]>([]);
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
@@ -132,7 +137,7 @@ export const SchoolEventTable: React.FC = () => {
             setData({ data: res.data, pagination: res.pagination, loading: false });
           }
         } catch (error) {
-          console.error('Error fetching schools:', error);
+          message.error('Error fetching schools');
         }
       }
 
@@ -140,7 +145,7 @@ export const SchoolEventTable: React.FC = () => {
         const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
         setSchool(schoolResponse.data);
       } catch (error) {
-        console.error('Error fetching schools:', error);
+        message.error('Error fetching schools');
       }
     },
     [isMounted, eventId],
@@ -156,7 +161,7 @@ export const SchoolEventTable: React.FC = () => {
           setEvent(eventData);
         })
         .catch((error) => {
-          console.error('Error fetching paginated events:', error);
+          message.error('Error fetching paginated events:', error);
         });
     }
   }, [eventId]);
@@ -188,27 +193,17 @@ export const SchoolEventTable: React.FC = () => {
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdEventSchool = await createEventSchool(newData);
-        setEventSchool((prevData) => ({
-          ...prevData,
-          data: [...prevData, createdEventSchool],
-          loading: false,
-        }));
-
+        await createEventSchool(newData);
+        message.success('School created successfully');
         fetch(data.pagination);
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('School data created successfully');
-
-        getPaginatedSchools(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
       } catch (error) {
-        console.error('Error creating School data:', error);
+        message.error('Error creating School data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
@@ -224,94 +219,26 @@ export const SchoolEventTable: React.FC = () => {
       navigate(`/student/${schoolId}/${eventId}`);
       await getStudenbySchoolandEventId(schoolId, eventId, pagination);
     } catch (error) {
-      console.error('Error fetching paginated schools:', error);
+      message.error('Error fetching paginated schools');
     }
   };
 
-  const columns: ColumnsType<SchoolEvent> = [
+  const columns: ColumnsType<SchoolByEvent> = [
     {
       title: t('Tên trường'),
       dataIndex: 'name',
-      render: (text: string, record: SchoolEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof SchoolEvent = 'name';
-        return editable ? (
-          <Form.Item
-            key={record.name}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
-          >
-            <Input
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Email'),
       dataIndex: 'email',
-      render: (text: string, record: SchoolEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof SchoolEvent = 'email';
-        return editable ? (
-          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
-            <Input
-              type="email"
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
-        );
-      },
     },
     {
       title: t('Địa chỉ nhà trường'),
       dataIndex: 'address',
-      render: (text: string, record: SchoolEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof SchoolEvent = 'address';
-        const maxTextLength = 255;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
-        return editable ? (
-          <Form.Item key={record.address} name={dataIndex} initialValue={text}>
-            <TextArea
-              autoSize={{ maxRows: 3 }}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
-        );
-      },
     },
     {
       title: t('Điện thoại'),
       dataIndex: 'phoneNumber',
-      render: (text: number, record: SchoolEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof SchoolEvent = 'phoneNumber';
-        return editable ? (
-          <Form.Item key={record.phoneNumber} name={dataIndex} initialValue={text}>
-            <Input
-              type="tel"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
-        );
-      },
     },
     {
       title: t('Trạng thái'),
@@ -321,74 +248,31 @@ export const SchoolEventTable: React.FC = () => {
         { text: 'INACTIVE', value: 'INACTIVE' },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (text: string, record: SchoolEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof SchoolEvent = 'status';
+      render: (text: string, record: SchoolByEvent) => {
+        const dataIndex: keyof Event = 'status';
 
-        const statusOptions = ['ACTIVE', 'INACTIVE'];
-
-        return editable ? (
-          <Form.Item
-            key={record.status}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
-          >
-            <Select
-              value={text}
-              onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {statusOptions.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
+        return dataIndex ? (
           <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
+        ) : (
+          'Đang đợi trạng tháisif'
         );
       },
     },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      render: (text: string, record: SchoolEvent) => {
-        const editable = isEditing(record);
+      render: (text: string, record: SchoolByEvent) => {
         return (
-          <Space>
-            {editable ? (
-              <>
-                <Button type="primary" onClick={() => save(record.id.toString())}>
-                  {t('common.save')}
-                </Button>
-                <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  type="ghost"
-                  disabled={editingKey === record.id}
-                  onClick={() => edit({ ...record, key: record.id })}
-                >
-                  {t('common.edit')}
-                </Button>
-                <Button
-                  type="ghost"
-                  onClick={() => {
-                    if (eventId) {
-                      handleStudentClick(record.id, eventId);
-                    }
-                  }}
-                >
-                  {t('Student')}
-                </Button>
-              </>
-            )}
-          </Space>
+          <Button
+            type="ghost"
+            onClick={() => {
+              if (eventId) {
+                handleStudentClick(record.id, eventId);
+              }
+            }}
+          >
+            {t('Student')}
+          </Button>
         );
       },
     },
@@ -427,7 +311,7 @@ export const SchoolEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên sự kiện'}</Label>
             <InputContainer>
-              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+              <BaseForm.Item name="eventId">
                 {event?.name}
               </BaseForm.Item>
             </InputContainer>
@@ -436,7 +320,7 @@ export const SchoolEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên trường'}</Label>
             <InputContainer>
-              <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+              <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Xin hãy chọn trường') }]}>
                 <Select
                   placeholder={'---- Chọn trường ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -455,7 +339,7 @@ export const SchoolEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Thư mời'}</Label>
             <InputContainer>
-              <BaseForm.Item name="invitationLetter" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
+              <BaseForm.Item name="invitationLetter" rules={[{ required: true, message: t('Hãy viết thư mời') }]}>
                 <TextArea value="invitationLetter" />
               </BaseForm.Item>
             </InputContainer>
@@ -464,10 +348,10 @@ export const SchoolEventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
+              <BaseForm.Item name="status" rules={[{ required: true, message: t('Hãy chọn trạng thái') }]}>
                 <Select placeholder={'---- Chọn trạng thái ----'}>
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
+                  <Option value="ACCEPT">{'ACCEPT'}</Option>
+                  <Option value="REFUSE">{'REFUSE'}</Option>
                 </Select>
               </BaseForm.Item>
             </InputContainer>
@@ -506,7 +390,7 @@ export const SchoolEventTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

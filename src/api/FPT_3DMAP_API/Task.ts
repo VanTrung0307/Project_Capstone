@@ -58,10 +58,6 @@ export type TaskList = {
   data: Task[];
 };
 
-export type TaskEventList = {
-  data: TaskEvent[];
-};
-
 export interface Pagination {
   current?: number;
   pageSize?: number;
@@ -70,10 +66,6 @@ export interface Pagination {
 
 export interface PaginationData {
   data: Task[];
-  pagination: Pagination;
-}
-export interface PaginationTaskEventData {
-  data: TaskEvent[];
   pagination: Pagination;
 }
 
@@ -129,32 +121,6 @@ export const updateTask = async (id: string, taskData: updateTaskData): Promise<
     return response.data;
   } catch (error) {
     console.error('Error updating task:', error);
-    throw error;
-  }
-};
-
-export const getTaskbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationTaskEventData> => {
-  try {
-    const response = await httpApi.get<TaskEventList>(`${API_BASE_URL}/GetTaskByEventTaskWithEventId/${eventId}`);
-    const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
-    const total = data.length;
-
-    const startIndex = (current - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    const paginatedData = data.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedData,
-      pagination: {
-        current,
-        pageSize,
-        total,
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching paginated schools:', error);
     throw error;
   }
 };

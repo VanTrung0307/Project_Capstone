@@ -1,24 +1,25 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { Event, Pagination, createEvent, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
-import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/School';
+import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
+import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/EventTask';
+import { Upload } from '@app/components/common/Upload/Upload';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
-import { Upload } from '@app/components/common/Upload/Upload';
-import { DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
+import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/Task';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -76,16 +77,16 @@ export const EventTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateEvent(key.toString(), row);
-        console.log('Event data updated successfully');
+        message.success('Event updated successfully');
       } catch (error) {
-        console.error('Error updating Event data:', error);
+        message.error('Error updating Event data:');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed:');
     }
   };
 
@@ -106,20 +107,17 @@ export const EventTable: React.FC = () => {
       await getSchoolbyEventId(eventId, pagination);
       navigate(`/schools/${eventId}`);
     } catch (error) {
-      console.error('Error fetching paginated schools:', error);
+      message.error('Error fetching paginated schools:');
     }
   };
 
   const handleTaskClick = async (eventId: string) => {
     try {
-      const pagination = { current: 1, pageSize: 5 };
-      const result = await getTaskbyEventId(eventId, pagination);
+      const pagination = { current: 1, pageSize: 10 };
+      await getTaskbyEventId(eventId, pagination);
       navigate(`/tasks/${eventId}`);
-
-      console.log('Paginated School List:', result.data);
-      console.log('Pagination Info:', result.pagination);
     } catch (error) {
-      console.error('Error fetching paginated schools:', error);
+      message.error('Error fetching paginated task');
     }
   };
 
@@ -175,25 +173,17 @@ export const EventTable: React.FC = () => {
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdEvent = await createEvent(newData);
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdEvent],
-          loading: false,
-        }));
+        await createEvent(newData);
+        message.success('Event created successfully');
+        fetch(data.pagination);
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Event data created successfully');
-
-        getPaginatedEvents(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
       } catch (error) {
-        console.error('Error creating event data:', error);
+        message.error('Error creating event data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
@@ -311,7 +301,6 @@ export const EventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '8%',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
         return (
@@ -369,7 +358,7 @@ export const EventTable: React.FC = () => {
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
+        message.warn(`${name} ${status}`);
       }
       if (status === 'done') {
         message.success(t('uploads.successUpload', { name: info.file.name }));
@@ -399,7 +388,16 @@ export const EventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên sự kiện'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
+              <BaseForm.Item
+                name="name"
+                rules={[
+                  { required: true, message: t('Tên sự kiện là cần thiết') },
+                  {
+                    pattern: /^[^\s].*/,
+                    message: 'Không được bắt đầu bằng khoảng trắng',
+                  },
+                ]}
+              >
                 <Input maxLength={100} />
               </BaseForm.Item>
             </InputContainer>
@@ -407,27 +405,83 @@ export const EventTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Thời gian bắt đầu'}</Label>
             <InputContainer>
-              <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
-                <Input type="datetime-local" />
+              <BaseForm.Item
+                name="startTime"
+                rules={[
+                  {
+                    required: true,
+                    message: t('Thời gian bắt đầu là bắt buộc'),
+                  },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value) {
+                        return Promise.resolve();
+                      }
+
+                      const selectedDate = moment(value);
+                      const today = moment().startOf('day');
+                      const startOfDay = moment().set('hour', 7).set('minute', 0).set('second', 0);
+                      const endOfDay = moment().set('hour', 18).set('minute', 0).set('second', 0);
+
+                      if (selectedDate.isBefore(today)) {
+                        return Promise.reject(new Error('Thời gian bắt đầu phải là ngày hôm nay'));
+                      }
+
+                      if (selectedDate.isBefore(startOfDay) || selectedDate.isAfter(endOfDay)) {
+                        return Promise.reject(new Error('Thời gian bắt đầu phải trong khoảng từ 7 AM đến 6 PM'));
+                      }
+
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
+              >
+                <Input type="datetime-local" required />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
           <FlexContainer>
             <Label>{'Thời gian kết thúc'}</Label>
             <InputContainer>
-              <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
-                <Input type="datetime-local" />
+              <BaseForm.Item
+                name="endTime"
+                rules={[
+                  {
+                    required: true,
+                    message: t('Thời gian kết thúc là bắt buộc'),
+                  },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value) {
+                        return Promise.resolve();
+                      }
+
+                      const startTime = getFieldValue('startTime');
+                      if (!startTime) {
+                        return Promise.resolve();
+                      }
+
+                      const startMoment = moment(startTime);
+                      const endMoment = moment(value);
+
+                      if (endMoment.isBefore(startMoment.add(2, 'hours'))) {
+                        return Promise.reject(new Error('Thời gian kết thúc phải ít nhất 2 giờ sau thời gian bắt đầu'));
+                      }
+
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
+              >
+                <Input type="datetime-local" required />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select placeholder={'---- Chọn trạng thái ----'}>
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
+              <BaseForm.Item name="status">
+                <Input defaultValue="INACTIVE" disabled/>
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -471,7 +525,7 @@ export const EventTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1500 }}
         bordered
       />
     </Form>

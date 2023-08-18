@@ -8,7 +8,7 @@ import { Pagination, Task, createTask, getPaginatedTasks, updateTask } from '@ap
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -63,7 +63,7 @@ export const TaskTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Task:', updatedItem);
+        message.warn('Updated null Task:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -77,16 +77,16 @@ export const TaskTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateTask(key.toString(), row);
-        console.log('Task data updated successfully');
+        message.success('Task data updated successfully');
       } catch (error) {
-        console.error('Error updating Task data:', error);
+        message.error('Error updating Task data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -123,7 +123,7 @@ export const TaskTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error('Error fetching paginated tasks:', error);
+          message.error('Error fetching paginated tasks:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
@@ -131,28 +131,28 @@ export const TaskTable: React.FC = () => {
         const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 10 });
         setLocations(locationResponse.data);
       } catch (error) {
-        console.error('Error fetching locations:', error);
+        message.error('Error fetching locations');
       }
 
       try {
         const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
         setMajors(majorResponse.data);
       } catch (error) {
-        console.error('Error fetching majors:', error);
+        message.error('Error fetching majors');
       }
 
       try {
         const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 10 });
         setNpcs(npcResponse.data);
       } catch (error) {
-        console.error('Error fetching npcs:', error);
+        message.error('Error fetching npcs');
       }
 
       try {
         const itemResponse = await getPaginatedItems({ current: 1, pageSize: 10 });
         setItems(itemResponse.data);
       } catch (error) {
-        console.error('Error fetching items:', error);
+        message.error('Error fetching items');
       }
     },
     [isMounted],
@@ -228,17 +228,14 @@ export const TaskTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Task data created successfully');
-
-        getPaginatedTasks(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Task data created successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error creating Task data:', error);
+        message.error('Error creating Task data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 

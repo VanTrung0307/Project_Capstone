@@ -4,7 +4,7 @@ import { Answer, Pagination, createAnswer, getPaginatedAnswers, updateAnswer } f
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -56,7 +56,7 @@ export const AnswerTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Answer:', updatedItem);
+        message.warn('Updated null Answer:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -70,16 +70,16 @@ export const AnswerTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateAnswer(key.toString(), row);
-        console.log('Answer data updated successfully');
+        message.success('Answer data updated successfully');
       } catch (error) {
-        console.error('Error updating Answer data:', error);
+        message.error('Error updating Answer data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -150,17 +150,17 @@ export const AnswerTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Answer data created successfully');
+        message.success('Answer data created successfully');
 
         getPaginatedAnswers(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
-        console.error('Error creating Npc data:', error);
+        message.error('Error creating Npc data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 

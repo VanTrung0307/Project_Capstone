@@ -68,7 +68,7 @@ export const QuestionBankTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Question:', updatedItem);
+        message.warn('Updated null Question:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -81,19 +81,17 @@ export const QuestionBankTable: React.FC = () => {
       try {
         await updateQuestion(key.toString(), row);
         setData((prevData) => ({ ...prevData, loading: true }));
-        getPaginatedQuestions(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
-        console.log('Question data updated successfully');
+        message.success('Question data updated successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error updating Question data:', error);
+        message.error('Error updating Question data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -130,7 +128,7 @@ export const QuestionBankTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error('Error fetching paginated questions:', error);
+          message.error('Error fetching paginated questions:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
@@ -138,14 +136,14 @@ export const QuestionBankTable: React.FC = () => {
         const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
         setMajors(majorResponse.data);
       } catch (error) {
-        console.error('Error fetching majors:', error);
+        message.error('Error fetching majors');
       }
 
       try {
         const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 10 });
         setAnswers(answerResponse.data);
       } catch (error) {
-        console.error('Error fetching questions:', error);
+        message.error('Error fetching questions');
       }
     },
     [isMounted],
@@ -203,17 +201,14 @@ export const QuestionBankTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Question data created successfully');
-
-        getPaginatedQuestions(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Question data created successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error creating Question data:', error);
+        message.error('Error creating Question data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
@@ -439,7 +434,7 @@ export const QuestionBankTable: React.FC = () => {
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
+        message.warn(`${name} ${status}`);
       }
       if (status === 'done') {
         message.success(t('uploads.successUpload', { name: info.file.name }));

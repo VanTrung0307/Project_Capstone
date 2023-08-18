@@ -3,7 +3,7 @@ import { DownOutlined } from '@ant-design/icons';
 import { Npc, Pagination, createNpc, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Option } from 'antd/lib/mentions';
 import { Table } from 'components/common/Table/Table';
@@ -56,7 +56,7 @@ export const NPCTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null NPC:', updatedItem);
+        message.warn('Updated null NPC:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -70,16 +70,17 @@ export const NPCTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateNpc(key.toString(), row);
-        console.log('Npc data updated successfully');
+        message.success('Npc data updated successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error updating Npc data:', error);
+        message.error('Error updating Npc data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -151,17 +152,14 @@ export const NPCTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Npc data created successfully');
-
-        getPaginatedNpcs(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Npc data created successfully');
+        fetch(data.pagination)
       } catch (error) {
-        console.error('Error creating Npc data:', error);
+        message.error('Error creating Npc data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 

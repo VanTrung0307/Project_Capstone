@@ -4,7 +4,7 @@ import { Gift, Pagination, createGift, getPaginatedGifts, updateGift } from '@ap
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag } from 'antd';
+import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -59,7 +59,7 @@ export const GiftTable: React.FC = () => {
           }
         });
 
-        console.log('Updated null Gift:', updatedItem);
+        message.warn('Updated null Gift:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -73,16 +73,16 @@ export const GiftTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateGift(key.toString(), row);
-        console.log('Gift data updated successfully');
+        message.success('Gift data updated successfully');
       } catch (error) {
-        console.error('Error updating Gift data:', error);
+        message.error('Error updating Gift data');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      message.error('Validate Failed');
     }
   };
 
@@ -119,7 +119,7 @@ export const GiftTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error('Error fetching paginated gifts:', error);
+          message.error('Error fetching paginated gifts:', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
@@ -127,7 +127,7 @@ export const GiftTable: React.FC = () => {
         const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        message.error('Error fetching events');
       }
     },
     [isMounted],
@@ -179,17 +179,14 @@ export const GiftTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        console.log('Gift data created successfully');
-
-        getPaginatedGifts(data.pagination).then((res) => {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        });
+        message.success('Gift data created successfully');
+        fetch(data.pagination);
       } catch (error) {
-        console.error('Error creating Gift data:', error);
+        message.error('Error creating Gift data');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      console.error('Error validating form:', error);
+      message.error('Error validating form');
     }
   };
 
