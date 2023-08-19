@@ -13,7 +13,7 @@ export const StudentTables: React.FC<StudentTablesProps> = ({ schoolId }) => {
 
   useEffect(() => {
     if (schoolId) {
-      const pagination: Pagination = { current: 1, pageSize: 5 };
+      const pagination: Pagination = { current: 1, pageSize: 1000 };
 
       getPaginatedSchools(pagination)
         .then((response) => {

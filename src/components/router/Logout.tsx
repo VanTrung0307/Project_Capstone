@@ -9,7 +9,7 @@ const Logout: React.FC = () => {
   useEffect(() => {
     const logout = async () => {
       await dispatch(doLogout());
-      window.location.href = '/';
+      window.location.href = '/auth/login';
     };
 
     logout();

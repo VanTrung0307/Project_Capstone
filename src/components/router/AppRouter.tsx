@@ -59,7 +59,7 @@ const Logout = React.lazy(() => import('./Logout'));
 export const FPTHCM_DASHBOARD_PATH = '/';
 const Dashboard = withLoading(FPTHCMDashboardPage);
 const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
-const User = React.lazy(() => import('@app/pages/UserPage'));
+// const User = React.lazy(() => import('@app/pages/UserPage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
 const Event = React.lazy(() => import('@app/pages/EventPage'));
@@ -71,7 +71,7 @@ const StudentEvent = React.lazy(() => import('@app/pages/EventStudentPage'));
 const Task = React.lazy(() => import('@app/pages/TaskPage'));
 const Major = React.lazy(() => import('@app/pages/MajorPage'));
 const QuestionBank = React.lazy(() => import('@app/pages/QuestionBankPage'));
-const Answer = React.lazy(() => import('@app/pages/AnswerPage'));
+// const Answer = React.lazy(() => import('@app/pages/AnswerPage'));
 const NPC = React.lazy(() => import('@app/pages/NPCPage'));
 const Gift = React.lazy(() => import('@app/pages/GiftPage'));
 const Item = React.lazy(() => import('@app/pages/ItemPage'));
@@ -144,7 +144,7 @@ export const AppRouter: React.FC = () => {
             </Route>
             <Route path="data-tables" element={<DataTables />} />
             <Route path="player-profiles" element={<PlayerProfile />} />
-            <Route path="users" element={<User />} />
+            {/* <Route path="users" element={<User />} /> */}
             <Route path="players" element={<Player />} />
             <Route path="rooms-location" element={<RoomVsLocation />} />
             <Route path="events" element={<Event />} />
@@ -156,7 +156,7 @@ export const AppRouter: React.FC = () => {
             <Route path="tasks" element={<Task />} />
             <Route path="majors" element={<Major />} />
             <Route path="questionbanks" element={<QuestionBank />} />
-            <Route path="answers" element={<Answer />} />
+            {/* <Route path="answers" element={<Answer />} /> */}
             <Route path="npcs" element={<NPC />} />
             <Route path="gifts" element={<Gift />} />
             <Route path="items" element={<Item />} />

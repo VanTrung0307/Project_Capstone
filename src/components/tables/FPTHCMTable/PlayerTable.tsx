@@ -4,13 +4,15 @@ import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { Pagination, Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
 import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, message } from 'antd';
+import { Form, Select, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
+import { DownOutlined } from '@ant-design/icons';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -27,6 +29,7 @@ export const PlayerTable: React.FC = () => {
     loading: false,
   });
   const [events, setEvents] = useState<Event[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [students, setStudents] = useState<User[]>([]);
   const formatDateTime = (isoDateTime: number) => {
     const dateTime = new Date(isoDateTime);
@@ -45,6 +48,9 @@ export const PlayerTable: React.FC = () => {
 
   const { isMounted } = useMounted();
   const [originalData, setOriginalData] = useState<Player[]>([]);
+
+  const [eventId, setEventId] = useState<string>('');
+  const [schoolId, setSchoolId] = useState<string>('');
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
@@ -73,6 +79,10 @@ export const PlayerTable: React.FC = () => {
       } catch (error) {
         message.error('Error fetching students');
       }
+
+      getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
+        setSchools(paginationData.data);
+      });
     },
     [isMounted],
   );
@@ -240,6 +250,38 @@ export const PlayerTable: React.FC = () => {
         }}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
+
+      <div>
+        <Select
+          value={eventId}
+          onChange={(value) => setEventId(value)}
+          style={{ width: 350, marginRight: 10, marginBottom: 10 }}
+          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+        >
+          {!eventId && <Select.Option value="">Chọn sự kiện</Select.Option>}
+          {events.map((event) => (
+            <Select.Option key={event.id} value={event.id}>
+              {event.name}
+            </Select.Option>
+          ))}
+        </Select>
+
+        {eventId && (
+          <Select
+            value={schoolId}
+            onChange={(value) => setSchoolId(value)}
+            style={{ width: 300, marginRight: 10, marginBottom: 10 }}
+            suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          >
+            <Select.Option value="">Chọn trường</Select.Option>
+            {schools.map((school) => (
+              <Select.Option key={school.id} value={school.id}>
+                {school.name}
+              </Select.Option>
+            ))}
+          </Select>
+        )}
+      </div>
 
       <Table
         components={{

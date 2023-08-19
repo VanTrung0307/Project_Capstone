@@ -139,23 +139,23 @@ export const EventStudentTable: React.FC = () => {
     cancel();
   };
 
-  const uploadProps = {
-    name: 'file',
-    multiple: true,
-    action: `http://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
-    onChange: (info: any) => {
-      const { status } = info.file;
-      if (status !== 'uploading') {
-        message.warn(`${name} ${status}`);
-      }
-      if (status === 'done') {
-        message.success(t('uploads.successUpload', { name: info.file.name }));
-        fetch(data.pagination);
-      } else if (status === 'error') {
-        message.error(t('uploads.failedUpload', { name: info.file.name }));
-      }
-    },
-  };
+  // const uploadProps = {
+  //   name: 'file',
+  //   multiple: true,
+  //   action: `http://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+  //   onChange: (info: any) => {
+  //     const { status } = info.file;
+  //     if (status !== 'uploading') {
+  //       message.warn(`${name} ${status}`);
+  //     }
+  //     if (status === 'done') {
+  //       message.success(t('uploads.successUpload', { name: info.file.name }));
+  //       fetch(data.pagination);
+  //     } else if (status === 'error') {
+  //       message.error(t('uploads.failedUpload', { name: info.file.name }));
+  //     }
+  //   },
+  // };
 
   const handleSavePlayer = async (studentId: string, eventId: string, fullname: string) => {
     try {
@@ -372,17 +372,17 @@ export const EventStudentTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Upload {...uploadProps}>
+      {/* <Upload {...uploadProps}>
         <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}>
           {t('uploads.clickToUpload')}
         </Button>
-      </Upload>
+      </Upload> */}
 
       {eventId && (
         <Button
           type="primary"
           onClick={handleGeneratePasscode}
-          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 220px' }}
+          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
         >
           Generate Passcode
         </Button>

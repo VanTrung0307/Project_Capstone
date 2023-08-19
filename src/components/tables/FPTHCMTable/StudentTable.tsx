@@ -58,8 +58,6 @@ export const StudentTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Major:', updatedItem);
-
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -72,17 +70,17 @@ export const StudentTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        message.success('School data updated successfully');
-        fetch(data.pagination)
+        message.success('Cập nhật thành công');
+        fetch(data.pagination);
       } catch (error) {
-        message.error('Error updating school data');
+        message.error('Cập nhật không thành công');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
+          fetch(data.pagination);
         }
       }
     } catch (errInfo) {
-      message.success('Validate Failed');
+      message.success('Hãy nhập đầy đủ');
     }
   };
 
@@ -112,7 +110,7 @@ export const StudentTable: React.FC = () => {
   const fetch = useCallback(
     (pagination: Pagination) => {
       if (schoolId === undefined) {
-        message.error('School ID is missing in the URL.');
+        message.error('Không tìm thấy mã trường');
         return;
       }
 
@@ -146,10 +144,10 @@ export const StudentTable: React.FC = () => {
         message.warn(`${name} ${status}`);
       }
       if (status === 'done') {
-        message.success(t('uploads.successUpload', { name: info.file.name }));
+        message.success(t('Tải lên thành công', { name: info.file.name }));
         fetch(data.pagination);
       } else if (status === 'error') {
-        message.error(t('uploads.failedUpload', { name: info.file.name }));
+        message.error(t('Tải lên thất bại', { name: info.file.name }));
       }
     },
   };
@@ -220,13 +218,15 @@ export const StudentTable: React.FC = () => {
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'fullname';
+        const nameValidationRules = [
+          { required: true, message: 'Hãy nhập họ và tên' },
+          {
+            pattern: /^[^\d\W].*$/,
+            message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+          },
+        ];
         return editable ? (
-          <Form.Item
-            key={record.fullname}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên trường là cần thiết' }]}
-          >
+          <Form.Item key={record.fullname} name={dataIndex} initialValue={text} rules={nameValidationRules}>
             <Input
               maxLength={100}
               value={record[dataIndex]}
@@ -241,11 +241,23 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
+      width: '25%',
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'email';
+        const emailValidationRules = [
+          { required: true, message: 'Hãy nhập email của trường' },
+          {
+            pattern: /^[a-zA-Z0-9][a-zA-Z0-9._-]*@.*$/,
+            message: 'Email phải có định dạng name@gmail.com và không có ký tự đặc biệt ở đầu',
+          },
+          {
+            max: 100,
+            message: 'Email không được vượt quá 100 ký tự',
+          },
+        ];
         return editable ? (
-          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={emailValidationRules}>
             <Input
               type="email"
               maxLength={100}
@@ -261,6 +273,7 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Điện thoại'),
       dataIndex: 'phonenumber',
+      width: '14%',
       render: (text: number, record: Student) => {
         const editable = isEditing(record);
         const dataIndex: keyof Student = 'phonenumber';
@@ -270,16 +283,18 @@ export const StudentTable: React.FC = () => {
               type="tel"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phonenumber, dataIndex)}
+              style={{ maxWidth: '150px' }}
             />
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+          <span>0{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
     {
       title: t('Lớp'),
       dataIndex: 'classname',
+      width: '8%',
       filters: classnameFilters,
       onFilter: (value, record) => record.classname === value,
       render: (text: number, record: Student) => {
@@ -301,6 +316,7 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      width: '11%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -339,6 +355,7 @@ export const StudentTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
+      width: '10%',
       render: (text: string, record: Student) => {
         const editable = isEditing(record);
         return (
@@ -346,10 +363,10 @@ export const StudentTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id.toString())}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -359,33 +376,8 @@ export const StudentTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
-                <Button type="ghost" onClick={() => handleAddPlayer(record.id)}>
-                  Become Player
-                </Button>
-                <Modal
-                  title="Add Player"
-                  visible={isAddPlayerModalVisible}
-                  onOk={handleSavePlayer}
-                  onCancel={handleCancelPlayer}
-                >
-                  <Form>
-                    <Form.Item label="Select Event">
-                      <Select
-                        value={selectedOption}
-                        onChange={(value) => setSelectedOption(value)}
-                        placeholder="Select an event"
-                      >
-                        {selectOptions.map((event) => (
-                          <Select.Option key={event.id} value={event.id}>
-                            {event.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Form>
-                </Modal>
               </>
             )}
           </Space>
@@ -398,11 +390,11 @@ export const StudentTable: React.FC = () => {
     <Form form={form} component={false}>
       <Upload {...uploadProps}>
         <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}>
-          {t('uploads.clickToUpload')}
+          Nhập Excel
         </Button>
       </Upload>
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
@@ -431,7 +423,7 @@ export const StudentTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 800 }}
         bordered
       />
     </Form>

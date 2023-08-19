@@ -58,8 +58,6 @@ export const SchoolTable: React.FC = () => {
             updatedItem[field] = null;
           }
         });
-
-        message.warn('Updated null Major:', updatedItem);
       } else {
         newData.push(row);
       }
@@ -198,6 +196,7 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Tên trường'),
       dataIndex: 'name',
+      width: '16,67%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'name';
@@ -222,22 +221,34 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Email'),
       dataIndex: 'email',
-      width: '15%',
+      width: '16,67%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'email';
+        const emailValidationRules = [
+          { required: true, message: 'Hãy nhập email của trường' },
+          {
+            pattern: /^[a-zA-Z0-9][a-zA-Z0-9._-]*@.*$/,
+            message: 'Email phải có định dạng name@gmail.com và không có ký tự đặc biệt ở đầu',
+          },
+          {
+            max: 100,
+            message: 'Email không được vượt quá 100 ký tự',
+          },
+        ];
         return editable ? (
           <Form.Item
             key={record.email}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập email của trường' }]}
+            rules={emailValidationRules}
           >
             <Input
               type="email"
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
+              style={{ maxWidth: '350px' }}
             />
           </Form.Item>
         ) : (
@@ -248,9 +259,13 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Địa chỉ'),
       dataIndex: 'address',
+      width: '16,67%',
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'address';
+        const addressValidationRules = [
+          { required: true, message: 'Hãy nhập địa chỉ của trường' },
+        ];
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
@@ -258,7 +273,7 @@ export const SchoolTable: React.FC = () => {
             key={record.address}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập địa chỉ trường' }]}
+            rules={addressValidationRules}
           >
             <TextArea
               autoSize={{ maxRows: 3 }}
@@ -282,12 +297,13 @@ export const SchoolTable: React.FC = () => {
             key={record.phoneNumber}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập số điẹn thoại của trường' }]}
+            rules={[{ required: true, message: 'Hãy nhập số điện thoại của trường' }]}
           >
             <Input
               type="tel"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
+              style={{ maxWidth: '120px'}}
             />
           </Form.Item>
         ) : (
@@ -343,10 +359,10 @@ export const SchoolTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id.toString())}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -394,7 +410,7 @@ export const SchoolTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm TRƯỜNG'}
@@ -433,7 +449,7 @@ export const SchoolTable: React.FC = () => {
                 rules={[
                   { required: true, message: t('Hãy nhập email trường') },
                   {
-                    pattern: /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-][a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]*@gmail\.com$/,
+                    pattern: /^[a-zA-Z0-9][a-zA-Z0-9._-]*@.*$/,
                     message: 'Email phải có định dạng name@gmail.com và không có ký tự đặc biệt ở đầu',
                   },
                   {

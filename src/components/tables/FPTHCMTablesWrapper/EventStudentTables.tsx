@@ -45,7 +45,7 @@ export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId, eve
           <div style={{ width: '700px' }}>
             <div style={{ overflowWrap: 'break-word' }}>
               <h1 style={{ fontWeight: 'bold' }}>
-                Dánh sách học sinh trường {school && event ? school.name : ''}
+                Dánh sách học sinh {school && event ? school.name : ''}
               </h1>
             </div>
           </div>

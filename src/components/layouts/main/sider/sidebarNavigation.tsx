@@ -7,13 +7,11 @@ import {
   GiftOutlined,
   InboxOutlined,
   QuestionCircleOutlined,
-  RobotOutlined,
-  UserOutlined
+  RobotOutlined
 } from '@ant-design/icons';
 import React from 'react';
 import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';
 import { MdOutlineCategory } from 'react-icons/md';
-import { RiQuestionAnswerLine } from 'react-icons/ri';
 
 export interface SidebarNavigationItem {
   title: string;
@@ -36,12 +34,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     url: '/events',
     icon: <CalendarOutlined />,
   },
-  {
-    title: 'Học sinh',
-    key: 'users',
-    url: '/users',
-    icon: <UserOutlined />,
-  },
+  // {
+  //   title: 'Học sinh',
+  //   key: 'users',
+  //   url: '/users',
+  //   icon: <UserOutlined />,
+  // },
   {
     title: 'Trường học',
     key: 'schools',
@@ -78,12 +76,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     url: '/questionbanks',
     icon: <QuestionCircleOutlined />,
   },
-  {
-    title: 'Ngân hàng câu trả lời',
-    key: 'answers',
-    url: '/answers',
-    icon: <RiQuestionAnswerLine />,
-  },
+  // {
+  //   title: 'Ngân hàng câu trả lời',
+  //   key: 'answers',
+  //   url: '/answers',
+  //   icon: <RiQuestionAnswerLine />,
+  // },
   {
     title: 'NPCs',
     key: 'npc',

@@ -10,6 +10,7 @@ import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
+import { DownOutlined } from '@ant-design/icons';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -130,20 +131,20 @@ export const RankTable: React.FC = () => {
     },
     {
       title: t('Tổng thời gian'),
-      dataIndex: 'totalPoint',
+      dataIndex: 'totalTime',
       render: (text: string, record: Player) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalPoint';
+        const dataIndex: keyof Player = 'totalTime';
         return editable ? (
           <Form.Item
-            key={record.totalPoint}
+            key={record.totalTime}
             name={dataIndex}
             initialValue={text}
             rules={[{ required: true, message: 'Please enter a eventId' }]}
           >
             <Input
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.totalPoint, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.totalTime, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -182,8 +183,9 @@ export const RankTable: React.FC = () => {
         value={eventId}
         onChange={(value) => setEventId(value)}
         style={{ width: 300, marginRight: 10, marginBottom: 10 }}
+        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
       >
-        {!eventId && <Select.Option value="">Select Event</Select.Option>}
+        {!eventId && <Select.Option value="">Chọn sự kiện</Select.Option>}
         {events.map((event) => (
           <Select.Option key={event.id} value={event.id}>
             {event.name}
@@ -191,18 +193,21 @@ export const RankTable: React.FC = () => {
         ))}
       </Select>
 
-      <Select
-        value={schoolId}
-        onChange={(value) => setSchoolId(value)}
-        style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-      >
-        {!schoolId && <Select.Option value="">Select School</Select.Option>}
-        {schools.map((school) => (
-          <Select.Option key={school.id} value={school.id}>
-            {school.name}
-          </Select.Option>
-        ))}
-      </Select>
+      {eventId && (
+        <Select
+          value={schoolId}
+          onChange={(value) => setSchoolId(value)}
+          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
+          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+        >
+          <Select.Option value="">Chọn trường</Select.Option>
+          {schools.map((school) => (
+            <Select.Option key={school.id} value={school.id}>
+              {school.name}
+            </Select.Option>
+          ))}
+        </Select>
+      )}
 
       <Table
         components={{

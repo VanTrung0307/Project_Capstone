@@ -15,33 +15,31 @@ interface DesktopHeaderProps {
 
 export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout, isLoggedIn }) => {
   const user = useAppSelector((state) => state.user.user);
-  const leftSide = isTwoColumnsLayout ? (
-    <S.SearchColumn xl={16} xxl={17}>
-      <Row justify="space-between">
-        <Col xl={15} xxl={12}></Col>
-        <Col></Col>
-      </Row>
-    </S.SearchColumn>
-  ) : (
-    <>
-      <Col lg={10} xxl={8}></Col>
-      <Col></Col>
-    </>
-  );
+  // const leftSide = isTwoColumnsLayout ? (
+  //   <S.SearchColumn xl={16} xxl={17}>
+  //     <Row justify="space-between">
+  //       <Col xl={15} xxl={12}></Col>
+  //       <Col></Col>
+  //     </Row>
+  //   </S.SearchColumn>
+  // ) : (
+  //   <>
+  //     <Col lg={10} xxl={8}></Col>
+  //     <Col></Col>
+  //   </>
+  // );
 
   return (
-    <Row justify="space-between" align="middle">
-      {leftSide}
+    <Row>
+      {/* {leftSide} */}
 
-      <S.ProfileColumn xl={8} xxl={7} $isTwoColumnsLayout={isTwoColumnsLayout}>
+      <S.ProfileColumn xl={24} xxl={7} $isTwoColumnsLayout={isTwoColumnsLayout}>
         <Row align="middle" justify="end" gutter={[10, 10]}>
           <Col>
-            <Row gutter={[{ xxl: 10 }, { xxl: 10 }]}>
+            <Row>
               <Col>
                 <HeaderFullscreen />
               </Col>
-
-              <Col>{/* <NotificationsDropdown /> */}</Col>
 
               <Col>
                 <SettingsDropdown />

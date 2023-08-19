@@ -254,7 +254,7 @@ export const SchoolEventTable: React.FC = () => {
         return dataIndex ? (
           <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
         ) : (
-          'Đang đợi trạng tháisif'
+          'Đang đợi trạng thái'
         );
       },
     },
@@ -271,7 +271,7 @@ export const SchoolEventTable: React.FC = () => {
               }
             }}
           >
-            {t('Student')}
+            Danh sách học sinh
           </Button>
         );
       },

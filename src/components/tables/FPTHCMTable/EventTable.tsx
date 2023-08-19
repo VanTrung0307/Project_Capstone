@@ -157,6 +157,7 @@ export const EventTable: React.FC = () => {
   };
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
   const handleModalOk = async () => {
     try {
@@ -301,6 +302,7 @@ export const EventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
+      width: '15%',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
         return (
@@ -308,10 +310,10 @@ export const EventTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -321,14 +323,28 @@ export const EventTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
-                <Button type="ghost" onClick={() => handleSchoolClick(record.id)}>
-                  {t('School')}
+                <Button type="ghost" onClick={() => setIsActionModalOpen(true)}>
+                  Danh sách
                 </Button>
-                <Button type="ghost" onClick={() => handleTaskClick(record.id)}>
-                  {t('Task')}
-                </Button>
+                <Modal
+                  title={'Chức năng'}
+                  open={isActionModalOpen}
+                  onCancel={() => setIsActionModalOpen(false)}
+                  footer
+                  mask={true}
+                  maskStyle={{ opacity: 0.4 }}
+                >
+                  <div style={{ display: 'flex', marginBottom: '10px' }}>
+                    <Button type="primary" onClick={() => handleSchoolClick(record.id)} style={{ marginRight: '10px' }}>
+                      Danh sách trường
+                    </Button>
+                    <Button type="primary" onClick={() => handleTaskClick(record.id)}>
+                      Danh sách nhiệm vụ
+                    </Button>
+                  </div>
+                </Modal>
               </>
             )}
           </Space>
@@ -376,13 +392,25 @@ export const EventTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới SỰ KIỆN'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        mask={true}
+        maskStyle={{ opacity: 1 }}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <FlexContainer>
@@ -412,7 +440,7 @@ export const EventTable: React.FC = () => {
                     required: true,
                     message: t('Thời gian bắt đầu là bắt buộc'),
                   },
-                  ({ getFieldValue }) => ({
+                  () => ({
                     validator(_, value) {
                       if (!value) {
                         return Promise.resolve();
@@ -481,7 +509,7 @@ export const EventTable: React.FC = () => {
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status">
-                <Input defaultValue="INACTIVE" disabled/>
+                <Input defaultValue="INACTIVE" disabled />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -489,8 +517,8 @@ export const EventTable: React.FC = () => {
       </Modal>
 
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
-          {t('uploads.clickToUpload')}
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 130px' }}>
+          Nhập Excel
         </Button>
       </Upload>
 
@@ -525,7 +553,7 @@ export const EventTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1500 }}
+        scroll={{ x: 1000 }}
         bordered
       />
     </Form>

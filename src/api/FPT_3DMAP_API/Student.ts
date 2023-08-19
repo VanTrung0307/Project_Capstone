@@ -64,7 +64,7 @@ export const getPaginatedStudent = async (pagination: Pagination): Promise<Pagin
   try {
     const response = await axios.get<StudentList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -111,6 +111,7 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
     throw error;
   }
 };
+
 export const getStudenbySchoolandEventId = async (
   schoolId: string,
   eventId: string,
@@ -119,7 +120,7 @@ export const getStudenbySchoolandEventId = async (
   try {
     const response = await axios.get<EventStudentList>(`${API_BASE_URL}/${schoolId}/${eventId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
