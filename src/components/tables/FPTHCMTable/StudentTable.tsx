@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DownOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { createPlayer } from '@app/api/FPT_3DMAP_API/Player';
 import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
-import { Student, getStudenbySchoolById } from '@app/api/FPT_3DMAP_API/Student';
+import { Student, getExcelTemplateStudent, getStudenbySchoolById } from '@app/api/FPT_3DMAP_API/Student';
 import { Upload } from '@app/components/common/Upload/Upload';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
@@ -386,6 +386,28 @@ export const StudentTable: React.FC = () => {
     },
   ];
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const excelTemplate = await getExcelTemplateStudent();
+
+      const blob = new Blob([excelTemplate], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = 'SampleDataStudent.xlsx';
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+      anchor.remove();
+    } catch (error) {
+      message.error('Không thể tải đơn mẫu');
+    }
+  };
+
   return (
     <Form form={form} component={false}>
       <Upload {...uploadProps}>
@@ -393,6 +415,16 @@ export const StudentTable: React.FC = () => {
           Nhập Excel
         </Button>
       </Upload>
+
+      <Button
+        type="default"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 180px' }}
+        icon={<DownloadOutlined />}
+      >
+        Tải đơn mẫu
+      </Button>
+
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear

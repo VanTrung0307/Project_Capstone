@@ -174,10 +174,10 @@ export const SchoolTable: React.FC = () => {
           }));
           form.resetFields();
           setIsBasicModalOpen(false);
-          message.success('Thêm trường thành công');
           fetch(data.pagination);
+          message.success('Tạo trường thành công');
         } catch (error) {
-          message.error('Thêm trường không thành công');
+          message.error('Tạo trường không thành công');
           setData((prevData) => ({ ...prevData, loading: false }));
         }
       }
@@ -237,12 +237,7 @@ export const SchoolTable: React.FC = () => {
           },
         ];
         return editable ? (
-          <Form.Item
-            key={record.email}
-            name={dataIndex}
-            initialValue={text}
-            rules={emailValidationRules}
-          >
+          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={emailValidationRules}>
             <Input
               type="email"
               maxLength={100}
@@ -263,18 +258,11 @@ export const SchoolTable: React.FC = () => {
       render: (text: string, record: School) => {
         const editable = isEditing(record);
         const dataIndex: keyof School = 'address';
-        const addressValidationRules = [
-          { required: true, message: 'Hãy nhập địa chỉ của trường' },
-        ];
+        const addressValidationRules = [{ required: true, message: 'Hãy nhập địa chỉ của trường' }];
         const maxTextLength = 255;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item
-            key={record.address}
-            name={dataIndex}
-            initialValue={text}
-            rules={addressValidationRules}
-          >
+          <Form.Item key={record.address} name={dataIndex} initialValue={text} rules={addressValidationRules}>
             <TextArea
               autoSize={{ maxRows: 3 }}
               value={record[dataIndex]}
@@ -303,7 +291,7 @@ export const SchoolTable: React.FC = () => {
               type="tel"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
-              style={{ maxWidth: '120px'}}
+              style={{ maxWidth: '120px' }}
             />
           </Form.Item>
         ) : (
@@ -314,6 +302,7 @@ export const SchoolTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      width: '8.5%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -417,6 +406,16 @@ export const SchoolTable: React.FC = () => {
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <FlexContainer>

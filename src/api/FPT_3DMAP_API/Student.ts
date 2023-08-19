@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
@@ -179,6 +180,18 @@ export const updateStudent = async (id: string, studentData: updateStudentData):
     return response.data;
   } catch (error) {
     console.error('Error updating player:', error);
+    throw error;
+  }
+};
+
+export const getExcelTemplateStudent = async (): Promise<Blob> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/excel-template-student`, {
+      responseType: 'arraybuffer',
+    });
+    return new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  } catch (error) {
+    console.error('Error getting template student excel:', error);
     throw error;
   }
 };

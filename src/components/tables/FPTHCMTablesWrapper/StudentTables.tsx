@@ -21,7 +21,7 @@ export const StudentTables: React.FC<StudentTablesProps> = ({ schoolId }) => {
           setSchool(schoolData);
         })
         .catch((error) => {
-          console.error('Error fetching paginated events:', error);
+          console.error('Không có dữ liệu trường học', error);
         });
     }
   }, [schoolId]);
