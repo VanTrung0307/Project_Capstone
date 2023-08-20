@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { GiftOutlined, ScheduleOutlined, TeamOutlined } from '@ant-design/icons';
+import { BankOutlined, ScheduleOutlined, TeamOutlined } from '@ant-design/icons';
 import { FC } from 'react';
 
 export type StatisticColor = 'primary' | 'error' | 'secondary' | 'success';
@@ -18,7 +18,7 @@ export const fpthcm_statistics: ConfigFPTHCMStatistic[] = [
     id: 1,
     name: 'player',
     title: 'Người chơi',
-    subname: 'Tổng số người chơi hôm nay tham gia',
+    subname: 'Tổng số người chơi đã tham gia',
     color: 'success',
     Icon: TeamOutlined,
   },
@@ -26,16 +26,16 @@ export const fpthcm_statistics: ConfigFPTHCMStatistic[] = [
     id: 2,
     name: 'event',
     title: 'Sự kiện',
-    subname: 'Tổng số sự kiện hôm nay sẽ diễn ra',
+    subname: 'Tổng số sự kiện',
     color: 'error',
     Icon: ScheduleOutlined,
   },
   {
     id: 3,
-    name: 'gift',
-    title: 'Phần Quà',
-    subname: 'Tổng số phần quà hôm nay',
+    name: 'school',
+    title: 'Trường học',
+    subname: 'Tổng số trường học đã tham gia',
     color: 'primary',
-    Icon: GiftOutlined,
+    Icon: BankOutlined,
   },
 ];

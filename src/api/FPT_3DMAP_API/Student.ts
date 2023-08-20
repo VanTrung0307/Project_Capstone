@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from 'axios';
+import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
 
@@ -63,7 +63,7 @@ export interface EventStudentData {
 
 export const getPaginatedStudent = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<StudentList>(API_BASE_URL);
+    const response = await httpApi.get<StudentList>(API_BASE_URL);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
@@ -89,7 +89,7 @@ export const getPaginatedStudent = async (pagination: Pagination): Promise<Pagin
 
 export const getStudenbySchoolById = async (schoolId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await axios.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
+    const response = await httpApi.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
@@ -119,7 +119,7 @@ export const getStudenbySchoolandEventId = async (
   pagination: Pagination,
 ): Promise<EventStudentData> => {
   try {
-    const response = await axios.get<EventStudentList>(`${API_BASE_URL}/${schoolId}/${eventId}`);
+    const response = await httpApi.get<EventStudentList>(`${API_BASE_URL}/${schoolId}/${eventId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
@@ -153,7 +153,7 @@ export const uploadExcelStudent = async (schoolId: string, file: File): Promise<
   formData.append('file', file);
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/student-getbyschool/${schoolId}`, formData, {
+    const response = await httpApi.post(`${API_BASE_URL}/student-getbyschool/?schoolid=${schoolId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -166,7 +166,7 @@ export const uploadExcelStudent = async (schoolId: string, file: File): Promise<
 
 export const createStudent = async (studentData: Student): Promise<Student> => {
   try {
-    const response = await axios.post<Student>(`${API_BASE_URL}/student`, studentData);
+    const response = await httpApi.post<Student>(`${API_BASE_URL}/student`, studentData);
     return response.data;
   } catch (error) {
     console.error('Error creating user:', error);
@@ -176,7 +176,7 @@ export const createStudent = async (studentData: Student): Promise<Student> => {
 
 export const updateStudent = async (id: string, studentData: updateStudentData): Promise<Student> => {
   try {
-    const response = await axios.put<Student>(`${API_BASE_URL}/${id}`, studentData);
+    const response = await httpApi.put<Student>(`${API_BASE_URL}/${id}`, studentData);
     return response.data;
   } catch (error) {
     console.error('Error updating player:', error);
@@ -186,7 +186,7 @@ export const updateStudent = async (id: string, studentData: updateStudentData):
 
 export const getExcelTemplateStudent = async (): Promise<Blob> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/excel-template-student`, {
+    const response = await httpApi.get(`${API_BASE_URL}/excel-template-student`, {
       responseType: 'arraybuffer',
     });
     return new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

@@ -137,7 +137,7 @@ export const StudentTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
-    action: `http://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+    action: `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
     onChange: (info: any) => {
       const { status } = info.file;
       if (status !== 'uploading') {

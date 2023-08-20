@@ -185,7 +185,7 @@ export const RankTable: React.FC = () => {
         style={{ width: 300, marginRight: 10, marginBottom: 10 }}
         suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
       >
-        {!eventId && <Select.Option value="">Chọn sự kiện</Select.Option>}
+        <Select.Option value="">Chọn sự kiện</Select.Option>
         {events.map((event) => (
           <Select.Option key={event.id} value={event.id}>
             {event.name}
