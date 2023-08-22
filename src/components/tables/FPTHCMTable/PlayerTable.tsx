@@ -77,7 +77,7 @@ export const PlayerTable: React.FC = () => {
         const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 });
         setStudents(studentResponse.data);
       } catch (error) {
-        message.error('Error fetching students');
+        // message.error('Error fetching students');
       }
 
       getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
@@ -212,24 +212,24 @@ export const PlayerTable: React.FC = () => {
         );
       },
     },
-    {
-      title: t('Thời điểm đã tạo'),
-      dataIndex: 'createdAt',
-      render: (text: number, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'createdAt';
-        return editable ? (
-          <Form.Item
-            key={record.createdAt}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Người tạo là cần thiết' }]}
-          ></Form.Item>
-        ) : (
-          <span>{formatDateTime(record.createdAt)}</span>
-        );
-      },
-    },
+    // {
+    //   title: t('Thời điểm đã tạo'),
+    //   dataIndex: 'createdAt',
+    //   render: (text: number, record: Player) => {
+    //     const editable = isEditing(record);
+    //     const dataIndex: keyof Player = 'createdAt';
+    //     return editable ? (
+    //       <Form.Item
+    //         key={record.createdAt}
+    //         name={dataIndex}
+    //         initialValue={text}
+    //         rules={[{ required: true, message: 'Người tạo là cần thiết' }]}
+    //       ></Form.Item>
+    //     ) : (
+    //       <span>{formatDateTime(record.createdAt)}</span>
+    //     );
+    //   },
+    // },
   ];
 
   return (

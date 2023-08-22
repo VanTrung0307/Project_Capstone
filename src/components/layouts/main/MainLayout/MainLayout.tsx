@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { MEDICAL_DASHBOARD_PATH, NFT_DASHBOARD_PATH } from '@app/components/router/AppRouter';
+import { FPTHCM_DASHBOARD_PATH } from '@app/components/router/AppRouter';
 import { useResponsive } from '@app/hooks/useResponsive';
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -18,7 +18,7 @@ const MainLayout: React.FC = () => {
   const toggleSider = () => setSiderCollapsed(!siderCollapsed);
 
   useEffect(() => {
-    setIsTwoColumnsLayout([MEDICAL_DASHBOARD_PATH, NFT_DASHBOARD_PATH].includes(location.pathname) && isDesktop);
+    setIsTwoColumnsLayout([FPTHCM_DASHBOARD_PATH].includes(location.pathname) && isDesktop);
   }, [location.pathname, isDesktop]);
 
   return (

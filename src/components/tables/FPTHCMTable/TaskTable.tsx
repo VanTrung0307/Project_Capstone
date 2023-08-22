@@ -8,7 +8,7 @@ import { Pagination, Task, createTask, getPaginatedTasks, updateTask } from '@ap
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -229,7 +229,7 @@ export const TaskTable: React.FC = () => {
         form.resetFields();
         setIsBasicModalOpen(false);
         message.success('Task data created successfully');
-        fetch(data.pagination)
+        fetch(data.pagination);
       } catch (error) {
         message.error('Error creating Task data');
         setData((prevData) => ({ ...prevData, loading: false }));
@@ -397,30 +397,6 @@ export const TaskTable: React.FC = () => {
       },
     },
     {
-      title: t('Điểm thưởng'),
-      dataIndex: 'point',
-      render: (text: number, record: Task) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Task = 'point';
-        return editable ? (
-          <Form.Item
-            key={record.point}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a point' }]}
-          >
-            <Input
-              type="number"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
-    {
       title: t('Vật phẩm'),
       dataIndex: 'itemName',
       render: (text: string, record: Task) => {
@@ -544,122 +520,175 @@ export const TaskTable: React.FC = () => {
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        width={800}
+        style={{ marginTop: '-50px' }}
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên nhiệm vụ'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
-                <Input />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên nhiệm vụ'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+                      <Input style={{ width: '300px' }} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Tên địa điểm'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn tọa độ ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {locations.map((location) => (
-                    <Option key={location.id} value={location.id}>
-                      {location.locationName}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên địa điểm'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="locationId"
+                      rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}
+                    >
+                      <Select
+                        placeholder={'---- Chọn tọa độ ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        style={{ width: '300px' }}
+                      >
+                        {locations.map((location) => (
+                          <Option key={location.id} value={location.id}>
+                            {location.locationName}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
 
-          <FlexContainer>
-            <Label>{'Tên NPC'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select 
-                  placeholder={'---- Chọn NPC ----'} 
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}>
-                  {npcs.map((npc) => (
-                    <Option key={npc.id} value={npc.id}>
-                      {npc.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên NPC'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="npcId"
+                      rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
+                    >
+                      <Select
+                        placeholder={'---- Chọn NPC ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        style={{ width: '300px' }}
+                      >
+                        {npcs.map((npc) => (
+                          <Option key={npc.id} value={npc.id}>
+                            {npc.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Tên ngành nghề'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select
-                  style={{maxWidth: '256px'}}
-                  placeholder={'---- Chọn ngành ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {majors.map((major) => (
-                    <Option key={major.id} value={major.id}>
-                      {major.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên ngành nghề'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="majorId"
+                      rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
+                    >
+                      <Select
+                        style={{ width: '300px' }}
+                        placeholder={'---- Chọn ngành ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      >
+                        {majors.map((major) => (
+                          <Option key={major.id} value={major.id}>
+                            {major.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
 
-          <FlexContainer>
-            <Label>{'Loại nhiệm vụ'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Loại nhiệm vụ'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
+                      <Select
+                        style={{ width: '300px' }}
+                        placeholder={'---- Chọn loại nhiệm vụ ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      >
+                        <Option value="CHECKIN">{'CHECKIN'}</Option>
+                        <Option value="QUESTIONANDANSWER">{'QUESTIONANDANSWER'}</Option>
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Điểm thưởng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Điểm thưởng'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+                      <Input type="number" style={{ width: '300px' }} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
 
-          <FlexContainer>
-            <Label>{'Tên vật phẩm'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="itemID">
-                <Select
-                  placeholder={'---- Chọn vật phẩm (Optional) ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                  style={{ width: '255px' }}
-                >
-                  {items.map((item) => (
-                    <Option key={item.id} value={item?.id}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên vật phẩm'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="itemID">
+                      <Select
+                        placeholder={'---- Chọn vật phẩm (Optional) ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        style={{ width: '300px' }}
+                      >
+                        {items.map((item) => (
+                          <Option key={item.id} value={item?.id}>
+                            {item.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Status'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Status'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="status"
+                      rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
+                    >
+                      <Select
+                        placeholder={'---- Chọn trạng thái ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        style={{ width: '300px' }}
+                      >
+                        <Option value="ACTIVE">{'ACTIVE'}</Option>
+                        <Option value="INACTIVE">{'INACTIVE'}</Option>
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
         </S.FormContent>
       </Modal>
 

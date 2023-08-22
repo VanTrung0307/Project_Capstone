@@ -5,16 +5,17 @@ import { httpApi } from '../http.api';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Players`;
 
 export type Player = {
-  eventId: string;
-  eventName: string;
+  id: string;
   studentId: string;
+  eventId: string;
   studentName: string;
+  studentEmail: string;
+  eventName: string;
+  nickname: string;
+  passcode: string;
   totalPoint: number;
   totalTime: number;
-  nickname: string;
-  createdAt: number;
-  passcode: string;
-  id: string;
+  isplayer: boolean;
 };
 
 interface PlayerData {
@@ -22,7 +23,6 @@ interface PlayerData {
   eventId: string;
   nickname: string;
   passcode: string;
-  createdAt: string;
   totalPoint: number;
   totalTime: number;
   isplayer: boolean;
@@ -114,7 +114,6 @@ export const createPlayer = async ({
   eventId,
   nickname,
   passcode,
-  createdAt,
   totalPoint,
   totalTime,
   isplayer,
@@ -125,7 +124,6 @@ export const createPlayer = async ({
       eventId,
       nickname,
       passcode,
-      createdAt,
       totalPoint,
       totalTime,
       isplayer,

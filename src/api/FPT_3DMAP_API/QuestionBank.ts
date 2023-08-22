@@ -4,21 +4,18 @@ import { httpApi } from '../http.api';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Questions`;
 
 export type Question = {
-  name: string;
-  majorId: string;
-  majorName: string;
-  answerId: string;
-  answerName: string;
-  status: string;
   id: string;
+  majorName: string;
+  name: string;
+  status: string;
+  answers: Array<{ id: string; answerName: string; isRight: boolean }>;
 };
 
 export type addQuestion = {
-  name: string;
+  answers: Array<{ answerName: string; isRight: boolean }>;
   majorId: string;
-  answerId: string;
+  name: string;
   status: string;
-  id: string;
 };
 
 export type updateQuestionData = {
@@ -45,9 +42,9 @@ export interface PaginationData {
 
 export const getPaginatedQuestions = async (pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await httpApi.get<QuestionList>(API_BASE_URL);
+    const response = await httpApi.get<QuestionList>(`${API_BASE_URL}/GetQuestionListAndAnswer`);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -81,7 +78,7 @@ export const getQuestionById = async (questionId: string): Promise<Question> => 
 
 export const createQuestion = async (questionData: addQuestion): Promise<Question> => {
   try {
-    const response = await httpApi.post<Question>(`${API_BASE_URL}/question`, questionData);
+    const response = await httpApi.post<Question>(`${API_BASE_URL}/question/answer`, questionData);
     return response.data;
   } catch (error) {
     console.error('Error creating question:', error);

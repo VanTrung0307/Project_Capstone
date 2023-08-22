@@ -13,7 +13,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Col, DatePicker, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -32,6 +32,7 @@ import {
 } from '@app/api/FPT_3DMAP_API/EventSchool';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
+import moment from 'moment';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -74,8 +75,6 @@ export const SchoolEventTable: React.FC = () => {
           }
         });
 
-        message.success('Updated null Major:', updatedItem);
-
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -88,16 +87,16 @@ export const SchoolEventTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        message.success('School updated successfully');
+        message.success('Thêm trường thành công');
       } catch (error) {
-        message.error('Error updating school data:');
+        message.error('Thêm trường thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed:');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -145,7 +144,7 @@ export const SchoolEventTable: React.FC = () => {
         const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
         setSchool(schoolResponse.data);
       } catch (error) {
-        message.error('Error fetching schools');
+        message.error('Không lấy được dữ liệu trường');
       }
     },
     [isMounted, eventId],
@@ -186,32 +185,30 @@ export const SchoolEventTable: React.FC = () => {
       const newData: addEventSchool = {
         eventId: values.eventId,
         schoolId: values.schoolId,
-        invitationLetter: values.invitationLetter,
+        approvalstatus: values.approvalstatus,
         status: values.status,
+        startTime: values.startTime,
+        endTime: values.endTime,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         await createEventSchool(newData);
-        message.success('School created successfully');
         fetch(data.pagination);
+        message.success('Thêm trường thành công');
         form.resetFields();
         setIsBasicModalOpen(false);
       } catch (error) {
-        message.error('Error creating School data');
+        message.error('Thêm trường thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
   const navigate = useNavigate();
-
-  const handleDetailClick = (schoolId: string, eventId: string) => {
-    navigate(`/students/${schoolId}/${eventId}`);
-  };
 
   const handleStudentClick = async (schoolId: string, eventId: string) => {
     try {
@@ -229,6 +226,14 @@ export const SchoolEventTable: React.FC = () => {
       dataIndex: 'name',
     },
     {
+      title: t('Điện thoại'),
+      dataIndex: 'phoneNumber',
+      render: (phoneNumber) => {
+        const formattedPhoneNumber = `0${phoneNumber}`;
+        return <span>{formattedPhoneNumber}</span>;
+      },
+    },
+    {
       title: t('Email'),
       dataIndex: 'email',
     },
@@ -236,9 +241,23 @@ export const SchoolEventTable: React.FC = () => {
       title: t('Địa chỉ nhà trường'),
       dataIndex: 'address',
     },
+    // {
+    //   title: t('Thời gian bắt đầu'),
+    //   dataIndex: 'startTime',
+    //   render: (text: string) => moment(text).format('DD/MM/YYYY - HH:mm:ss'),
+    // },
+    // {
+    //   title: t('Thời gian kết thúc'),
+    //   dataIndex: 'endTime',
+    //   render: (text: string) => moment(text).format('DD/MM/YYYY - HH:mm:ss'),
+    // },
     {
-      title: t('Điện thoại'),
-      dataIndex: 'phoneNumber',
+      title: t('Thời gian'),
+      render: (_, record: SchoolByEvent) => {
+        const formattedStartTime = moment(record.startTime).format('DD/MM/YYYY - HH:mm:ss');
+        const formattedEndTime = moment(record.endTime).format('DD/MM/YYYY - HH:mm:ss');
+        return <span>{`${formattedStartTime} - ${formattedEndTime}`}</span>;
+      },
     },
     {
       title: t('Trạng thái'),
@@ -286,6 +305,10 @@ export const SchoolEventTable: React.FC = () => {
 
   const Label = styled.label`
     flex: 0 0 200px;
+    ::before {
+      content: '* ';
+      color: red;
+    }
   `;
 
   const InputContainer = styled.div`
@@ -299,68 +322,181 @@ export const SchoolEventTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Thêm trường
       </Button>
       <Modal
-        title={'Thêm TRƯỜNG'}
+        title={'Thêm Trường'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        width={800}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên sự kiện'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="eventId">
-                {event?.name}
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <FlexContainer>
+                <div style={{ width: '300px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Label>{'Tên sự kiện'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="eventId" style={{ color: '#339CFD' }}>
+                      {event?.name}
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
 
-          <FlexContainer>
-            <Label>{'Tên trường'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Xin hãy chọn trường') }]}>
-                <Select
-                  placeholder={'---- Chọn trường ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                  style={{ width: '255px' }}
-                >
-                  {school.map((school) => (
-                    <Option key={school.id} value={school.id}>
-                      {school.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Thời gian bắt đầu'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="startTime"
+                      rules={[
+                        {
+                          required: true,
+                          message: t('Hãy chọn thời gian bắt đầu'),
+                        },
+                        () => ({
+                          validator(_, value) {
+                            if (!value) {
+                              return Promise.resolve();
+                            }
 
-          <FlexContainer>
-            <Label>{'Thư mời'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="invitationLetter" rules={[{ required: true, message: t('Hãy viết thư mời') }]}>
-                <TextArea value="invitationLetter" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+                            const selectedDate = moment(value);
+                            const tomorrow = moment().startOf('day').add(1, 'day');
 
-          <FlexContainer>
-            <Label>{'Trạng thái'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Hãy chọn trạng thái') }]}>
-                <Select placeholder={'---- Chọn trạng thái ----'}>
-                  <Option value="ACCEPT">{'ACCEPT'}</Option>
-                  <Option value="REFUSE">{'REFUSE'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+                            if (selectedDate.isBefore(tomorrow)) {
+                              return Promise.reject(new Error('Thời gian bắt đầu phải bắt đầu từ ngày mai'));
+                            }
+
+                            return Promise.resolve();
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input type="datetime-local" required />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên trường'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Xin hãy chọn trường') }]}>
+                      <Select
+                        placeholder={'---- Chọn trường ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        style={{ width: '255px' }}
+                      >
+                        {school.map((school) => (
+                          <Option key={school.id} value={school.id}>
+                            {school.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Thời gian kết thúc'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="endTime"
+                      rules={[
+                        {
+                          required: true,
+                          message: t('Hãy chọn thời gian kết thúc'),
+                        },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value) {
+                              return Promise.resolve();
+                            }
+
+                            const startTime = getFieldValue('startTime');
+                            if (!startTime) {
+                              return Promise.resolve();
+                            }
+
+                            const startMoment = moment(startTime);
+                            const endMoment = moment(value);
+
+                            if (endMoment.isBefore(startMoment.add(2, 'hours'))) {
+                              return Promise.reject(
+                                new Error('Thời gian kết thúc phải ít nhất 2 giờ sau thời gian bắt đầu'),
+                              );
+                            }
+
+                            return Promise.resolve();
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input type="datetime-local" required />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Xác nhận'}</Label>
+                  <InputContainer>
+                    <InputContainer>
+                      <BaseForm.Item name="approvalstatus" initialValue={'ACCEPT'}>
+                        <Input disabled={true} />
+                      </BaseForm.Item>
+                    </InputContainer>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Trạng thái'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                      <Input disabled={true} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
         </S.FormContent>
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>

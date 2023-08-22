@@ -99,7 +99,7 @@ export const EventStudentTable: React.FC = () => {
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Student) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof EventStudent) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -123,7 +123,7 @@ export const EventStudentTable: React.FC = () => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       } catch (error) {
-        message.error('Error fetching schools');
+        message.error('Không lấy được dữ liệu');
       }
     }
   };
@@ -165,31 +165,34 @@ export const EventStudentTable: React.FC = () => {
           eventId: eventId,
           nickname: '',
           passcode: '',
-          createdAt: new Date().toISOString(),
           totalPoint: 0,
           totalTime: 0,
           isplayer: true,
         });
-
-        message.success(`${fullname} added successfully`);
+        fetch(data.pagination)
+        // message.success(`${fullname} được tạo thành công`);
       }
     } catch (error) {
-      message.error('Error adding player');
-      message.error('Failed to add player');
+      message.error('Tạo thất bại');
     }
   };
 
   const handleGeneratePasscode = async () => {
     try {
+      if (!data) {
+        message.error('Data is null');
+        return;
+      }
+
       if (eventId) {
         for (const record of data.data) {
           await handleSavePlayer(record.id, eventId, record.fullname);
         }
         fetchData(data.pagination);
-        message.success('Passcodes generated successfully');
+        message.success('Mã tham gia đã tạo thành công');
       }
     } catch (error) {
-      message.error('Error generating passcodes');
+      message.error('Tạo mã tham gia thất bại');
     }
   };
 
@@ -296,6 +299,25 @@ export const EventStudentTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+        );
+      },
+    },
+    {
+      title: t('Mã tham gia'),
+      dataIndex: 'passcode',
+      render: (text: string | null, record: EventStudent) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof EventStudent = 'passcode';
+        return editable ? (
+          <Form.Item key={record.passcode} name={dataIndex} initialValue={text}>
+            <Input
+              type="text"
+              value={record[dataIndex]}
+              onChange={(e) => handleInputChange(e.target.value, record.passcode, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{text !== null ? text : 'Chưa có mã'}</span>
         );
       },
     },

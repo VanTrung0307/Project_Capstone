@@ -1,12 +1,14 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Upload } from '@app/components/common/Upload/Upload';
-import { DownOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, MinusOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { Answer, getPaginatedAnswers } from '@app/api/FPT_3DMAP_API/Answer';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import {
   Pagination,
   Question,
+  addQuestion,
   createQuestion,
   getPaginatedQuestions,
   updateQuestion,
@@ -14,7 +16,7 @@ import {
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -24,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -136,14 +139,14 @@ export const QuestionBankTable: React.FC = () => {
         const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
         setMajors(majorResponse.data);
       } catch (error) {
-        message.error('Error fetching majors');
+        // message.error('Error fetching majors');
       }
 
       try {
         const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 10 });
         setAnswers(answerResponse.data);
       } catch (error) {
-        message.error('Error fetching questions');
+        // message.error('Error fetching questions');
       }
     },
     [isMounted],
@@ -164,14 +167,16 @@ export const QuestionBankTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Question = {
+      const newAnswers = answerInputs.map((inputId, index) => ({
+        answerName: values[`answers[${inputId}].answerName`],
+        isRight: index === 0,
+      }));
+
+      const newData: addQuestion = {
+        answers: newAnswers,
         majorId: values.majorId,
-        majorName: values.majorName,
         name: values.name,
         status: values.status,
-        answerId: values.answerId,
-        answerName: values.answerName,
-        id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
@@ -181,17 +186,11 @@ export const QuestionBankTable: React.FC = () => {
 
         const selectedMajor = majors.find((major) => major.id === newData.majorId);
 
-        const selectedAnswer = answers.find((answer) => answer.id === newData.answerId);
-
         if (selectedMajor) {
           newData.majorId = selectedMajor.id;
         }
 
-        if (selectedAnswer) {
-          newData.answerId = selectedAnswer.id;
-        }
-
-        newData.id = createdQuestion.id;
+        // newAnswer.id = createdQuestion.id;
 
         setData((prevData) => ({
           ...prevData,
@@ -253,17 +252,17 @@ export const QuestionBankTable: React.FC = () => {
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'majorId';
+        const dataIndex: keyof Question = 'majorName';
         return editable ? (
           <Form.Item
-            key={record.majorId}
+            key={record.majorName}
             name={dataIndex}
             rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
           >
             <Select
               style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.majorId, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
@@ -280,10 +279,10 @@ export const QuestionBankTable: React.FC = () => {
     },
     {
       title: t('Câu trả lời đúng'),
-      dataIndex: 'answerName',
+      dataIndex: ['answers', 0, 'answerName'], // Assuming the correct answer is the first answer in the array
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'answerId';
+        const dataIndex: keyof Question = 'answers'; // Change this to 'answers' to access the array of answers
         const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
@@ -309,11 +308,11 @@ export const QuestionBankTable: React.FC = () => {
               }}
             >
               {editable ? (
-                <Form.Item key={record.answerId} name={dataIndex} rules={[{ required: false }]}>
+                <Form.Item key={record.id} name={dataIndex} rules={[{ required: false }]}>
                   <Select
                     style={{ maxWidth: '212.03px' }}
-                    value={record[dataIndex]}
-                    onChange={(value) => handleInputChange(value, record.answerId, dataIndex)}
+                    value={record[dataIndex][0].id} // Assuming you want to display the ID of the selected answer
+                    onChange={(value) => handleInputChange(value, record.id, dataIndex)} // Use record.id instead of record.answerId
                     suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                   >
                     {answers.map((answer) => (
@@ -414,7 +413,6 @@ export const QuestionBankTable: React.FC = () => {
   ];
 
   const FlexContainer = styled.div`
-    display: flex;
     align-items: center;
     margin-bottom: 16px;
   `;
@@ -430,19 +428,53 @@ export const QuestionBankTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
-    action: `http://anhkiet-001-site1.htempurl.com/api/Questions/upload-excel-question`,
-    onChange: (info: any) => {
-      const { status } = info.file;
-      if (status !== 'uploading') {
-        message.warn(`${name} ${status}`);
-      }
-      if (status === 'done') {
-        message.success(t('uploads.successUpload', { name: info.file.name }));
-        fetch(data.pagination);
-      } else if (status === 'error') {
-        message.error(t('uploads.failedUpload', { name: info.file.name }));
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `http://anhkiet-001-site1.htempurl.com/api/Questions/upload-excel-question`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
       }
     },
+    onChange: (info: any) => {
+      const { status } = info.file;
+
+      if (status === 'done') {
+      } else if (status === 'error') {
+      }
+    },
+  };
+
+  const [answerInputs, setAnswerInputs] = useState<number[]>([]);
+  const maxInputs = 4;
+
+  const addAnswerInput = () => {
+    if (answerInputs.length < maxInputs) {
+      setAnswerInputs([...answerInputs, Date.now()]);
+    }
+  };
+
+  const removeLastAnswerInput = () => {
+    if (answerInputs.length > 1) {
+      setAnswerInputs(answerInputs.slice(0, -1));
+    }
   };
 
   return (
@@ -459,76 +491,121 @@ export const QuestionBankTable: React.FC = () => {
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        width={1000}
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên câu hỏi'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
-                <Input maxLength={1000} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row>
+            <Col span={8}>
+              <FlexContainer>
+                <Label>{'Tên câu hỏi'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
+                    <TextArea maxLength={1000} style={{ width: '256px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Tên ngành'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn ngành ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {majors.map((major) => (
-                    <Option key={major.id} value={major.id}>
-                      {major.name}
-                    </Option>
+              <FlexContainer>
+                <Label>{'Tên ngành'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
+                    <Select
+                      style={{ maxWidth: '256px' }}
+                      placeholder={'---- Chọn ngành ----'}
+                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                    >
+                      {majors.map((major) => (
+                        <Option key={major.id} value={major.id}>
+                          {major.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+
+              <FlexContainer>
+                <Label>{'Trạng thái'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                    <Input disabled={true} style={{ width: '80px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+
+            <Col span={19} offset={12}>
+              <FlexContainer style={{ marginTop: '-305px' }}>
+                <Label>{'Câu trả lời'}</Label>
+                <h1 style={{ fontSize: '14px', color: '#FF6961' }}>* Hãy nhập 4 câu trả lời</h1>
+                <InputContainer>
+                  {answerInputs.map((inputId) => (
+                    <div key={inputId}>
+                      <BaseForm.Item
+                        name={`answers[${inputId}].answerName`}
+                        rules={[
+                          { required: true, message: t('Tên câu trả lời là cần thiết') },
+                          () => ({
+                            validator: async (_, value) => {
+                              if (
+                                answerInputs.length === 4 &&
+                                answerInputs.every(
+                                  (id) => form.getFieldValue(`answers[${id}].answerName`).trim() !== '',
+                                )
+                              ) {
+                                return Promise.resolve();
+                              }
+                              throw new Error('Hãy nhập đủ 4 câu trả lời');
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input style={{ maxWidth: '256px', marginBottom: '8px' }} placeholder={'Nhập câu trả lời'} />
+                      </BaseForm.Item>
+                    </div>
                   ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Câu trả lời đúng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="answerId" rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}>
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn câu trả lời ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {answers.map((answer) => (
-                    <Option key={answer.id} value={answer.id}>
-                      {answer.answerName}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>Trạng thái</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}>
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+                  {answerInputs.length > 1 && (
+                    <Button
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                      }}
+                      onClick={removeLastAnswerInput}
+                    >
+                      <MinusOutlined />
+                    </Button>
+                  )}
+                  {answerInputs.length < maxInputs && (
+                    <Button
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                      }}
+                      onClick={addAnswerInput}
+                    >
+                      <PlusOutlined />
+                    </Button>
+                  )}
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+          </Row>
         </S.FormContent>
       </Modal>
 
       <Upload {...uploadProps}>
         <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
-          {t('uploads.clickToUpload')}
+          Nhập Excel
         </Button>
       </Upload>
 

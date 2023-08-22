@@ -6,10 +6,14 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Events`;
 
 export type Event = {
   name: string;
-  startTime: number;
-  endTime: number;
   status: string;
   id: string;
+  createdAt: string;
+};
+
+export type addEvent = {
+  name: string;
+  status: string;
 };
 
 export type EventList = {
@@ -63,7 +67,7 @@ export const getEventById = async (eventId: string): Promise<Event> => {
   }
 };
 
-export const createEvent = async (eventData: Event): Promise<Event> => {
+export const createEvent = async (eventData: addEvent): Promise<Event> => {
   try {
     const response = await httpApi.post<Event>(`${API_BASE_URL}/event`, eventData);
     return response.data;
@@ -80,5 +84,38 @@ export const updateEvent = async (eventId: string, eventData: Event): Promise<Ev
   } catch (error) {
     console.error('Error updating event:', error);
     throw error;
+  }
+};
+
+export const getExcelTemplateEvent = async (): Promise<Blob> => {
+  try {
+    const response = await httpApi.get(`${API_BASE_URL}/excel-template-event`, {
+      responseType: 'arraybuffer',
+    });
+    return new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  } catch (error) {
+    console.error('Error getting template student excel:', error);
+    throw error;
+  }
+};
+
+export const uploadExcelEvent = async (file: File): Promise<void> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await httpApi.post(`${API_BASE_URL}/upload-excel-event`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.status === 200) {
+      console.log('Upload successful:', response.data);
+    } else {
+      console.error('Upload failed with status:', response.status);
+    }
+  } catch (error) {
+    console.error('Upload error:', error);
   }
 };

@@ -1,10 +1,19 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DownOutlined, UploadOutlined } from '@ant-design/icons';
-import { Event, Pagination, createEvent, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
+import { DownOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  Event,
+  Pagination,
+  addEvent,
+  createEvent,
+  getExcelTemplateEvent,
+  getPaginatedEvents,
+  updateEvent,
+} from '@app/api/FPT_3DMAP_API/Event';
 import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
 import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/EventTask';
+import { httpApi } from '@app/api/http.api';
 import { Upload } from '@app/components/common/Upload/Upload';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
@@ -77,16 +86,16 @@ export const EventTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateEvent(key.toString(), row);
-        message.success('Event updated successfully');
+        message.success('Cập nhật sự kiện thành công');
       } catch (error) {
-        message.error('Error updating Event data:');
+        message.error('Cập nhật sự kiện thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed:');
+      message.error('Hãy nhập đày đủ');
     }
   };
 
@@ -163,28 +172,25 @@ export const EventTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Event = {
+      const newData: addEvent = {
         name: values.name,
-        startTime: values.startTime,
-        endTime: values.endTime,
         status: values.status,
-        id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         await createEvent(newData);
-        message.success('Event created successfully');
+        message.success('Tạo sự kiện thành công');
         fetch(data.pagination);
         form.resetFields();
         setIsBasicModalOpen(false);
       } catch (error) {
-        message.error('Error creating event data');
+        message.error('Tạo sự kiện không thành công');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -192,6 +198,7 @@ export const EventTable: React.FC = () => {
     {
       title: t('Tên sự kiện'),
       dataIndex: 'name',
+      width: '45%',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
         const dataIndex: keyof Event = 'name';
@@ -200,10 +207,11 @@ export const EventTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên sự kiện' }]}
           >
             <Input
               maxLength={100}
+              style={{ width: '300px'}}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -214,56 +222,39 @@ export const EventTable: React.FC = () => {
       },
     },
     {
-      title: t('Thời gian bắt đầu'),
-      dataIndex: 'startTime',
-      render: (text: number, record: Event) => {
+      title: t('Năm'),
+      dataIndex: 'createdAt',
+      width: '8%',
+      render: (text: string, record: Event) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Event = 'startTime';
+        const dataIndex: keyof Event = 'createdAt';
+        const year = moment(text).format('YYYY');
         return editable ? (
           <Form.Item
-            key={record.startTime}
+            key={record.createdAt}
             name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
+            initialValue={moment(text).year().toString()}
+            rules={[{ required: true, message: 'Hãy nhập năm xảy ra sự kiện' }]}
           >
             <Input
-              type="datetime-local"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.startTime, dataIndex)}
+              type="number"
+              min={1000}
+              max={9999}
+              step={1}
+              value={year}
+              onChange={(e) => handleInputChange(e.target.value, record.createdAt, dataIndex)}
+              style={{ width: '100px' }}
             />
           </Form.Item>
         ) : (
-          <span>{formatDateTime(record.startTime)}</span>
-        );
-      },
-    },
-    {
-      title: t('Thời gian kết thúc'),
-      dataIndex: 'endTime',
-      render: (text: number, record: Event) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Event = 'endTime';
-        return editable ? (
-          <Form.Item
-            key={record.endTime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
-          >
-            <Input
-              type="datetime-local"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.endTime, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{formatDateTime(record.endTime)}</span>
+          <span>{year}</span>
         );
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      width: '12%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -302,7 +293,7 @@ export const EventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      width: '15%',
+      width: '1%',
       render: (text: string, record: Event) => {
         const editable = isEditing(record);
         return (
@@ -325,26 +316,12 @@ export const EventTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button type="ghost" onClick={() => setIsActionModalOpen(true)}>
-                  Danh sách
+                <Button type="ghost" onClick={() => handleSchoolClick(record.id)}>
+                  Danh sách trường
                 </Button>
-                <Modal
-                  title={'Chức năng'}
-                  open={isActionModalOpen}
-                  onCancel={() => setIsActionModalOpen(false)}
-                  footer
-                  mask={true}
-                  maskStyle={{ opacity: 0.4 }}
-                >
-                  <div style={{ display: 'flex', marginBottom: '10px' }}>
-                    <Button type="primary" onClick={() => handleSchoolClick(record.id)} style={{ marginRight: '10px' }}>
-                      Danh sách trường
-                    </Button>
-                    <Button type="primary" onClick={() => handleTaskClick(record.id)}>
-                      Danh sách nhiệm vụ
-                    </Button>
-                  </div>
-                </Modal>
+                <Button type="ghost" onClick={() => handleTaskClick(record.id)}>
+                  Danh sách nhiệm vụ
+                </Button>
               </>
             )}
           </Space>
@@ -361,6 +338,10 @@ export const EventTable: React.FC = () => {
 
   const Label = styled.label`
     flex: 0 0 200px;
+    ::before {
+      content: '* ';
+      color: red;
+    }
   `;
 
   const InputContainer = styled.div`
@@ -370,20 +351,63 @@ export const EventTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
-    action: `http://anhkiet-001-site1.htempurl.com/api/Events/upload-excel-event`,
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `https://anhkiet-001-site1.htempurl.com/api/Events/upload-excel-event`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
+      }
+    },
     onChange: (info: any) => {
       const { status } = info.file;
-      if (status !== 'uploading') {
-        message.warn(`${name} ${status}`);
-      }
+
       if (status === 'done') {
-        message.success(t('uploads.successUpload', { name: info.file.name }));
-        fetch(data.pagination);
       } else if (status === 'error') {
-        message.error(t('uploads.failedUpload', { name: info.file.name }));
       }
     },
   };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const excelTemplate = await getExcelTemplateEvent();
+
+      const blob = new Blob([excelTemplate], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = 'Mau_don_su_kien.xlsx';
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+      anchor.remove();
+    } catch (error) {
+      message.error('Không thể tải đơn mẫu');
+    }
+  };
+
+  const [selectedYear, setSelectedYear] = useState<string | undefined>(undefined);
 
   return (
     <Form form={form} component={false}>
@@ -395,7 +419,7 @@ export const EventTable: React.FC = () => {
         Tạo mới
       </Button>
       <Modal
-        title={'Thêm mới SỰ KIỆN'}
+        title={'Thêm mới Sự kiện'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
@@ -424,100 +448,39 @@ export const EventTable: React.FC = () => {
                     pattern: /^[^\s].*/,
                     message: 'Không được bắt đầu bằng khoảng trắng',
                   },
+                  {
+                    pattern: /^[^\d\W].*$/,
+                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                  },
                 ]}
               >
                 <Input maxLength={100} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
-          <FlexContainer>
-            <Label>{'Thời gian bắt đầu'}</Label>
-            <InputContainer>
-              <BaseForm.Item
-                name="startTime"
-                rules={[
-                  {
-                    required: true,
-                    message: t('Thời gian bắt đầu là bắt buộc'),
-                  },
-                  () => ({
-                    validator(_, value) {
-                      if (!value) {
-                        return Promise.resolve();
-                      }
 
-                      const selectedDate = moment(value);
-                      const today = moment().startOf('day');
-                      const startOfDay = moment().set('hour', 7).set('minute', 0).set('second', 0);
-                      const endOfDay = moment().set('hour', 18).set('minute', 0).set('second', 0);
-
-                      if (selectedDate.isBefore(today)) {
-                        return Promise.reject(new Error('Thời gian bắt đầu phải là ngày hôm nay'));
-                      }
-
-                      if (selectedDate.isBefore(startOfDay) || selectedDate.isAfter(endOfDay)) {
-                        return Promise.reject(new Error('Thời gian bắt đầu phải trong khoảng từ 7 AM đến 6 PM'));
-                      }
-
-                      return Promise.resolve();
-                    },
-                  }),
-                ]}
-              >
-                <Input type="datetime-local" required />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          <FlexContainer>
-            <Label>{'Thời gian kết thúc'}</Label>
-            <InputContainer>
-              <BaseForm.Item
-                name="endTime"
-                rules={[
-                  {
-                    required: true,
-                    message: t('Thời gian kết thúc là bắt buộc'),
-                  },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value) {
-                        return Promise.resolve();
-                      }
-
-                      const startTime = getFieldValue('startTime');
-                      if (!startTime) {
-                        return Promise.resolve();
-                      }
-
-                      const startMoment = moment(startTime);
-                      const endMoment = moment(value);
-
-                      if (endMoment.isBefore(startMoment.add(2, 'hours'))) {
-                        return Promise.reject(new Error('Thời gian kết thúc phải ít nhất 2 giờ sau thời gian bắt đầu'));
-                      }
-
-                      return Promise.resolve();
-                    },
-                  }),
-                ]}
-              >
-                <Input type="datetime-local" required />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status">
-                <Input defaultValue="INACTIVE" disabled />
+              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                <Input disabled={true} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
         </S.FormContent>
       </Modal>
 
+      <Button
+        type="dashed"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 280px' }}
+        icon={<DownloadOutlined />}
+      >
+        Mẫu đơn sự kiện
+      </Button>
+
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 130px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 123px' }}>
           Nhập Excel
         </Button>
       </Upload>
@@ -536,8 +499,24 @@ export const EventTable: React.FC = () => {
             setData((prevData) => ({ ...prevData, data: originalData }));
           }
         }}
-        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+        style={{ width: '320px', right: '0', height: '70px' }}
       />
+
+      <div>
+        <Select
+          placeholder="Chọn năm"
+          onChange={(value) => setSelectedYear(value)}
+          value={selectedYear}
+          style={{ width: 150, marginRight: 10, marginBottom: '10px' }}
+          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+        >
+          {Array.from(new Set(data.data.map((record) => moment(record.createdAt).format('YYYY')))).map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
 
       <Table
         components={{
@@ -546,7 +525,11 @@ export const EventTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data.data}
+        dataSource={
+          selectedYear
+            ? data.data.filter((record) => moment(record.createdAt).format('YYYY') === selectedYear)
+            : data.data
+        }
         pagination={{
           ...data.pagination,
           onChange: cancel,

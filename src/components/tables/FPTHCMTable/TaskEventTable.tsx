@@ -6,21 +6,15 @@ import {
   EventTask,
   TaskByEvent,
   addEventTask,
-  createEventTask,
+  createListEventTask,
   getTaskbyEventId,
   updateEventTask,
-  updateEventTaskData,
 } from '@app/api/FPT_3DMAP_API/EventTask';
-import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
-import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
-import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
-import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
-import { Pagination, Task, getPaginatedTasks, updateTask } from '@app/api/FPT_3DMAP_API/Task';
+import { Pagination, Task, getPaginatedTasks } from '@app/api/FPT_3DMAP_API/Task';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -30,6 +24,8 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { TaskTableModal } from './TaskTableModal';
+import { Option } from '@app/components/common/selects/Select/Select';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -47,10 +43,10 @@ export const TaskEventTable: React.FC = () => {
   });
   const [tasks, setTask] = useState<Task[]>([]);
   const { eventId } = useParams<{ eventId: string | undefined }>();
-  const [locations, setLocations] = useState<RoomLocation[]>([]);
-  const [npcs, setNpcs] = useState<Npc[]>([]);
-  const [majors, setMajors] = useState<Major[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
+  // const [locations, setLocations] = useState<RoomLocation[]>([]);
+  // const [npcs, setNpcs] = useState<Npc[]>([]);
+  // const [majors, setMajors] = useState<Major[]>([]);
+  // const [items, setItems] = useState<Item[]>([]);
 
   const isEditing = (record: TaskByEvent) => record.eventtaskId === editingKey;
 
@@ -194,12 +190,13 @@ export const TaskEventTable: React.FC = () => {
         endTime: values.endTime,
         priority: values.priority,
         point: values.point,
+        status: values.status,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdEventTask = await createEventTask(newEventTask);
+        const createdEventTask = await createListEventTask(newEventTask);
 
         setEventTask((prevData) => ({
           ...prevData,
@@ -221,16 +218,12 @@ export const TaskEventTable: React.FC = () => {
     }
   };
 
-  const formatDateTime = (isoDateTime: number) => {
-    const dateTime = new Date(isoDateTime);
-    const year = dateTime.getFullYear();
-    const month = String(dateTime.getMonth() + 1).padStart(2, '0');
-    const day = String(dateTime.getDate()).padStart(2, '0');
-    const hours = String(dateTime.getHours()).padStart(2, '0');
-    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
-    const seconds = String(dateTime.getSeconds()).padStart(2, '0');
-    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
-  };
+  // const formatTimeSpan = (timeSpan: any): string => {
+  //   const hours = timeSpan.hours ? `${timeSpan.hours}h ` : '';
+  //   const minutes = timeSpan.minutes ? `${timeSpan.minutes}m` : '';
+  //   const seconds = timeSpan.seconds ? `${timeSpan.seconds}s` : '';
+  //   return `${hours}:${minutes}:${seconds}`;
+  // };
 
   const columns: ColumnsType<TaskByEvent> = [
     {
@@ -336,54 +329,67 @@ export const TaskEventTable: React.FC = () => {
         );
       },
     },
-    {
-      title: t('Thời gian bắt đầu'),
-      dataIndex: 'starttime',
-      render: (text: string, record: TaskByEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskByEvent = 'starttime';
-        return editable ? (
-          <Form.Item
-            key={record.starttime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
-          >
-            <Input
-              type="datetime-local"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.starttime, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{formatDateTime(record.starttime)}</span>
-        );
-      },
-    },
-    {
-      title: t('Thời gian kết thúc'),
-      dataIndex: 'endtime',
-      render: (text: string, record: TaskByEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskByEvent = 'endtime';
-        return editable ? (
-          <Form.Item
-            key={record.endtime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
-          >
-            <Input
-              type="datetime-local"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{formatDateTime(record.endtime)}</span>
-        );
-      },
-    },
+    // {
+    //   title: t('Thời gian bắt đầu'),
+    //   dataIndex: 'starttime',
+    //   render: (text: any, record: TaskByEvent) => {
+    //     const editable = isEditing(record);
+    //     const dataIndex: keyof TaskByEvent = 'starttime';
+
+    //     const startTimeHours = String(record.starttime.hours).padStart(2, '0');
+    //     const startTimeMinutes = String(record.starttime.minutes).padStart(2, '0');
+    //     const startTimeFormatted = `${startTimeHours}:${startTimeMinutes}`;
+
+    //     return editable ? (
+    //       <Form.Item
+    //         key={`${record.starttime.hours}-${record.starttime.minutes}`}
+    //         name={dataIndex}
+    //         initialValue={startTimeFormatted}
+    //         rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
+    //       >
+    //         <Input
+    //           type="time"
+    //           value={startTimeFormatted}
+    //           onChange={(e) => handleInputChange(e.target.value, record.starttime.hours, dataIndex)}
+    //         />
+    //       </Form.Item>
+    //     ) : (
+    //       <span>{formatTimeSpan(startTimeFormatted)}</span>
+    //     );
+    //   },
+    // },
+    // {
+    //   title: t('Thời gian kết thúc'),
+    //   dataIndex: 'endtime',
+    //   render: (text: string, record: TaskByEvent) => {
+    //     const editable = isEditing(record);
+    //     const dataIndex: keyof TaskByEvent = 'endtime';
+    //     return editable ? (
+    //       <Form.Item
+    //         key={record.endtime}
+    //         name={dataIndex}
+    //         initialValue={text}
+    //         rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
+    //       >
+    //         <Input
+    //           type="datetime-local"
+    //           value={record[dataIndex]}
+    //           onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
+    //         />
+    //       </Form.Item>
+    //     ) : (
+    //       <span>{formatTimeSpan(record.endtime)}</span>
+    //     );
+    //   },
+    // },
+    // {
+    //   title: t('Thời gian'),
+    //   render: (_, record: TaskByEvent) => {
+    //     const formattedStartTime = moment(record.starttime).format('HH:mm:ss');
+    //     const formattedEndTime = moment(record.endtime).format('HH:mm:ss');
+    //     return <span>{`${formattedStartTime} - ${formattedEndTime}`}</span>;
+    //   },
+    // },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
@@ -427,6 +433,10 @@ export const TaskEventTable: React.FC = () => {
 
   const Label = styled.label`
     flex: 0 0 200px;
+    ::before {
+      content: '* ';
+      color: red;
+    }
   `;
 
   const InputContainer = styled.div`
@@ -443,72 +453,131 @@ export const TaskEventTable: React.FC = () => {
         Thêm mới
       </Button>
       <Modal
-        title={'Thêm mới NHIỆM VỤ'}
+        title={'Thêm mới Nhiệm vụ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        width={1000}
+        style={{ marginTop: '-100px' }}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên nhiệm vụ'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn Nhiệm Vụ ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {tasks.map((tasks) => (
-                    <Option key={tasks.id} value={tasks.id}>
-                      {tasks.name}
-                    </Option>
-                  ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row>
+            <Col span={24}>
+              <div>
+                <FlexContainer>
+                  <Label>{'Tên sự kiện'}</Label>
+                  <BaseForm.Item name="eventId" style={{ color: '#339CFD', fontWeight: 'bold', fontSize: '25px' }}>
+                    {event?.name}
+                  </BaseForm.Item>
+                </FlexContainer>
+              </div>
+            </Col>
+          </Row>
 
-          <FlexContainer>
-            <Label>{'Tên sự kiện'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="eventId">{event?.name}</BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row>
+            <Col span={8}>
+              <FlexContainer>
+                <Label>{'Thời gian bắt đầu'}</Label>
+                <InputContainer>
+                  <BaseForm.Item
+                    name="startTime"
+                    rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}
+                  >
+                    <Input type="time" required />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Thời gian bắt đầu'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="startTime" rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}>
-                <Input type="datetime-local" required />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <Label>{'Thời gian kết thúc'}</Label>
+                <InputContainer>
+                  <BaseForm.Item
+                    name="endTime"
+                    rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}
+                  >
+                    <Input type="time" required />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Thời gian kết thúc'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}>
-                <Input type="datetime-local" required />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <Label>{'Mức độ'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
+                    <Select
+                      style={{ width: '128px' }}
+                      placeholder={'Chọn mức độ'}
+                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                    >
+                      <Option value="1">{1}</Option>
+                      <Option value="2">{2}</Option>
+                      <Option value="3">{3}</Option>
+                    </Select>
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Mức độ'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <Label>{'Điểm thưởng'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+                    <Input style={{ width: '100px' }} type="number" />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Điểm thưởng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <Label>{'Trạng thái'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                    <Input style={{ width: '100px' }} disabled={true} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+
+            <Col span={19} offset={12}>
+              <FlexContainer
+                style={{
+                  marginTop: '-405px',
+                  marginLeft: '100px',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                }}
+              >
+                <div>
+                  <Label>{'Tên nhiệm vụ'}</Label>
+                  <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+                    <Select
+                      mode="multiple"
+                      style={{ width: '300px' }}
+                      placeholder="Chọn nhiệm vụ"
+                      showSearch
+                      filterOption={(inputValue, option) =>
+                        option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
+                      }
+                      options={tasks.map((task) => ({
+                        label: task.name,
+                        value: task.id,
+                      }))}
+                    />
+                  </BaseForm.Item>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
+
+          <TaskTableModal />
         </S.FormContent>
       </Modal>
 

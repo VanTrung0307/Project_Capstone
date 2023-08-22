@@ -7,7 +7,7 @@ const RankPage: React.FC = () => {
   return (
     <>
       <Suspense fallback={<div>Loading...</div>}>
-        <PageTitle>Rank</PageTitle>
+        <PageTitle>Dashboard</PageTitle>
         <RankTables />
       </Suspense>
     </>

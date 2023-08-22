@@ -110,9 +110,8 @@ export const SchoolTable: React.FC = () => {
       setData((tableData) => ({ ...tableData, loading: true }));
       getPaginatedSchools(pagination).then((res) => {
         if (isMounted.current) {
-          const sortedData = res.data.slice().reverse();
-          setOriginalData(sortedData);
-          setData({ data: sortedData, pagination: res.pagination, loading: false });
+          setOriginalData(res.data);
+          setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       });
     },
@@ -416,6 +415,7 @@ export const SchoolTable: React.FC = () => {
             </Button>
           </div>
         }
+        style={{ marginTop: '-50px' }}
       >
         <S.FormContent>
           <FlexContainer>
@@ -457,7 +457,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <Input />
+                <Input placeholder="Ví dụ: name@gmail.com" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -475,7 +475,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <Input type="tel" />
+                <Input type="tel" placeholder="10 hoặc 11 số" />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -501,15 +501,8 @@ export const SchoolTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Hãy nhập trạng thái') }]}>
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
+              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                <Input disabled={true} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>

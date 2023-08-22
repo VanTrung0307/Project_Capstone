@@ -3,7 +3,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import * as Auth from '@app/components/layouts/AuthLayout/AuthLayout.styles';
 import { notificationController } from '@app/controllers/notificationController';
 import { useAppDispatch } from '@app/hooks/reduxHooks';
-import { doLogin } from '@app/store/slices/authSlice';
+import { doLogin, doLogout } from '@app/store/slices/authSlice';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import * as S from './LoginForm.styles';
 import { LoginRequest, loginAdmin } from '@app/api/FPT_3DMAP_API/Account';
 import { persistToken } from '@app/services/localStorage.service';
 import { setUser } from '@app/store/slices/userSlice';
+import { useEffect } from 'react';
 
 interface LoginFormData {
   username: string;
@@ -28,6 +29,15 @@ export const LoginForm: React.FC = () => {
   const { t } = useTranslation();
 
   const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(doLogout());
+      notificationController.info({ message: 'Đã tự động đăng xuất sau một giờ không hoạt động.' });
+    }, 60 * 60 * 1000);
+
+    return () => clearTimeout(timeout);
+  }, [dispatch]);
 
   const handleSubmit = async (values: LoginFormData) => {
     setLoading(true);

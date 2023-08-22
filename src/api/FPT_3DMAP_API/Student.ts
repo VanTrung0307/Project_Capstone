@@ -19,10 +19,11 @@ export type Student = {
 export type EventStudent = {
   id: string;
   schoolname: string;
+  passcode: string;
   fullname: string;
   email: string;
   phonenumber: number;
-  graduateYear: string;
+  graduateYear: number;
   classname: string;
   status: string;
 };

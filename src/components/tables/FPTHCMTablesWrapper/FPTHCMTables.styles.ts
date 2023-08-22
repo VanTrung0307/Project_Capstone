@@ -9,3 +9,9 @@ export const FPTHCMTablesWrapper = styled.div`
 export const Card = styled(CommonCard)`
   margin-bottom: 2rem;
 `;
+
+export const Breadcrumbs = styled.div`
+  /* Define your breadcrumb styles here */
+  margin: 10px 0; /* Example styling, adjust as needed */
+  font-size: 14px;
+`;

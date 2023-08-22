@@ -14,18 +14,22 @@ export type EventSchool = {
 };
 export type SchoolByEvent = {
   name: string;
-  phoneNumber: number;
+  phoneNumber: string;
   email: string;
   address: string;
   status: string;
+  startTime: string;
+  endTime: string;
   id: string;
 };
 
 export type addEventSchool = {
   eventId: string;
   schoolId: string;
-  invitationLetter: string;
+  approvalstatus: string;
   status: string;
+  startTime: string;
+  endTime: string;
 };
 
 export type EventSchoolList = {

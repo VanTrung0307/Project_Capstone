@@ -73,7 +73,7 @@ export const getPaginatedTasks = async (pagination: Pagination): Promise<Paginat
   try {
     const response = await httpApi.get<TaskList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 10 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;

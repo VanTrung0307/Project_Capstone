@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -137,17 +138,36 @@ export const StudentTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
-    action: `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
+      }
+    },
     onChange: (info: any) => {
       const { status } = info.file;
-      if (status !== 'uploading') {
-        message.warn(`${name} ${status}`);
-      }
+
       if (status === 'done') {
-        message.success(t('Tải lên thành công', { name: info.file.name }));
-        fetch(data.pagination);
       } else if (status === 'error') {
-        message.error(t('Tải lên thất bại', { name: info.file.name }));
       }
     },
   };
@@ -187,17 +207,15 @@ export const StudentTable: React.FC = () => {
           eventId: selectedOption,
           nickname: '',
           passcode: '',
-          createdAt: new Date().toISOString(),
           totalPoint: 0,
           totalTime: 0,
           isplayer: true,
         });
 
-        message.success('Player added successfully');
+        message.success('Tạo người chơi thành công');
       }
     } catch (error) {
-      message.error('Error adding player');
-      message.error('Failed to add player');
+      message.error('Tạo người chơi thất bại');
     }
   };
 
@@ -398,7 +416,7 @@ export const StudentTable: React.FC = () => {
 
       const anchor = document.createElement('a');
       anchor.href = downloadUrl;
-      anchor.download = 'SampleDataStudent.xlsx';
+      anchor.download = 'Mau_don_hoc_sinh.xlsx';
       anchor.click();
 
       URL.revokeObjectURL(downloadUrl);
@@ -417,12 +435,12 @@ export const StudentTable: React.FC = () => {
       </Upload>
 
       <Button
-        type="default"
+        type="dashed"
         onClick={handleDownloadTemplate}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 180px' }}
         icon={<DownloadOutlined />}
       >
-        Tải đơn mẫu
+        Mẫu đơn học sinh
       </Button>
 
       <SearchInput

@@ -28,19 +28,44 @@ export type TaskByEvent = {
   type: string;
   status: string;
   priority: 0;
-  starttime: number;
-  endtime: number;
+  starttime: {
+    ticks: number;
+    days: number;
+    hours: number;
+    milliseconds: number;
+    minutes: number;
+    seconds: number;
+    totalDays: number;
+    totalHours: number;
+    totalMilliseconds: number;
+    totalMinutes: number;
+    totalSeconds: number;
+  };
+  endtime: {
+    ticks: number;
+    days: number;
+    hours: number;
+    milliseconds: number;
+    minutes: number;
+    seconds: number;
+    totalDays: number;
+    totalHours: number;
+    totalMilliseconds: number;
+    totalMinutes: number;
+    totalSeconds: number;
+  };
   eventStartTime: number;
   eventEndTime: number;
 };
 
 export type addEventTask = {
-  taskId: string;
+  taskId: [];
   eventId: string;
-  startTime: number;
-  endTime: number;
+  startTime: string;
+  endTime: string;
   priority: number;
   point: number;
+  status: string;
 };
 
 export type updateEventTaskData = {
@@ -85,7 +110,20 @@ export const createEventTask = async (taskData: addEventTask): Promise<EventTask
   }
 };
 
-export const getTaskbyEventId = async (eventId: string, pagination: Pagination): Promise<PaginationTaskgetbyEventData> => {
+export const createListEventTask = async (taskData: addEventTask): Promise<EventTask> => {
+  try {
+    const response = await httpApi.post<EventTask>(`${API_BASE_URL}/createlisteventtask`, taskData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
+};
+
+export const getTaskbyEventId = async (
+  eventId: string,
+  pagination: Pagination,
+): Promise<PaginationTaskgetbyEventData> => {
   try {
     const response = await httpApi.get<TaskgetbyEventList>(`${API_BASE_URL}/GetTaskByEventTaskWithEventId/${eventId}`);
     const { data } = response.data;

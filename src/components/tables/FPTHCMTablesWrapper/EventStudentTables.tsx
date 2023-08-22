@@ -4,10 +4,11 @@ import { Pagination, School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/
 import React, { useEffect, useState } from 'react';
 import { EventStudentTable } from '../FPTHCMTable/EventStudentTable';
 import * as S from './FPTHCMTables.styles';
+import { useNavigate } from 'react-router';
 
 type StudentTablesProps = {
   schoolId?: string;
-  eventId?: string
+  eventId?: string;
 };
 
 export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId, eventId }) => {
@@ -27,7 +28,7 @@ export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId, eve
           console.error('Error fetching paginated events:', error);
         });
 
-        getPaginatedEvents(pagination)
+      getPaginatedEvents(pagination)
         .then((response) => {
           const eventData = response.data.find((event) => event.id === eventId);
           setEvent(eventData);
@@ -38,15 +39,58 @@ export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId, eve
     }
   }, [schoolId, eventId]);
 
+  const navigate = useNavigate();
+
   return (
     <>
       <S.FPTHCMTablesWrapper>
+        <S.Breadcrumbs>
+          <span className="link" onClick={() => navigate('/events')}>
+            Bảng Sự Kiện
+          </span>
+          &emsp;<span>➤➤</span>
+          &emsp;
+          <span className="event" onClick={() => navigate(`/schools/${eventId}`)}>
+            {event ? event.name : ''}{' '}
+          </span>
+          &emsp;<span>➤➤</span>
+          &emsp;<span className="student">{school ? school.name : ''} </span>
+          <style>
+            {`
+              .link {
+                cursor: pointer;
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s;
+              }
+
+              .link:hover {
+                color: #339CFD;
+              }
+              .event {
+                cursor: pointer;
+                color: white;
+                text-decoration: none;
+                white-space: nowrap;
+                width: 15em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+
+              .event:hover {
+                color: #339CFD;
+              }
+              .student {
+                color: #339CFD;
+              }
+            `}
+          </style>
+        </S.Breadcrumbs>
+
         <S.Card id="basic-table" padding="1.25rem 1.25rem 0">
-          <div style={{ width: '700px' }}>
+          <div style={{ width: '400px' }}>
             <div style={{ overflowWrap: 'break-word' }}>
-              <h1 style={{ fontWeight: 'bold' }}>
-                Danh sách học sinh {school && event ? school.name : ''}
-              </h1>
+              <h1 style={{ fontWeight: 'bold' }}>Danh sách học sinh {school && event ? school.name : ''}</h1>
             </div>
           </div>
           <EventStudentTable />

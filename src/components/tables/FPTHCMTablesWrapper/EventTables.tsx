@@ -9,6 +9,19 @@ export const EventTables: React.FC = () => {
   return (
     <>
       <S.FPTHCMTablesWrapper>
+        <S.Breadcrumbs>
+          <span className="link">
+            {t('Bảng Sự Kiện')}
+          </span>
+          <style>
+            {`
+    .link {
+      color: #339CFD;
+    }
+  `}
+          </style>
+        </S.Breadcrumbs>
+
         <S.Card id="basic-table" title={t('Bảng Sự Kiện')} padding="1.25rem 1.25rem 0">
           <EventTable />
         </S.Card>

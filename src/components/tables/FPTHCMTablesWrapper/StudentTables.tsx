@@ -30,7 +30,7 @@ export const StudentTables: React.FC<StudentTablesProps> = ({ schoolId }) => {
     <>
       <S.FPTHCMTablesWrapper>
         <S.Card id="basic-table" padding="1.25rem 1.25rem 0">
-          <div style={{ width: '700px' }}>
+          <div style={{ width: '400px' }}>
             <div style={{ overflowWrap: 'break-word' }}>
               <h1 style={{ fontWeight: 'bold' }}>
                 {school?.name ? `Danh sách học sinh của ${school.name}` : 'Bảng học sinh'}
