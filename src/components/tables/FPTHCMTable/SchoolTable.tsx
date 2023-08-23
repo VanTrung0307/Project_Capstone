@@ -362,9 +362,9 @@ export const SchoolTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
+                {/* <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
                   Danh sách học sinh
-                </Button>
+                </Button> */}
               </>
             )}
           </Space>

@@ -1,13 +1,15 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DownOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, DownloadOutlined, UploadOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { createPlayer } from '@app/api/FPT_3DMAP_API/Player';
 import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
 import {
   EventStudent,
   Student,
+  exportStudentExcel,
+  getExcelTemplateStudent,
   getStudenbySchoolById,
   getStudenbySchoolandEventId,
 } from '@app/api/FPT_3DMAP_API/Student';
@@ -22,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -63,7 +66,7 @@ export const EventStudentTable: React.FC = () => {
           }
         });
 
-        message.warning('Updated null Major:', updatedItem);
+        // message.warning('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -169,7 +172,7 @@ export const EventStudentTable: React.FC = () => {
           totalTime: 0,
           isplayer: true,
         });
-        fetch(data.pagination)
+        fetch(data.pagination);
         // message.success(`${fullname} được tạo thành công`);
       }
     } catch (error) {
@@ -359,46 +362,117 @@ export const EventStudentTable: React.FC = () => {
         );
       },
     },
-    {
-      title: t('Chức năng'),
-      dataIndex: 'actions',
-      render: (text: string, record: EventStudent) => {
-        const editable = isEditing(record);
-        return (
-          <Space>
-            {editable ? (
-              <>
-                <Button type="primary" onClick={() => save(record.id.toString())}>
-                  {t('common.save')}
-                </Button>
-                <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  type="ghost"
-                  disabled={editingKey === record.id}
-                  onClick={() => edit({ ...record, key: record.id })}
-                >
-                  {t('common.edit')}
-                </Button>
-              </>
-            )}
-          </Space>
-        );
-      },
-    },
+    // {
+    //   title: t('Chức năng'),
+    //   dataIndex: 'actions',
+    //   render: (text: string, record: EventStudent) => {
+    //     const editable = isEditing(record);
+    //     return (
+    //       <Space>
+    //         {editable ? (
+    //           <>
+    //             <Button type="primary" onClick={() => save(record.id.toString())}>
+    //               {t('common.save')}
+    //             </Button>
+    //             <Button type="ghost" onClick={cancel}>
+    //               {t('common.cancel')}
+    //             </Button>
+    //           </>
+    //         ) : (
+    //           <>
+    //             <Button
+    //               type="ghost"
+    //               disabled={editingKey === record.id}
+    //               onClick={() => edit({ ...record, key: record.id })}
+    //             >
+    //               {t('common.edit')}
+    //             </Button>
+    //           </>
+    //         )}
+    //       </Space>
+    //     );
+    //   },
+    // },
   ];
+
+  const uploadProps = {
+    name: 'file',
+    multiple: true,
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
+      }
+    },
+    onChange: (info: any) => {
+      const { status } = info.file;
+
+      if (status === 'done') {
+      } else if (status === 'error') {
+      }
+    },
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const excelTemplate = await getExcelTemplateStudent();
+
+      const blob = new Blob([excelTemplate], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = 'Mau_don_hoc_sinh.xlsx';
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+      anchor.remove();
+    } catch (error) {
+      message.error('Không thể tải đơn mẫu');
+    }
+  };
 
   return (
     <Form form={form} component={false}>
-      {/* <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}>
-          {t('uploads.clickToUpload')}
+      <Button
+        type="dashed"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 200px' }}
+        icon={<VerticalAlignBottomOutlined />}
+      >
+        Mẫu đơn học sinh
+      </Button>
+
+      <Upload {...uploadProps}>
+        <Button
+          icon={<UploadOutlined />}
+          style={{ position: 'absolute', bottom: '0', right: '0', margin: '15px 200px 230px' }}
+        >
+          Nhập file Excel
         </Button>
-      </Upload> */}
+      </Upload>
 
       {eventId && (
         <Button
@@ -406,7 +480,7 @@ export const EventStudentTable: React.FC = () => {
           onClick={handleGeneratePasscode}
           style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
         >
-          Generate Passcode
+          Tạo mã tham gia
         </Button>
       )}
 
@@ -426,6 +500,22 @@ export const EventStudentTable: React.FC = () => {
         }}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
+
+      <Button
+        type="default"
+        onClick={() => {
+          if (schoolId) {
+            exportStudentExcel(schoolId);
+          } else {
+            console.error('schoolId is undefined');
+          }
+        }}
+        style={{ position: 'absolute', bottom: '0', right: '0', margin: '15px 20px 230px' }}
+        icon={<DownloadOutlined />}
+      >
+        Xuất file Excel
+      </Button>
+
       <Table
         components={{
           body: {

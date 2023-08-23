@@ -95,7 +95,7 @@ export const EventTable: React.FC = () => {
         }
       }
     } catch (errInfo) {
-      message.error('Hãy nhập đày đủ');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -116,7 +116,7 @@ export const EventTable: React.FC = () => {
       await getSchoolbyEventId(eventId, pagination);
       navigate(`/schools/${eventId}`);
     } catch (error) {
-      message.error('Error fetching paginated schools:');
+      message.error('Không tìm thấy trường');
     }
   };
 
@@ -126,7 +126,7 @@ export const EventTable: React.FC = () => {
       await getTaskbyEventId(eventId, pagination);
       navigate(`/tasks/${eventId}`);
     } catch (error) {
-      message.error('Error fetching paginated task');
+      message.error('Không tìm thấy nhiệm vụ');
     }
   };
 
@@ -211,7 +211,7 @@ export const EventTable: React.FC = () => {
           >
             <Input
               maxLength={100}
-              style={{ width: '300px'}}
+              style={{ width: '300px' }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
             />
@@ -226,28 +226,16 @@ export const EventTable: React.FC = () => {
       dataIndex: 'createdAt',
       width: '8%',
       render: (text: string, record: Event) => {
-        const editable = isEditing(record);
         const dataIndex: keyof Event = 'createdAt';
         const year = moment(text).format('YYYY');
-        return editable ? (
+        return (
           <Form.Item
             key={record.createdAt}
             name={dataIndex}
             initialValue={moment(text).year().toString()}
-            rules={[{ required: true, message: 'Hãy nhập năm xảy ra sự kiện' }]}
           >
-            <Input
-              type="number"
-              min={1000}
-              max={9999}
-              step={1}
-              value={year}
-              onChange={(e) => handleInputChange(e.target.value, record.createdAt, dataIndex)}
-              style={{ width: '100px' }}
-            />
+            {year}
           </Form.Item>
-        ) : (
-          <span>{year}</span>
         );
       },
     },
@@ -271,7 +259,7 @@ export const EventTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái sự kiện là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên sự kiện' }]}
           >
             <Select
               value={text}
@@ -403,7 +391,7 @@ export const EventTable: React.FC = () => {
       URL.revokeObjectURL(downloadUrl);
       anchor.remove();
     } catch (error) {
-      message.error('Không thể tải đơn mẫu');
+      message.error('Không thể tải mẫu đơn');
     }
   };
 

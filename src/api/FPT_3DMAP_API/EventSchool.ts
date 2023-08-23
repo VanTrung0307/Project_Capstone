@@ -25,7 +25,7 @@ export type SchoolByEvent = {
 
 export type addEventSchool = {
   eventId: string;
-  schoolId: string;
+  schoolIds: [];
   approvalstatus: string;
   status: string;
   startTime: string;
@@ -80,7 +80,7 @@ export const getPaginatedEventSchools = async (eventId: string, pagination: Pagi
 
 export const createEventSchool = async (taskData: addEventSchool): Promise<EventSchool> => {
   try {
-    const response = await httpApi.post<EventSchool>(`${API_BASE_URL}/schoolevent`, taskData);
+    const response = await httpApi.post<EventSchool>(`${API_BASE_URL}/createlistschoolevent`, taskData);
     return response.data;
   } catch (error) {
     console.error('Error creating task:', error);

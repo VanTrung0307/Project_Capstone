@@ -2,7 +2,7 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Major, Pagination, createMajor, getPaginatedMajors, updateMajor } from '@app/api/FPT_3DMAP_API/Major';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
-import { Option } from '@app/components/common/selects/Select/Select';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
@@ -13,7 +13,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -297,10 +296,10 @@ export const MajorTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -310,7 +309,7 @@ export const MajorTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -341,17 +340,27 @@ export const MajorTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới NGÀNH NGHỀ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <FlexContainer>
-            <Label>{'Tên ngành nghề'}</Label>
+            <Label>{'Tên ngành học'}</Label>
             <InputContainer>
               <BaseForm.Item name="name" rules={[{ required: true, message: t('Nhập tên ngành') }]}>
                 <Input maxLength={100} />
@@ -371,14 +380,8 @@ export const MajorTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
+              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                <Input style={{ width: '100px' }} disabled={true} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>

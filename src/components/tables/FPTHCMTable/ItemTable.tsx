@@ -5,7 +5,7 @@ import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Avatar, Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Avatar, Col, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import Upload from 'antd/lib/upload/Upload';
 import { Table } from 'components/common/Table/Table';
@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -516,6 +517,43 @@ export const ItemTable: React.FC = () => {
     flex: 1;
   `;
 
+  const uploadProps = {
+    name: 'file',
+    multiple: true,
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `https://anhkiet-001-site1.htempurl.com/api/Events/upload-excel-event`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
+      }
+    },
+    onChange: (info: any) => {
+      const { status } = info.file;
+
+      if (status === 'done') {
+      } else if (status === 'error') {
+      }
+    },
+  };
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -523,102 +561,143 @@ export const ItemTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới VẬT PHẨM'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
+        width={800}
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên vật phẩm'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên vật phẩm là cần thiết') }]}>
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Tên vật phẩm'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên vật phẩm là cần thiết') }]}>
+                      <Input maxLength={100} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Loại vật phẩm'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại vật phẩm là cần thiết') }]}>
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Loại vật phẩm'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại vật phẩm là cần thiết') }]}>
+                      <Input maxLength={100} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
 
-          <FlexContainer>
-            <Label>{'Điểm thưởng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="price" rules={[{ required: true, message: t('Điểm thưởng vật phẩm là cần thiết') }]}>
-                <Input type="number" min={0} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Điểm thưởng'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="price"
+                      rules={[{ required: true, message: t('Điểm thưởng vật phẩm là cần thiết') }]}
+                    >
+                      <Input type="number" min={0} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Số lượng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Số lượng vật phẩm là cần thiết') }]}>
-                <Input type="number" min={0} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Số lượng'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="quantity"
+                      rules={[{ required: true, message: t('Số lượng vật phẩm là cần thiết') }]}
+                    >
+                      <Input type="number" min={0} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
 
-          <FlexContainer>
-            <Label>{'Mô tả'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="description">
-                <TextArea autoSize={{ maxRows: 6 }} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Mô tả'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="description">
+                      <TextArea />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'imageUrl'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="imageUrl" rules={[{ required: true, message: t('Hình ảnh là cần thiết') }]}>
-                <Input />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'imageUrl'}</Label>
+                  <InputContainer>
+                    <Upload {...uploadProps}>
+                      <BaseForm.Item name="imageUrl">
+                        <Button icon={<UploadOutlined />}>Hình ảnh vật phẩm</Button>
+                      </BaseForm.Item>
+                    </Upload>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
 
-          <FlexContainer>
-            <Label>{'Giới hạn trao đổi'}</Label>
-            <InputContainer>
-              <BaseForm.Item
-                name="limitExchange"
-                rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
-              >
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn giới hạn ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="true">{'Có giới hạn'}</Option>
-                  <Option value="false">{'Không giới hạn'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
+                  <Label>{'Giới hạn trao đổi'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item
+                      name="limitExchange"
+                      rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
+                    >
+                      <Select
+                        style={{ maxWidth: '256px' }}
+                        placeholder={'---- Chọn giới hạn ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      >
+                        <Option value="true">{'Có giới hạn'}</Option>
+                        <Option value="false">{'Không giới hạn'}</Option>
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
 
-          <FlexContainer>
-            <Label>{'Trạng thái'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+              <FlexContainer>
+                <div>
+                  <Label>{'Trạng thái'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                      <Input style={{ width: '100px' }} disabled={true} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+          </Row>
         </S.FormContent>
       </Modal>
 

@@ -81,7 +81,7 @@ export const RoomAndLocationTable: React.FC = () => {
         setData({ ...data, data: newData, loading: false });
         await updateRoomLocation(key.toString(), row);
         message.success('Room location data updated successfully');
-        fetch(data.pagination)
+        fetch(data.pagination);
       } catch (error) {
         message.error('Error updating room location data');
         if (index > -1 && item) {
@@ -173,7 +173,7 @@ export const RoomAndLocationTable: React.FC = () => {
         form.resetFields();
         setIsBasicModalOpen(false);
         message.success('RoomLocation data created successfully');
-        fetch(data.pagination)
+        fetch(data.pagination);
       } catch (error) {
         message.error('Error creating RoomLocation data');
         setData((prevData) => ({ ...prevData, loading: false }));
@@ -328,10 +328,10 @@ export const RoomAndLocationTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -341,7 +341,7 @@ export const RoomAndLocationTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -367,73 +367,6 @@ export const RoomAndLocationTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Button
-        type="primary"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
-      >
-        Thêm mới
-      </Button>
-      <Modal
-        title={'Thêm TỌA ĐỘ & VỊ TRÍ'}
-        open={isBasicModalOpen}
-        onOk={handleModalOk}
-        onCancel={() => setIsBasicModalOpen(false)}
-      >
-        <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tọa độ x'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="x" rules={[{ required: true, message: t('Tọa độ x là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Tọa độ y'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="y" rules={[{ required: true, message: t('Tọa độ y là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Tọa độ z'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="z" rules={[{ required: true, message: t('Tọa độ z là cần thiết') }]}>
-                <Input type="number" />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Tên vị trí'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="locationName" rules={[{ required: true, message: t('Tên vị trí là cần thiết') }]}>
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Trạng thái'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-        </S.FormContent>
-      </Modal>
-
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear

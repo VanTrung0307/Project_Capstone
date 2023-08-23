@@ -196,3 +196,20 @@ export const getExcelTemplateStudent = async (): Promise<Blob> => {
     throw error;
   }
 };
+
+export const exportStudentExcel = async (schoolId: string): Promise<void> => {
+  try {
+    const response = await httpApi.get(`${API_BASE_URL}/export/${schoolId}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const downloadLink = document.createElement('a');
+    downloadLink.href = window.URL.createObjectURL(blob);
+    downloadLink.download = 'student_export.xlsx';
+    downloadLink.click();
+  } catch (error) {
+    console.error('Error exporting student data:', error);
+    throw error;
+  }
+};

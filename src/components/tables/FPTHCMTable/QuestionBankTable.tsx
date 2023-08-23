@@ -389,10 +389,10 @@ export const QuestionBankTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -402,7 +402,7 @@ export const QuestionBankTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -484,7 +484,7 @@ export const QuestionBankTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới CÂU HỎI'}
@@ -492,6 +492,16 @@ export const QuestionBankTable: React.FC = () => {
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
         width={1000}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <Row>
@@ -604,7 +614,7 @@ export const QuestionBankTable: React.FC = () => {
       </Modal>
 
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 130px' }}>
           Nhập Excel
         </Button>
       </Upload>

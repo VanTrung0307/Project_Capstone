@@ -63,7 +63,7 @@ export type addEventTask = {
   eventId: string;
   startTime: string;
   endTime: string;
-  priority: number;
+  // priority: number;
   point: number;
   status: string;
 };

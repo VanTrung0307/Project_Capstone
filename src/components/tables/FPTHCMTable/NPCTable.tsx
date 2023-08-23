@@ -2,18 +2,17 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Npc, Pagination, createNpc, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { Option } from 'antd/lib/mentions';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -71,7 +70,7 @@ export const NPCTable: React.FC = () => {
         setData({ ...data, data: newData, loading: false });
         await updateNpc(key.toString(), row);
         message.success('Npc data updated successfully');
-        fetch(data.pagination)
+        fetch(data.pagination);
       } catch (error) {
         message.error('Error updating Npc data');
         if (index > -1 && item) {
@@ -153,7 +152,7 @@ export const NPCTable: React.FC = () => {
         form.resetFields();
         setIsBasicModalOpen(false);
         message.success('Npc data created successfully');
-        fetch(data.pagination)
+        fetch(data.pagination);
       } catch (error) {
         message.error('Error creating Npc data');
         setData((prevData) => ({ ...prevData, loading: false }));
@@ -217,7 +216,7 @@ export const NPCTable: React.FC = () => {
                   openDescriptionModal();
                 }
               }}
-              style={{ 
+              style={{
                 cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
               }}
             >
@@ -240,6 +239,8 @@ export const NPCTable: React.FC = () => {
               visible={dialogueModalVisible}
               onCancel={() => setDialogueModalVisible(false)}
               footer={null}
+              mask={true}
+              maskStyle={{ opacity: 0.5 }}
             >
               <p>{selectedDialogue}</p>
             </Modal>
@@ -295,10 +296,10 @@ export const NPCTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -308,7 +309,7 @@ export const NPCTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -339,13 +340,23 @@ export const NPCTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới NPC'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <FlexContainer>
@@ -369,14 +380,8 @@ export const NPCTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
-              <BaseForm.Item name="status" rules={[{ required: true, message: t('Trạng thái là cần thiết') }]}>
-                <Select
-                  placeholder={'---- Chọn trạng thái ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  <Option value="ACTIVE">{'ACTIVE'}</Option>
-                  <Option value="INACTIVE">{'INACTIVE'}</Option>
-                </Select>
+              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                <Input disabled={true} style={{ width: '80px' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>

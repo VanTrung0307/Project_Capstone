@@ -188,7 +188,7 @@ export const TaskEventTable: React.FC = () => {
         eventId: values.eventId,
         startTime: values.startTime,
         endTime: values.endTime,
-        priority: values.priority,
+        // priority: values.priority,
         point: values.point,
         status: values.status,
       };
@@ -510,7 +510,7 @@ export const TaskEventTable: React.FC = () => {
                 </InputContainer>
               </FlexContainer>
 
-              <FlexContainer>
+              {/* <FlexContainer>
                 <Label>{'Mức độ'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
@@ -525,7 +525,7 @@ export const TaskEventTable: React.FC = () => {
                     </Select>
                   </BaseForm.Item>
                 </InputContainer>
-              </FlexContainer>
+              </FlexContainer> */}
 
               <FlexContainer>
                 <Label>{'Điểm thưởng'}</Label>

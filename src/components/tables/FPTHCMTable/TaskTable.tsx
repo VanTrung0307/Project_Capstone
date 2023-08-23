@@ -469,10 +469,10 @@ export const TaskTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -482,7 +482,7 @@ export const TaskTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -513,7 +513,7 @@ export const TaskTable: React.FC = () => {
         onClick={() => setIsBasicModalOpen(true)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
       >
-        Thêm mới
+        Tạo mới
       </Button>
       <Modal
         title={'Thêm mới NHIỆM VỤ'}
@@ -522,6 +522,16 @@ export const TaskTable: React.FC = () => {
         onCancel={() => setIsBasicModalOpen(false)}
         width={800}
         style={{ marginTop: '-50px' }}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Tạo
+            </Button>
+          </div>
+        }
       >
         <S.FormContent>
           <Row gutter={16}>
@@ -589,7 +599,7 @@ export const TaskTable: React.FC = () => {
 
               <FlexContainer>
                 <div>
-                  <Label>{'Tên ngành nghề'}</Label>
+                  <Label>{'Tên ngành học'}</Label>
                   <InputContainer>
                     <BaseForm.Item
                       name="majorId"
@@ -669,20 +679,10 @@ export const TaskTable: React.FC = () => {
 
               <FlexContainer>
                 <div>
-                  <Label>{'Status'}</Label>
+                  <Label>{'Trạng thái'}</Label>
                   <InputContainer>
-                    <BaseForm.Item
-                      name="status"
-                      rules={[{ required: true, message: t('Trạng thái câu hỏi là cần thiết') }]}
-                    >
-                      <Select
-                        placeholder={'---- Chọn trạng thái ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                        style={{ width: '300px' }}
-                      >
-                        <Option value="ACTIVE">{'ACTIVE'}</Option>
-                        <Option value="INACTIVE">{'INACTIVE'}</Option>
-                      </Select>
+                    <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                      <Input style={{ width: '100px' }} disabled={true} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -693,7 +693,7 @@ export const TaskTable: React.FC = () => {
       </Modal>
 
       <SearchInput
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         allowClear
         onSearch={(value) => {
           const filteredData = data.data.filter((record) =>
