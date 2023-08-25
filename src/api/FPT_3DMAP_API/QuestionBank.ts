@@ -12,7 +12,7 @@ export type Question = {
 };
 
 export type addQuestion = {
-  answers: Array<{ answerName: string; isRight: boolean }>;
+  answers: Array<{ id: string; answerName: string; isRight: boolean }>;
   majorId: string;
   name: string;
   status: string;
@@ -92,6 +92,19 @@ export const updateQuestion = async (id: string, questionData: updateQuestionDat
     return response.data;
   } catch (error) {
     console.error('Error updating question:', error);
+    throw error;
+  }
+};
+
+
+export const getExcelTemplateQnA = async (): Promise<Blob> => {
+  try {
+    const response = await httpApi.get(`${API_BASE_URL}/excel-template-question`, {
+      responseType: 'arraybuffer',
+    });
+    return new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  } catch (error) {
+    console.error('Error getting template student excel:', error);
     throw error;
   }
 };

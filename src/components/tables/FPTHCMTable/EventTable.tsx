@@ -95,7 +95,7 @@ export const EventTable: React.FC = () => {
         }
       }
     } catch (errInfo) {
-      message.error('Hãy nhập đầy đủ');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -112,7 +112,7 @@ export const EventTable: React.FC = () => {
 
   const handleSchoolClick = async (eventId: string) => {
     try {
-      const pagination = { current: 1, pageSize: 10 };
+      const pagination = { current: 1, pageSize: 100 };
       await getSchoolbyEventId(eventId, pagination);
       navigate(`/schools/${eventId}`);
     } catch (error) {
@@ -122,7 +122,7 @@ export const EventTable: React.FC = () => {
 
   const handleTaskClick = async (eventId: string) => {
     try {
-      const pagination = { current: 1, pageSize: 10 };
+      const pagination = { current: 1, pageSize: 100 };
       await getTaskbyEventId(eventId, pagination);
       navigate(`/tasks/${eventId}`);
     } catch (error) {
@@ -190,7 +190,7 @@ export const EventTable: React.FC = () => {
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Hãy nhập đầy đủ');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -207,7 +207,13 @@ export const EventTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập tên sự kiện' }]}
+            rules={[
+              { required: true, message: 'Hãy nhập tên sự kiện' },
+              {
+                pattern: /^[^\W_].*$/,
+                message: 'Không được bắt đầu ký tự đặc biệt',
+              },
+            ]}
           >
             <Input
               maxLength={100}
@@ -229,11 +235,7 @@ export const EventTable: React.FC = () => {
         const dataIndex: keyof Event = 'createdAt';
         const year = moment(text).format('YYYY');
         return (
-          <Form.Item
-            key={record.createdAt}
-            name={dataIndex}
-            initialValue={moment(text).year().toString()}
-          >
+          <Form.Item key={record.createdAt} name={dataIndex} initialValue={moment(text).year().toString()}>
             {year}
           </Form.Item>
         );
@@ -357,6 +359,7 @@ export const EventTable: React.FC = () => {
         if (response.status === 200) {
           fetch(data.pagination);
           message.success('Tải lên thành công', response.data);
+          setTimeout(() => message.destroy(), 3000);
         } else {
           message.error('Tải lên thất bại', response.status);
         }
@@ -396,6 +399,25 @@ export const EventTable: React.FC = () => {
   };
 
   const [selectedYear, setSelectedYear] = useState<string | undefined>(undefined);
+
+  const [filteredData, setFilteredData] = useState(data.data);
+
+  const handleSearch = (value: string) => {
+    const updatedFilteredData = data.data.filter((record) =>
+      Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+    );
+    setFilteredData(updatedFilteredData);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.trim();
+
+    if (inputValue === '') {
+      setFilteredData(data.data);
+    } else {
+      handleSearch(inputValue);
+    }
+  };
 
   return (
     <Form form={form} component={false}>
@@ -476,35 +498,24 @@ export const EventTable: React.FC = () => {
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear
-        onSearch={(value) => {
-          const filteredData = data.data.filter((record) =>
-            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
-          );
-          setData((prevData) => ({ ...prevData, data: filteredData }));
-        }}
-        onChange={(e) => {
-          if (e.target.value.trim() === '') {
-            setData((prevData) => ({ ...prevData, data: originalData }));
-          }
-        }}
+        onSearch={handleSearch}
+        onChange={handleSearchChange}
         style={{ width: '320px', right: '0', height: '70px' }}
       />
 
-      <div>
-        <Select
-          placeholder="Chọn năm"
-          onChange={(value) => setSelectedYear(value)}
-          value={selectedYear}
-          style={{ width: 150, marginRight: 10, marginBottom: '10px' }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-        >
-          {Array.from(new Set(data.data.map((record) => moment(record.createdAt).format('YYYY')))).map((year) => (
-            <Select.Option key={year} value={year}>
-              {year}
-            </Select.Option>
-          ))}
-        </Select>
-      </div>
+      <Select
+        placeholder="Chọn năm"
+        onChange={(value) => setSelectedYear(value)}
+        value={selectedYear}
+        style={{ width: 150, position: 'absolute', right: '0', margin: '10px 20px' }}
+        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+      >
+        {Array.from(new Set(data.data.map((record) => moment(record.createdAt).format('YYYY')))).map((year) => (
+          <Select.Option key={year} value={year}>
+            {year}
+          </Select.Option>
+        ))}
+      </Select>
 
       <Table
         components={{

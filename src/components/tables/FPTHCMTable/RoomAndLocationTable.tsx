@@ -66,7 +66,7 @@ export const RoomAndLocationTable: React.FC = () => {
           }
         });
 
-        message.success('Updated null Room&Location:', updatedItem);
+        // message.success('Updated null Room&Location:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -187,102 +187,36 @@ export const RoomAndLocationTable: React.FC = () => {
     {
       title: t('Tọa độ X'),
       dataIndex: 'x',
-      render: (text: number, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'x';
-        return editable ? (
-          <Form.Item
-            key={record.x}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tọa độ x là cần thiết' }]}
-          >
-            <Input
-              type="number"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.x, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      render: (text: string) => {
+        return <span>{text}</span>;
       },
     },
     {
       title: t('Tọa độ Y'),
       dataIndex: 'y',
-      render: (text: number, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'y';
-        return editable ? (
-          <Form.Item
-            key={record.y}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tọa độ y là cần thiết' }]}
-          >
-            <Input
-              type="number"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.y, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      render: (text: string) => {
+        return <span>{text}</span>;
       },
     },
     {
       title: t('Tọa độ Z'),
       dataIndex: 'z',
-      render: (text: number, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'z';
-        return editable ? (
-          <Form.Item
-            key={record.z}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tọa độ z là cần thiết' }]}
-          >
-            <Input
-              type="number"
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.z, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      render: (text: string) => {
+        return <span>{text}</span>;
       },
     },
     {
       title: t('Tên vị trí'),
       dataIndex: 'locationName',
-      render: (text: string, record: RoomLocation) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof RoomLocation = 'locationName';
-        return editable ? (
-          <Form.Item
-            key={record.locationName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên vị trí là cần thiết' }]}
-          >
-            <Input
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.locationName, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
+      width: '25%',
+      render: (text: string) => {
+        return <span>{text}</span>;
       },
     },
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
+      width: '5%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -321,6 +255,7 @@ export const RoomAndLocationTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
+      width: '5%',
       render: (text: string, record: RoomLocation) => {
         const editable = isEditing(record);
         return (

@@ -1,17 +1,14 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
-import { Npc, Pagination, createNpc, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { Npc, Pagination, getPaginatedNpcs, updateNpc } from '@app/api/FPT_3DMAP_API/NPC';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
-import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
@@ -127,40 +124,40 @@ export const NPCTable: React.FC = () => {
     cancel();
   };
 
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
+  // const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
+  // const handleModalOk = async () => {
+  //   try {
+  //     const values = await form.validateFields();
 
-      const newData: Npc = {
-        name: values.name,
-        introduce: values.introduce,
-        status: values.status,
-        id: values.id,
-      };
+  //     const newData: Npc = {
+  //       name: values.name,
+  //       introduce: values.introduce,
+  //       status: values.status,
+  //       id: values.id,
+  //     };
 
-      setData((prevData) => ({ ...prevData, loading: true }));
+  //     setData((prevData) => ({ ...prevData, loading: true }));
 
-      try {
-        const createdNpc = await createNpc(newData);
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdNpc],
-          loading: false,
-        }));
-        form.resetFields();
-        setIsBasicModalOpen(false);
-        message.success('Npc data created successfully');
-        fetch(data.pagination);
-      } catch (error) {
-        message.error('Error creating Npc data');
-        setData((prevData) => ({ ...prevData, loading: false }));
-      }
-    } catch (error) {
-      message.error('Error validating form');
-    }
-  };
+  //     try {
+  //       const createdNpc = await createNpc(newData);
+  //       setData((prevData) => ({
+  //         ...prevData,
+  //         data: [...prevData.data, createdNpc],
+  //         loading: false,
+  //       }));
+  //       form.resetFields();
+  //       setIsBasicModalOpen(false);
+  //       message.success('Npc data created successfully');
+  //       fetch(data.pagination);
+  //     } catch (error) {
+  //       message.error('Error creating Npc data');
+  //       setData((prevData) => ({ ...prevData, loading: false }));
+  //     }
+  //   } catch (error) {
+  //     message.error('Error validating form');
+  //   }
+  // };
 
   const [dialogueModalVisible, setDialogueModalVisible] = useState(false);
   const [selectedDialogue, setSelectedDialogue] = useState('');
@@ -319,75 +316,8 @@ export const NPCTable: React.FC = () => {
     },
   ];
 
-  const FlexContainer = styled.div`
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-  `;
-
-  const Label = styled.label`
-    flex: 0 0 200px;
-  `;
-
-  const InputContainer = styled.div`
-    flex: 1;
-  `;
-
   return (
     <Form form={form} component={false}>
-      <Button
-        type="primary"
-        onClick={() => setIsBasicModalOpen(true)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
-      >
-        Tạo mới
-      </Button>
-      <Modal
-        title={'Thêm mới NPC'}
-        open={isBasicModalOpen}
-        onOk={handleModalOk}
-        onCancel={() => setIsBasicModalOpen(false)}
-        footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
-              Huỷ
-            </Button>
-            <Button key="submit" type="primary" onClick={handleModalOk}>
-              Tạo
-            </Button>
-          </div>
-        }
-      >
-        <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên NPC'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên NPC là cần thiết') }]}>
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Lời đối thoại'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="introduce" rules={[{ required: true, message: t('Lời thoại NPC là cần thiết') }]}>
-                <TextArea autoSize={{ maxRows: 6 }} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-
-          <FlexContainer>
-            <Label>{'Trạng thái'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                <Input disabled={true} style={{ width: '80px' }} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-        </S.FormContent>
-      </Modal>
-
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear

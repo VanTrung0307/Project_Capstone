@@ -1,10 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
 import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
-import { Pagination, Task, createTask, getPaginatedTasks, updateTask } from '@app/api/FPT_3DMAP_API/Task';
+import {
+  Pagination,
+  Task,
+  createTask,
+  getPaginatedTasks,
+  updateTask,
+  updateTaskData,
+} from '@app/api/FPT_3DMAP_API/Task';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -63,7 +70,7 @@ export const TaskTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Task:', updatedItem);
+        // message.warn('Updated null Task:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -77,16 +84,16 @@ export const TaskTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateTask(key.toString(), row);
-        message.success('Task data updated successfully');
+        message.success('Cập nhật nhiệm vụ thành công');
       } catch (error) {
-        message.error('Error updating Task data');
+        message.error('Cập nhật nhiệm vụ thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -99,7 +106,7 @@ export const TaskTable: React.FC = () => {
     setEditingKey(record.key);
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Task) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof updateTaskData) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -123,36 +130,36 @@ export const TaskTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          message.error('Error fetching paginated tasks:', error);
+          message.error('Lỗi hệ thống', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
       try {
-        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 10 });
+        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 123 });
         setLocations(locationResponse.data);
       } catch (error) {
-        message.error('Error fetching locations');
+        // message.error('Error fetching locations');
       }
 
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 100 });
         setMajors(majorResponse.data);
       } catch (error) {
-        message.error('Error fetching majors');
+        // message.error('Error fetching majors');
       }
 
       try {
-        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 10 });
+        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 100 });
         setNpcs(npcResponse.data);
       } catch (error) {
-        message.error('Error fetching npcs');
+        // message.error('Error fetching npcs');
       }
 
       try {
-        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 10 });
+        const itemResponse = await getPaginatedItems({ current: 1, pageSize: 100 });
         setItems(itemResponse.data);
       } catch (error) {
-        message.error('Error fetching items');
+        // message.error('Error fetching items');
       }
     },
     [isMounted],
@@ -228,14 +235,14 @@ export const TaskTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Task data created successfully');
+        message.success('Tạo nhiệm vụ thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Error creating Task data');
+        message.error('Tạo nhiệm vụ thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -263,7 +270,13 @@ export const TaskTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
+            rules={[
+              { required: true, message: 'Hãy nhập tên nhiệm vụ' },
+              {
+                pattern: /^[^\d\W].*$/,
+                message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+              },
+            ]}
           >
             <Input
               value={record[dataIndex]}
@@ -280,24 +293,26 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'locationName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'locationId';
+        const dataIndex: keyof updateTaskData = 'locationName';
         return editable ? (
           <Form.Item
-            key={record.locationId}
+            key={record.locationName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Địa điểm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên địa điểm' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.locationId, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.locationName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
-              {locations.map((location) => (
-                <Select.Option key={location.id} value={location.id}>
-                  {location.locationName}
-                </Select.Option>
-              ))}
+              {locations
+                .filter((locationItem) => locationItem.status !== 'INACTIVE')
+                .map((location) => (
+                  <Select.Option key={location.id} value={location.locationName}>
+                    {location.locationName}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
         ) : (
@@ -312,21 +327,21 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'npcName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'npcId';
+        const dataIndex: keyof updateTaskData = 'npcName';
         return editable ? (
           <Form.Item
-            key={record.npcId}
+            key={record.npcName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên NPC là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên NPC' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.npcId, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.npcName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {npcs.map((npc) => (
-                <Select.Option key={npc.id} value={npc.id}>
+                <Select.Option key={npc.id} value={npc.name}>
                   {npc.name}
                 </Select.Option>
               ))}
@@ -345,21 +360,21 @@ export const TaskTable: React.FC = () => {
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'majorId';
+        const dataIndex: keyof updateTaskData = 'majorName';
         return editable ? (
           <Form.Item
-            key={record.majorId}
+            key={record.majorName}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên ngành học' }]}
           >
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.majorId, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
-                <Select.Option key={major.id} value={major.id}>
+                <Select.Option key={major.id} value={major.name}>
                   {major.name}
                 </Select.Option>
               ))}
@@ -383,13 +398,20 @@ export const TaskTable: React.FC = () => {
             key={record.type}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a type' }]}
+            rules={[{ required: true, message: 'Hãy nhập chọn loại nhiệm vụ' }]}
           >
-            <Input
-              maxLength={100}
+            <Select
+              style={{ minWidth: '200px' }}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
-            />
+              onChange={(value) => handleInputChange(value, record.type, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+            >
+              {Object.values(TaskType).map((type) => (
+                <Option key={type} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         ) : (
           <span>{text}</span>
@@ -401,16 +423,17 @@ export const TaskTable: React.FC = () => {
       dataIndex: 'itemName',
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Task = 'itemId';
+        const dataIndex: keyof updateTaskData = 'itemName';
         return editable ? (
-          <Form.Item key={record.itemId} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item key={record.itemName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
             <Select
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.itemId, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.itemName, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              style={{ minWidth: '100px' }}
             >
               {items.map((item) => (
-                <Select.Option key={item.id} value={item.id}>
+                <Select.Option key={item.id} value={item.name}>
                   {item.name}
                 </Select.Option>
               ))}
@@ -440,7 +463,7 @@ export const TaskTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn trạng thái' }]}
           >
             <Select
               value={text}
@@ -500,11 +523,33 @@ export const TaskTable: React.FC = () => {
 
   const Label = styled.label`
     flex: 0 0 200px;
+    ::before {
+      content: '* ';
+      color: red;
+    }
   `;
 
   const InputContainer = styled.div`
     flex: 1;
   `;
+
+  enum TaskType {
+    CHECKIN = 'CHECKIN',
+    QUESTIONANDANSWER = 'QUESTIONANDANSWER',
+    EXCHANGEITEM = 'EXCHANGEITEM',
+  }
+
+  const [selectedTaskType, setSelectedTaskType] = useState<string | null>(null);
+  const [showItemDropdown, setShowItemDropdown] = useState(false);
+
+  const handleTaskTypeChange = (value: string) => {
+    setSelectedTaskType(value);
+    setShowItemDropdown(false);
+  };
+
+  const handleShowItemDropdown = () => {
+    setShowItemDropdown(true);
+  };
 
   return (
     <Form form={form} component={false}>
@@ -540,8 +585,17 @@ export const TaskTable: React.FC = () => {
                 <div>
                   <Label>{'Tên nhiệm vụ'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
-                      <Input style={{ width: '300px' }} />
+                    <BaseForm.Item
+                      name="name"
+                      rules={[
+                        { required: true, message: t('Hãy nhập tên nhiệm vụ') },
+                        {
+                          pattern: /^[^\d\W].*$/,
+                          message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                        },
+                      ]}
+                    >
+                      <Input style={{ width: '300px' }} placeholder="Nhập tên nhiệm vụ" />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -551,20 +605,19 @@ export const TaskTable: React.FC = () => {
                 <div>
                   <Label>{'Tên địa điểm'}</Label>
                   <InputContainer>
-                    <BaseForm.Item
-                      name="locationId"
-                      rules={[{ required: true, message: t('Tên địa điểm là cần thiết') }]}
-                    >
+                    <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Hãy chọn địa điểm') }]}>
                       <Select
                         placeholder={'---- Chọn tọa độ ----'}
                         suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                         style={{ width: '300px' }}
                       >
-                        {locations.map((location) => (
-                          <Option key={location.id} value={location.id}>
-                            {location.locationName}
-                          </Option>
-                        ))}
+                        {locations
+                          .filter((location) => location.status === 'ACTIVE')
+                          .map((location) => (
+                            <Option key={location.id} value={location.id}>
+                              {location.locationName}
+                            </Option>
+                          ))}
                       </Select>
                     </BaseForm.Item>
                   </InputContainer>
@@ -575,12 +628,63 @@ export const TaskTable: React.FC = () => {
             <Col span={12}>
               <FlexContainer>
                 <div>
+                  <Label>{'Loại nhiệm vụ'}</Label>
+                  <InputContainer>
+                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Hãy chọn loại nhiệm vụ') }]}>
+                      <Select
+                        style={{ width: '300px' }}
+                        placeholder={'---- Chọn loại nhiệm vụ ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        onChange={handleTaskTypeChange}
+                      >
+                        {Object.values(TaskType).map((type) => (
+                          <Option key={type} value={type}>
+                            {type}
+                          </Option>
+                        ))}
+                      </Select>
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+
+              {selectedTaskType === TaskType.EXCHANGEITEM && (
+                <Button type="default" onClick={handleShowItemDropdown}>
+                  <PlusOutlined /> Vật phẩm
+                </Button>
+              )}
+
+              {showItemDropdown && (
+                <FlexContainer>
+                  <div>
+                    <InputContainer>
+                      <BaseForm.Item name="itemID">
+                        <Select
+                          placeholder={'---- Chọn vật phẩm ----'}
+                          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                          style={{ width: '300px' }}
+                        >
+                          {items.map((item) => (
+                            <Option key={item.id} value={item?.id}>
+                              {item.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </BaseForm.Item>
+                    </InputContainer>
+                  </div>
+                </FlexContainer>
+              )}
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <div>
                   <Label>{'Tên NPC'}</Label>
                   <InputContainer>
-                    <BaseForm.Item
-                      name="npcId"
-                      rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
-                    >
+                    <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Hãy chọn NPC') }]}>
                       <Select
                         placeholder={'---- Chọn NPC ----'}
                         suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
@@ -601,10 +705,7 @@ export const TaskTable: React.FC = () => {
                 <div>
                   <Label>{'Tên ngành học'}</Label>
                   <InputContainer>
-                    <BaseForm.Item
-                      name="majorId"
-                      rules={[{ required: true, message: t('Tên câu trả lời là cần thiết') }]}
-                    >
+                    <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
                       <Select
                         style={{ width: '300px' }}
                         placeholder={'---- Chọn ngành ----'}
@@ -621,62 +722,8 @@ export const TaskTable: React.FC = () => {
                 </div>
               </FlexContainer>
             </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <FlexContainer>
-                <div>
-                  <Label>{'Loại nhiệm vụ'}</Label>
-                  <InputContainer>
-                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại nhiệm vụ là cần thiết') }]}>
-                      <Select
-                        style={{ width: '300px' }}
-                        placeholder={'---- Chọn loại nhiệm vụ ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                      >
-                        <Option value="CHECKIN">{'CHECKIN'}</Option>
-                        <Option value="QUESTIONANDANSWER">{'QUESTIONANDANSWER'}</Option>
-                      </Select>
-                    </BaseForm.Item>
-                  </InputContainer>
-                </div>
-              </FlexContainer>
-
-              <FlexContainer>
-                <div>
-                  <Label>{'Điểm thưởng'}</Label>
-                  <InputContainer>
-                    <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
-                      <Input type="number" style={{ width: '300px' }} />
-                    </BaseForm.Item>
-                  </InputContainer>
-                </div>
-              </FlexContainer>
-            </Col>
 
             <Col span={12}>
-              <FlexContainer>
-                <div>
-                  <Label>{'Tên vật phẩm'}</Label>
-                  <InputContainer>
-                    <BaseForm.Item name="itemID">
-                      <Select
-                        placeholder={'---- Chọn vật phẩm (Optional) ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                        style={{ width: '300px' }}
-                      >
-                        {items.map((item) => (
-                          <Option key={item.id} value={item?.id}>
-                            {item.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </BaseForm.Item>
-                  </InputContainer>
-                </div>
-              </FlexContainer>
-
               <FlexContainer>
                 <div>
                   <Label>{'Trạng thái'}</Label>

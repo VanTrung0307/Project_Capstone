@@ -8,31 +8,31 @@ export type Item = {
   price: number;
   description: string;
   type: string;
-  limitExchange: boolean; //boolean
-  quantity: number;
+  limitExchange: boolean;
   imageUrl: string;
   status: string;
   id: string;
 };
 
 export type addItem = {
+  image: string;
   name: string;
   price: number;
   description: string;
   type: string;
-  limitExchange: boolean; //boolean
-  quantity: number;
+  limitExchange: boolean;
   imageUrl: string;
   status: string;
   id: string;
 };
 
 export type updateItemData = {
+  image: string;
   name: string;
   price: number;
   description: string;
   type: string;
-  limitExchange: boolean; //boolean
+  limitExchange: boolean;
   quantity: number;
   imageUrl: string;
   status: string;

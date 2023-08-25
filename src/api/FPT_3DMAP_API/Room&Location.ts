@@ -31,7 +31,7 @@ export const getPaginatedRoomLocations = async (pagination: Pagination): Promise
   try {
     const response = await httpApi.get<RoomLocationList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 1203 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -52,6 +52,18 @@ export const getPaginatedRoomLocations = async (pagination: Pagination): Promise
     throw error;
   }
 };
+
+export const getRoomLocations = async (): Promise<RoomLocation[]> => {
+  try {
+    const response = await httpApi.get<RoomLocationList>(API_BASE_URL);
+    const { data } = response.data;
+    return data;
+  } catch (error) {
+    console.error('Error fetching room locations:', error);
+    throw error;
+  }
+};
+
 
 export const getRoomLocationById = async (roomlocationId: string): Promise<RoomLocation> => {
   try {

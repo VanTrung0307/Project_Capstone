@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DeleteOutlined, DownOutlined, UploadOutlined } from '@ant-design/icons';
-import { Item, Pagination, createItem, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
+import { Item, Pagination, addItem, createItem, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
@@ -15,7 +16,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -58,7 +58,7 @@ export const ItemTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Item:', updatedItem);
+        // message.warn('Updated null Item:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -72,10 +72,10 @@ export const ItemTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateItem(key.toString(), row);
-        message.success('Item data updated successfully');
+        message.success('Cập nhật vật phẩm thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Error updating Item data');
+        message.error('Cập nhật vật phẩm thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
@@ -83,7 +83,7 @@ export const ItemTable: React.FC = () => {
         fetch(data.pagination);
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -138,17 +138,22 @@ export const ItemTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Item = {
+      const newData: addItem = {
+        image: uploadedImage?.data || '',
         name: values.name,
         type: values.type,
         price: values.price,
-        quantity: values.quantity,
         description: values.description,
         imageUrl: values.imageUrl,
         limitExchange: values.limitExchange,
         status: values.status,
         id: values.id,
       };
+
+      if (!uploadedImage && !values.imageUrl) {
+        message.error('Hãy tải lên hoặc nhập đường dẫn của hình ảnh');
+        return;
+      }
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
@@ -161,17 +166,17 @@ export const ItemTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Item data created successfully');
+        message.success('Tạo vật phẩm thành công');
 
         getPaginatedItems(data.pagination).then((res) => {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         });
       } catch (error) {
-        message.error('Error creating Item data');
+        message.error('Tạo vật phẩm thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -202,7 +207,7 @@ export const ItemTable: React.FC = () => {
             key={record.imageUrl}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hình ảnh là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy tải lên hoặc nhập đường dẫn hình ảnh' }]}
           >
             {text ? (
               <>
@@ -216,15 +221,17 @@ export const ItemTable: React.FC = () => {
                 </div>
               </>
             ) : (
-              <Upload
-                customRequest={(options) => {
-                  options;
-                }}
-                showUploadList={false}
-              >
-                {' '}
-                <Button icon={<UploadOutlined />}>{t('uploads.directory')}</Button>
-              </Upload>
+              <div>
+                <Upload {...uploadProps(record)} style={{ display: 'flex', alignItems: 'center' }}>
+                  <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
+                </Upload>
+                <span style={{ margin: '0 10px' }}>hoặc</span>
+                <Input
+                  placeholder="Nhập URL hình ảnh"
+                  defaultValue={text}
+                  onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
+                />
+              </div>
             )}
           </Form.Item>
         ) : (
@@ -249,7 +256,7 @@ export const ItemTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên vật phẩm' }]}
           >
             <Input
               maxLength={100}
@@ -275,7 +282,7 @@ export const ItemTable: React.FC = () => {
             key={record.type}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Loại vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập loại vật phẩm' }]}
           >
             <Input
               maxLength={100}
@@ -300,7 +307,7 @@ export const ItemTable: React.FC = () => {
             key={record.price}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Điểm thưởng là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập điểm thưởng' }]}
           >
             <Input
               type="number"
@@ -311,31 +318,6 @@ export const ItemTable: React.FC = () => {
           </Form.Item>
         ) : (
           <span>{text + ' điểm'}</span>
-        );
-      },
-    },
-    {
-      title: t('Số lượng'),
-      dataIndex: 'quantity',
-      render: (text: number, record: Item) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Item = 'quantity';
-        return editable ? (
-          <Form.Item
-            key={record.quantity}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Số lượng vật phẩm là cần thiết' }]}
-          >
-            <Input
-              type="number"
-              min={0}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.quantity, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text === 0 ? 'Bán hết' : text}</span>
         );
       },
     },
@@ -356,7 +338,7 @@ export const ItemTable: React.FC = () => {
             key={record.id}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Giới hạn trao đổi vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn giới hạn trao đổi' }]}
           >
             <Select
               value={text}
@@ -406,7 +388,12 @@ export const ItemTable: React.FC = () => {
               }}
             >
               {editable ? (
-                <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+                <Form.Item
+                  key={record.description}
+                  name={dataIndex}
+                  initialValue={text}
+                  rules={[{ required: false, message: 'Hãy nhập mô tả vật phẩm' }]}
+                >
                   <TextArea
                     autoSize={{ maxRows: 6 }}
                     value={record[dataIndex]}
@@ -420,7 +407,7 @@ export const ItemTable: React.FC = () => {
               )}
             </div>
             <Modal
-              title={t('Mô tả')}
+              title={t('Mô tả chi tiết')}
               visible={descriptionModalVisible}
               onCancel={() => setDescriptionModalVisible(false)}
               footer={null}
@@ -450,7 +437,7 @@ export const ItemTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn trạng thái' }]}
           >
             <Select
               value={text}
@@ -517,41 +504,66 @@ export const ItemTable: React.FC = () => {
     flex: 1;
   `;
 
-  const uploadProps = {
+  const uploadProps = (record: Item) => ({
     name: 'file',
-    multiple: true,
-    beforeUpload: async (file: File): Promise<void> => {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      try {
-        const response = await httpApi.post(
-          `https://anhkiet-001-site1.htempurl.com/api/Events/upload-excel-event`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          },
-        );
-
-        if (response.status === 200) {
-          fetch(data.pagination);
-          message.success('Tải lên thành công', response.data);
-        } else {
-          message.error('Tải lên thất bại', response.status);
-        }
-      } catch (error) {
-        message.error('Tải lên thất bại');
-      }
+    multiple: false,
+    beforeUpload: (file: File): boolean => {
+      handleImageUpload(file, record);
+      return false;
     },
-    onChange: (info: any) => {
-      const { status } = info.file;
+    showUploadList: false,
+  });
 
-      if (status === 'done') {
-      } else if (status === 'error') {
-      }
+  const handleImageUpload = (file: File, record: Item) => {
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const imageUrl = e.target.result;
+
+      setData((prevState) => {
+        const updatedData = prevState.data.map((item: Item) => (item.id === record.id ? { ...item, imageUrl } : item));
+        return { ...prevState, data: updatedData };
+      });
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const uploadAddProps = {
+    name: 'file',
+    multiple: false,
+    beforeUpload: (file: File): boolean => {
+      handleAddImageUpload(file);
+      return false;
     },
+    showUploadList: false,
+  };
+
+  const [uploadedImage, setUploadedImage] = useState<{ name: string; data: any } | undefined>(undefined);
+
+  const handleAddImageUpload = (file: File) => {
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const image = e.target.result;
+      setUploadedImage({ name: file.name, data: image });
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  enum ItemType {
+    food = 'Thức ăn',
+    drink = 'Nước uống',
+    item = 'Vật dụng',
+  }
+
+  const [selectedItemType, setSelectedItemType] = useState<string | null>(null);
+  const [showItemDropdown, setShowItemDropdown] = useState(false);
+
+  const handleItemTypeChange = (value: string) => {
+    setSelectedItemType(value);
+    setShowItemDropdown(false);
   };
 
   return (
@@ -564,7 +576,7 @@ export const ItemTable: React.FC = () => {
         Tạo mới
       </Button>
       <Modal
-        title={'Thêm mới VẬT PHẨM'}
+        title={'Tạo mới Vật phẩm'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
@@ -587,8 +599,17 @@ export const ItemTable: React.FC = () => {
                 <div>
                   <Label>{'Tên vật phẩm'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên vật phẩm là cần thiết') }]}>
-                      <Input maxLength={100} />
+                    <BaseForm.Item
+                      name="name"
+                      rules={[
+                        { required: true, message: t('Hãy nhập tên vật phẩm') },
+                        {
+                          pattern: /^[^\d\W].*$/,
+                          message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                        },
+                      ]}
+                    >
+                      <Input maxLength={100} style={{ width: '300px' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -598,8 +619,19 @@ export const ItemTable: React.FC = () => {
                 <div>
                   <Label>{'Loại vật phẩm'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Loại vật phẩm là cần thiết') }]}>
-                      <Input maxLength={100} />
+                    <BaseForm.Item name="type" rules={[{ required: true, message: t('Hãy chọn loại vật phẩm') }]}>
+                      <Select
+                        style={{ width: '300px' }}
+                        placeholder={'---- Chọn loại vật phẩm ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        onChange={handleItemTypeChange}
+                      >
+                        {Object.values(ItemType).map((type) => (
+                          <Option key={type} value={type}>
+                            {type}
+                          </Option>
+                        ))}
+                      </Select>
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -613,9 +645,19 @@ export const ItemTable: React.FC = () => {
                   <InputContainer>
                     <BaseForm.Item
                       name="price"
-                      rules={[{ required: true, message: t('Điểm thưởng vật phẩm là cần thiết') }]}
+                      rules={[
+                        { required: true, message: t('Hãy nhập điểm thưởng') },
+                        {
+                          validator: (_, value) => {
+                            if (value > 100) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject('Điểm thưởng phải lớn hơn 100 điểm');
+                          },
+                        },
+                      ]}
                     >
-                      <Input type="number" min={0} />
+                      <Input type="number" min={100} style={{ width: '100px' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -623,13 +665,20 @@ export const ItemTable: React.FC = () => {
 
               <FlexContainer>
                 <div>
-                  <Label>{'Số lượng'}</Label>
+                  <Label>{'Giới hạn trao đổi'}</Label>
                   <InputContainer>
                     <BaseForm.Item
-                      name="quantity"
-                      rules={[{ required: true, message: t('Số lượng vật phẩm là cần thiết') }]}
+                      name="limitExchange"
+                      rules={[{ required: true, message: t('Hãy chọn giới hạn trao đổi') }]}
                     >
-                      <Input type="number" min={0} />
+                      <Select
+                        style={{ width: '300px', maxWidth: '300px' }}
+                        placeholder={'---- Chọn giới hạn ----'}
+                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      >
+                        <Option value="true">{'Có giới hạn'}</Option>
+                        <Option value="false">{'Không giới hạn'}</Option>
+                      </Select>
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -643,44 +692,8 @@ export const ItemTable: React.FC = () => {
                 <div>
                   <Label>{'Mô tả'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="description">
-                      <TextArea />
-                    </BaseForm.Item>
-                  </InputContainer>
-                </div>
-              </FlexContainer>
-
-              <FlexContainer>
-                <div>
-                  <Label>{'imageUrl'}</Label>
-                  <InputContainer>
-                    <Upload {...uploadProps}>
-                      <BaseForm.Item name="imageUrl">
-                        <Button icon={<UploadOutlined />}>Hình ảnh vật phẩm</Button>
-                      </BaseForm.Item>
-                    </Upload>
-                  </InputContainer>
-                </div>
-              </FlexContainer>
-            </Col>
-
-            <Col span={12}>
-              <FlexContainer>
-                <div>
-                  <Label>{'Giới hạn trao đổi'}</Label>
-                  <InputContainer>
-                    <BaseForm.Item
-                      name="limitExchange"
-                      rules={[{ required: true, message: t('Giới hạn trao đổi vật phẩm là cần thiết') }]}
-                    >
-                      <Select
-                        style={{ maxWidth: '256px' }}
-                        placeholder={'---- Chọn giới hạn ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                      >
-                        <Option value="true">{'Có giới hạn'}</Option>
-                        <Option value="false">{'Không giới hạn'}</Option>
-                      </Select>
+                    <BaseForm.Item name="description" rules={[{ required: true, message: t('Hãy nhập mô tả') }]}>
+                      <TextArea style={{ width: '300px' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -692,6 +705,42 @@ export const ItemTable: React.FC = () => {
                   <InputContainer>
                     <BaseForm.Item name="status" initialValue={'ACTIVE'}>
                       <Input style={{ width: '100px' }} disabled={true} />
+                    </BaseForm.Item>
+                  </InputContainer>
+                </div>
+              </FlexContainer>
+            </Col>
+
+            <Col span={12}>
+              <FlexContainer >
+                <div>
+                  <Label>{'Hình ảnh'}</Label>
+                  <InputContainer>
+                    <Upload {...uploadAddProps}>
+                      <Button style={{ width: '300px' }} icon={<UploadOutlined />}>
+                        Hình ảnh vật phẩm
+                      </Button>
+                    </Upload>
+                    {uploadedImage && (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <img
+                          src={uploadedImage.data}
+                          alt="Uploaded"
+                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                        />
+                        <Button
+                          type="link"
+                          onClick={() => setUploadedImage(undefined)}
+                          style={{ marginLeft: '10px', color: 'red' }}
+                          icon={<DeleteOutlined />}
+                        ></Button>
+                      </div>
+                    )}
+                  </InputContainer>
+                  <span style={{ margin: '0 10px' }}>hoặc</span>
+                  <InputContainer>
+                    <BaseForm.Item name="imageUrl" >
+                      <Input style={{ width: '300px' }} placeholder="Nhập URL hình ảnh" />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>

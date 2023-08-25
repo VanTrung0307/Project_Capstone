@@ -1,6 +1,14 @@
 /* eslint-disable prettier/prettier */
-import { DownOutlined } from '@ant-design/icons';
-import { Major, Pagination, createMajor, getPaginatedMajors, updateMajor } from '@app/api/FPT_3DMAP_API/Major';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { DownOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  Major,
+  Pagination,
+  createMajor,
+  getExcelTemplateMajor,
+  getPaginatedMajors,
+  updateMajor,
+} from '@app/api/FPT_3DMAP_API/Major';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
@@ -13,6 +21,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { httpApi } from '@app/api/http.api';
+import Upload from 'antd/lib/upload/Upload';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -55,7 +65,7 @@ export const MajorTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Major:', updatedItem);
+        // message.warn('Updated null Major:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -69,16 +79,16 @@ export const MajorTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateMajor(key.toString(), row);
-        message.success('Major data updated successfully');
+        message.success('Cập nhật ngành học thành công');
       } catch (error) {
-        message.error('Error updating Major data');
+        message.error('Cập nhật ngành học thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -150,14 +160,14 @@ export const MajorTable: React.FC = () => {
         }));
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Major data created successfully');
+        message.success('Tạo ngành học thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Error creating Major data');
+        message.error('Tạo ngành học thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -166,7 +176,7 @@ export const MajorTable: React.FC = () => {
 
   const columns: ColumnsType<Major> = [
     {
-      title: t('Tên ngành nghề'),
+      title: t('Tên ngành học'),
       dataIndex: 'name',
       width: '15%',
       render: (text: string, record: Major) => {
@@ -179,7 +189,7 @@ export const MajorTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên ngành là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên ngành học' }]}
           >
             <Input
               maxLength={100}
@@ -223,7 +233,12 @@ export const MajorTable: React.FC = () => {
               }}
             >
               {editable ? (
-                <Form.Item key={record.description} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+                <Form.Item
+                  key={record.description}
+                  name={dataIndex}
+                  initialValue={text}
+                  rules={[{ required: true, message: 'Hãy nhập mô tả ngành học' }]}
+                >
                   <TextArea
                     autoSize={{ maxRows: 6 }}
                     value={record[dataIndex]}
@@ -267,7 +282,7 @@ export const MajorTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a status' }]}
+            rules={[{ required: true, message: 'Hãy chọn ngành học' }]}
           >
             <Select
               value={text}
@@ -333,6 +348,66 @@ export const MajorTable: React.FC = () => {
     flex: 1;
   `;
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const excelTemplate = await getExcelTemplateMajor();
+
+      const blob = new Blob([excelTemplate], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = 'Mau_don_nganh_hoc.xlsx';
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+      anchor.remove();
+    } catch (error) {
+      message.error('Không thể tải mẫu đơn');
+    }
+  };
+
+  const uploadProps = {
+    name: 'file',
+    multiple: true,
+    beforeUpload: async (file: File): Promise<void> => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await httpApi.post(
+          `https://anhkiet-001-site1.htempurl.com/api/Major/upload-excel-major`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          fetch(data.pagination);
+          message.success('Tải lên thành công', response.data);
+          setTimeout(() => message.destroy(), 3000);
+        } else {
+          message.error('Tải lên thất bại', response.status);
+        }
+      } catch (error) {
+        message.error('Tải lên thất bại');
+      }
+    },
+    onChange: (info: any) => {
+      const { status } = info.file;
+
+      if (status === 'done') {
+      } else if (status === 'error') {
+      }
+    },
+  };
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -343,7 +418,7 @@ export const MajorTable: React.FC = () => {
         Tạo mới
       </Button>
       <Modal
-        title={'Thêm mới NGÀNH NGHỀ'}
+        title={'Tạo mới Ngành học'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
@@ -362,7 +437,7 @@ export const MajorTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên ngành học'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Nhập tên ngành') }]}>
+              <BaseForm.Item name="name" rules={[{ required: true, message: t('Hãy nhập tên ngành học') }]}>
                 <Input maxLength={100} />
               </BaseForm.Item>
             </InputContainer>
@@ -371,7 +446,7 @@ export const MajorTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Mô tả'}</Label>
             <InputContainer>
-              <BaseForm.Item name="description">
+              <BaseForm.Item name="description" rules={[{ required: true, message: t('Hãy nhập mô tả ngành học') }]}>
                 <TextArea autoSize={{ maxRows: 6 }} />
               </BaseForm.Item>
             </InputContainer>
@@ -387,6 +462,21 @@ export const MajorTable: React.FC = () => {
           </FlexContainer>
         </S.FormContent>
       </Modal>
+
+      <Button
+        type="dashed"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 280px' }}
+        icon={<DownloadOutlined />}
+      >
+        Mẫu đơn ngành học
+      </Button>
+
+      <Upload {...uploadProps}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 123px' }}>
+          Nhập Excel
+        </Button>
+      </Upload>
 
       <SearchInput
         placeholder="Tìm kiếm..."

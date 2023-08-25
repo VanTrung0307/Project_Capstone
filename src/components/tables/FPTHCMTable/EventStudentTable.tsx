@@ -80,16 +80,16 @@ export const EventStudentTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        message.success('School updated successfully');
+        message.success('Cập nhật học sinh thành công');
       } catch (error) {
-        message.error('Error updating school data');
+        message.error('Cập nhật học sinh thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -141,24 +141,6 @@ export const EventStudentTable: React.FC = () => {
     fetch(pagination);
     cancel();
   };
-
-  // const uploadProps = {
-  //   name: 'file',
-  //   multiple: true,
-  //   action: `http://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
-  //   onChange: (info: any) => {
-  //     const { status } = info.file;
-  //     if (status !== 'uploading') {
-  //       message.warn(`${name} ${status}`);
-  //     }
-  //     if (status === 'done') {
-  //       message.success(t('uploads.successUpload', { name: info.file.name }));
-  //       fetch(data.pagination);
-  //     } else if (status === 'error') {
-  //       message.error(t('uploads.failedUpload', { name: info.file.name }));
-  //     }
-  //   },
-  // };
 
   const handleSavePlayer = async (studentId: string, eventId: string, fullname: string) => {
     try {
@@ -233,7 +215,12 @@ export const EventStudentTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof EventStudent = 'email';
         return editable ? (
-          <Form.Item key={record.email} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item
+            key={record.email}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: false, message: 'Hãy nhập email học sinh' }]}
+          >
             <Input
               type="email"
               maxLength={100}
@@ -253,7 +240,12 @@ export const EventStudentTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof EventStudent = 'phonenumber';
         return editable ? (
-          <Form.Item key={record.phonenumber} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.phonenumber}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: false, message: 'Hãy nhập sôd điện thoại học sinh' }]}
+          >
             <Input
               type="tel"
               value={record[dataIndex]}
@@ -261,7 +253,7 @@ export const EventStudentTable: React.FC = () => {
             />
           </Form.Item>
         ) : (
-          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+          <span>0{text !== null ? text : 'Chưa có thông tin'}</span>
         );
       },
     },
@@ -272,7 +264,12 @@ export const EventStudentTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof EventStudent = 'graduateYear';
         return editable ? (
-          <Form.Item key={record.graduateYear} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.graduateYear}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: false, message: 'Hãy nhập niên khoá học sinh' }]}
+          >
             <Input
               type="tel"
               value={record[dataIndex]}
@@ -293,7 +290,12 @@ export const EventStudentTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof EventStudent = 'classname';
         return editable ? (
-          <Form.Item key={record.classname} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.classname}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: false, message: 'Hãy nhập lớp của học sinh' }]}
+          >
             <Input
               type="tel"
               value={record[dataIndex]}
@@ -312,7 +314,12 @@ export const EventStudentTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof EventStudent = 'passcode';
         return editable ? (
-          <Form.Item key={record.passcode} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.passcode}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: false, message: 'Hãy nhập mã tham gia học sinh' }]}
+          >
             <Input
               type="text"
               value={record[dataIndex]}
@@ -343,7 +350,7 @@ export const EventStudentTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái vật phẩm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn trạng thái' }]}
           >
             <Select
               value={text}
@@ -416,6 +423,7 @@ export const EventStudentTable: React.FC = () => {
         if (response.status === 200) {
           fetch(data.pagination);
           message.success('Tải lên thành công', response.data);
+          setTimeout(() => message.destroy(), 3000);
         } else {
           message.error('Tải lên thất bại', response.status);
         }
@@ -454,6 +462,25 @@ export const EventStudentTable: React.FC = () => {
     }
   };
 
+  const [filteredData, setFilteredData] = useState(data.data);
+
+  const handleSearch = (value: string) => {
+    const updatedFilteredData = data.data.filter((record) =>
+      Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+    );
+    setFilteredData(updatedFilteredData);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.trim();
+
+    if (inputValue === '') {
+      setFilteredData(data.data);
+    } else {
+      handleSearch(inputValue);
+    }
+  };
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -466,10 +493,7 @@ export const EventStudentTable: React.FC = () => {
       </Button>
 
       <Upload {...uploadProps}>
-        <Button
-          icon={<UploadOutlined />}
-          style={{ position: 'absolute', bottom: '0', right: '0', margin: '15px 200px 230px' }}
-        >
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', right: '0', margin: '40px 200px' }}>
           Nhập file Excel
         </Button>
       </Upload>
@@ -484,23 +508,6 @@ export const EventStudentTable: React.FC = () => {
         </Button>
       )}
 
-      <SearchInput
-        placeholder="Search..."
-        allowClear
-        onSearch={(value) => {
-          const filteredData = data.data.filter((record) =>
-            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
-          );
-          setData((prevData) => ({ ...prevData, data: filteredData }));
-        }}
-        onChange={(e) => {
-          if (e.target.value.trim() === '') {
-            setData((prevData) => ({ ...prevData, data: originalData }));
-          }
-        }}
-        style={{ marginBottom: '16px', width: '400px', right: '0' }}
-      />
-
       <Button
         type="default"
         onClick={() => {
@@ -510,11 +517,19 @@ export const EventStudentTable: React.FC = () => {
             console.error('schoolId is undefined');
           }
         }}
-        style={{ position: 'absolute', bottom: '0', right: '0', margin: '15px 20px 230px' }}
+        style={{ position: 'absolute', right: '0', margin: '-40px 20px' }}
         icon={<DownloadOutlined />}
       >
         Xuất file Excel
       </Button>
+
+      <SearchInput
+        placeholder="Tìm kiếm..."
+        allowClear
+        onSearch={handleSearch}
+        onChange={handleSearchChange}
+        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+      />
 
       <Table
         components={{
@@ -524,10 +539,7 @@ export const EventStudentTable: React.FC = () => {
         }}
         columns={columns}
         dataSource={data.data}
-        pagination={{
-          ...data.pagination,
-          onChange: cancel,
-        }}
+        pagination={false}
         onChange={handleTableChange}
         loading={data.loading}
         scroll={{ x: 1200 }}

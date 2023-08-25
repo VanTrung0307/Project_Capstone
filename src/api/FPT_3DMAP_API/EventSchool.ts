@@ -4,13 +4,16 @@ import { httpApi } from '../http.api';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/SchoolEvents`;
 
 export type EventSchool = {
-  eventId: string;
+  id: string;
   schoolId: string;
   eventName: string;
   schoolName: string;
-  invitationLetter: string;
+  startTime: string;
+  endTime: string;
+  approvalStatus: string;
   status: string;
-  id: string;
+  email: string;
+  phoneNumber: string;
 };
 export type SchoolByEvent = {
   name: string;

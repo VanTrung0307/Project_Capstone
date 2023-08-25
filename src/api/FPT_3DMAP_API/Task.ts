@@ -43,15 +43,13 @@ export type addTask = {
 };
 
 export type updateTaskData = {
-  locationId: string;
-  majorId: string;
-  npcId: string;
-  itemId: string;
+  locationName: string;
+  majorName: string;
+  npcName: string;
+  itemName: string;
   name: string;
-  point: number;
   type: string;
   status: string;
-  id: string;
 };
 
 export type TaskList = {
@@ -73,7 +71,7 @@ export const getPaginatedTasks = async (pagination: Pagination): Promise<Paginat
   try {
     const response = await httpApi.get<TaskList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;

@@ -80,3 +80,16 @@ export const updateMajor = async (majorId: string, majorData: Major): Promise<Ma
     throw error;
   }
 };
+
+
+export const getExcelTemplateMajor = async (): Promise<Blob> => {
+  try {
+    const response = await httpApi.get(`${API_BASE_URL}/excel-template-major`, {
+      responseType: 'arraybuffer',
+    });
+    return new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  } catch (error) {
+    console.error('Error getting template student excel:', error);
+    throw error;
+  }
+};

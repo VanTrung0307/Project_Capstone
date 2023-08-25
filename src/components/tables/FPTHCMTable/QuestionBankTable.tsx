@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Upload } from '@app/components/common/Upload/Upload';
-import { DownOutlined, MinusOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, DownloadOutlined, MinusOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { Answer, getPaginatedAnswers } from '@app/api/FPT_3DMAP_API/Answer';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import {
@@ -10,6 +10,7 @@ import {
   Question,
   addQuestion,
   createQuestion,
+  getExcelTemplateQnA,
   getPaginatedQuestions,
   updateQuestion,
 } from '@app/api/FPT_3DMAP_API/QuestionBank';
@@ -71,7 +72,7 @@ export const QuestionBankTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Question:', updatedItem);
+        // message.warn('Updated null Question:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -84,17 +85,17 @@ export const QuestionBankTable: React.FC = () => {
       try {
         await updateQuestion(key.toString(), row);
         setData((prevData) => ({ ...prevData, loading: true }));
-        message.success('Question data updated successfully');
+        message.success('Cập nhật thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Error updating Question data');
+        message.error('Cập nhật thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -136,14 +137,14 @@ export const QuestionBankTable: React.FC = () => {
         });
 
       try {
-        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 10 });
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 100 });
         setMajors(majorResponse.data);
       } catch (error) {
         // message.error('Error fetching majors');
       }
 
       try {
-        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 10 });
+        const answerResponse = await getPaginatedAnswers({ current: 1, pageSize: 100 });
         setAnswers(answerResponse.data);
       } catch (error) {
         // message.error('Error fetching questions');
@@ -168,6 +169,7 @@ export const QuestionBankTable: React.FC = () => {
       const values = await form.validateFields();
 
       const newAnswers = answerInputs.map((inputId, index) => ({
+        id: values[`answers[${inputId}].id`],
         answerName: values[`answers[${inputId}].answerName`],
         isRight: index === 0,
       }));
@@ -179,18 +181,25 @@ export const QuestionBankTable: React.FC = () => {
         status: values.status,
       };
 
+      if (!newData.answers.length) {
+        newData.answers = [
+          {
+            id: `${answerInputs.length}`,
+            answerName: '',
+            isRight: false,
+          },
+        ];
+      }
+
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
         const createdQuestion = await createQuestion(newData);
 
         const selectedMajor = majors.find((major) => major.id === newData.majorId);
-
         if (selectedMajor) {
           newData.majorId = selectedMajor.id;
         }
-
-        // newAnswer.id = createdQuestion.id;
 
         setData((prevData) => ({
           ...prevData,
@@ -200,14 +209,15 @@ export const QuestionBankTable: React.FC = () => {
 
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Question data created successfully');
+
         fetch(data.pagination);
+        message.success('Tạo câu hỏi thành công');
       } catch (error) {
-        message.error('Error creating Question data');
-        setData((prevData) => ({ ...prevData, loading: false }));
+        fetch(data.pagination);
+        message.error('Tạo câu hỏi thất bại');
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Hãy nhập đầy đủ');
     }
   };
 
@@ -218,7 +228,7 @@ export const QuestionBankTable: React.FC = () => {
   }));
 
   const [answerModalVisible, setAnswerModalVisible] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [selectedAnswer, setSelectedAnswer] = useState<Array<{ id: string; answerName: string; isRight: boolean }>>([]);
 
   const columns: ColumnsType<Question> = [
     {
@@ -232,7 +242,7 @@ export const QuestionBankTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên câu hỏi' }]}
           >
             <TextArea
               autoSize={{ maxRows: 6 }}
@@ -248,6 +258,7 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Tên ngành'),
       dataIndex: 'majorName',
+      width: '16%',
       filters: majorNameFilters,
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
@@ -257,7 +268,7 @@ export const QuestionBankTable: React.FC = () => {
           <Form.Item
             key={record.majorName}
             name={dataIndex}
-            rules={[{ required: true, message: 'Tên ngành nghề là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn ngành học' }]}
           >
             <Select
               style={{ maxWidth: '212.03px' }}
@@ -278,63 +289,75 @@ export const QuestionBankTable: React.FC = () => {
       },
     },
     {
-      title: t('Câu trả lời đúng'),
-      dataIndex: ['answers', 0, 'answerName'], // Assuming the correct answer is the first answer in the array
-      render: (text: string, record: Question) => {
+      title: t('Câu trả lời'),
+      dataIndex: 'answers',
+      render: (answers: Array<{ id: string; answerName: string; isRight: boolean }>, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'answers'; // Change this to 'answers' to access the array of answers
         const maxTextLength = 50;
-        const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
-        const openAnswerModal = () => {
-          if (!editable && text?.length > maxTextLength) {
+        const openAnswerModal = (answersToShow: Array<{ id: string; answerName: string; isRight: boolean }>) => {
+          if (!editable) {
             setAnswerModalVisible(true);
-            if (!editable) {
-              setSelectedAnswer(text);
-            }
+            setSelectedAnswer(answersToShow);
           }
         };
 
         return (
           <>
-            <div
-              onClick={() => {
-                if (text?.length > maxTextLength) {
-                  openAnswerModal();
-                }
-              }}
-              style={{
-                cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
-              }}
-            >
-              {editable ? (
-                <Form.Item key={record.id} name={dataIndex} rules={[{ required: false }]}>
-                  <Select
-                    style={{ maxWidth: '212.03px' }}
-                    value={record[dataIndex][0].id} // Assuming you want to display the ID of the selected answer
-                    onChange={(value) => handleInputChange(value, record.id, dataIndex)} // Use record.id instead of record.answerId
-                    suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                  >
-                    {answers.map((answer) => (
-                      <Select.Option key={answer.id} value={answer.id}>
-                        {answer.answerName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              ) : (
-                <>
-                  <span>{truncatedText}</span>
-                </>
-              )}
-            </div>
+            {answers.map((answer) => {
+              const text = answer.answerName;
+              const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
+
+              const answerIndicator = answer.isRight ? <Tag color="#87d068">Đúng</Tag> : <Tag color="#f50">Sai</Tag>;
+
+              return (
+                <div
+                  key={answer.id}
+                  onClick={() => {
+                    if (text?.length > maxTextLength) {
+                      openAnswerModal(answers);
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    padding: '3px',
+                    cursor: !editable && text?.length > maxTextLength ? 'pointer' : 'default',
+                  }}
+                >
+                  {answerIndicator}
+                  <span style={{ marginLeft: '8px' }}>{truncatedText}</span>
+                  {editable && (
+                    <Form.Item
+                      name={`answers[${answer.id}].id`}
+                      rules={[{ required: true, message: 'Hãy nhập câu trả lời' }]}
+                      initialValue={answer.id}
+                    >
+                      <Input
+                        style={{ maxWidth: '212.03px', marginLeft: '8px' }}
+                        value={text}
+                        onChange={(e) => handleInputChange(e.target.value, answer.id, 'answers')}
+                      />
+                    </Form.Item>
+                  )}
+                </div>
+              );
+            })}
             <Modal
-              title={t('Nội dung CÂU TRẢ LỜI ĐÚNG')}
+              title={t('Nội dung CÂU TRẢ LỜI')}
               visible={answerModalVisible}
               onCancel={() => setAnswerModalVisible(false)}
               footer={null}
+              mask
+              maskStyle={{ opacity: 0.2 }}
             >
-              <p>{selectedAnswer}</p>
+              {selectedAnswer.map((answer) => (
+                <div key={answer.id} style={{ display: 'flex', alignItems: 'center' }}>
+                  {answer.isRight ? <Tag color="#87d068">Đúng</Tag> : <Tag color="#f50">Sai</Tag>}
+                  <p style={{ marginLeft: '8px' }}>{answer.answerName}</p>
+                </div>
+              ))}
             </Modal>
           </>
         );
@@ -343,7 +366,7 @@ export const QuestionBankTable: React.FC = () => {
     {
       title: t('Trạng thái'),
       dataIndex: 'status',
-      width: '15%',
+      width: '11%',
       filters: [
         { text: 'ACTIVE', value: 'ACTIVE' },
         { text: 'INACTIVE', value: 'INACTIVE' },
@@ -360,7 +383,7 @@ export const QuestionBankTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái câu hỏi là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn trạng thái' }]}
           >
             <Select
               value={text}
@@ -462,6 +485,28 @@ export const QuestionBankTable: React.FC = () => {
     },
   };
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const excelTemplate = await getExcelTemplateQnA();
+
+      const blob = new Blob([excelTemplate], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = 'Mau_don_ngan_hang_cau_hoi.xlsx';
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+      anchor.remove();
+    } catch (error) {
+      message.error('Không thể tải mẫu đơn');
+    }
+  };
+
   const [answerInputs, setAnswerInputs] = useState<number[]>([]);
   const maxInputs = 4;
 
@@ -487,7 +532,7 @@ export const QuestionBankTable: React.FC = () => {
         Tạo mới
       </Button>
       <Modal
-        title={'Thêm mới CÂU HỎI'}
+        title={'Tạo mới CÂU HỎI'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
@@ -509,8 +554,14 @@ export const QuestionBankTable: React.FC = () => {
               <FlexContainer>
                 <Label>{'Tên câu hỏi'}</Label>
                 <InputContainer>
-                  <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên câu hỏi là cần thiết') }]}>
-                    <TextArea maxLength={1000} style={{ width: '256px' }} />
+                  <BaseForm.Item
+                    name="name"
+                    rules={[
+                      { required: true, message: t('Hãy nhập câu hỏi') },
+                      { max: 100, message: t('Tên câu hỏi không được vượt quá 100 ký tự') },
+                    ]}
+                  >
+                    <TextArea style={{ width: '256px' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -518,7 +569,7 @@ export const QuestionBankTable: React.FC = () => {
               <FlexContainer>
                 <Label>{'Tên ngành'}</Label>
                 <InputContainer>
-                  <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Tên ngành nghề là cần thiết') }]}>
+                  <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
                     <Select
                       style={{ maxWidth: '256px' }}
                       placeholder={'---- Chọn ngành ----'}
@@ -549,19 +600,40 @@ export const QuestionBankTable: React.FC = () => {
                 <Label>{'Câu trả lời'}</Label>
                 <h1 style={{ fontSize: '14px', color: '#FF6961' }}>* Hãy nhập 4 câu trả lời</h1>
                 <InputContainer>
-                  {answerInputs.map((inputId) => (
+                  {/* Always show the first input with the placeholder "Câu trả lời đúng" */}
+                  <div>
+                    <BaseForm.Item
+                      name={`answers[${answerInputs[0]}].answerName`}
+                      rules={[
+                        { required: true, message: t('Hãy nhập câu trả lời') },
+                        () => ({
+                          validator: async (_, value) => {
+                            if (
+                              answerInputs.length === 4 &&
+                              answerInputs.every((id) => form.getFieldValue(`answers[${id}].answerName`))
+                            ) {
+                              return Promise.resolve();
+                            }
+                            throw new Error('Hãy nhập đủ 4 câu trả lời');
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input style={{ maxWidth: '256px', marginBottom: '8px' }} placeholder={'Câu trả lời đúng'} />
+                    </BaseForm.Item>
+                  </div>
+                  {/* Render the remaining inputs */}
+                  {answerInputs.slice(1).map((inputId) => (
                     <div key={inputId}>
                       <BaseForm.Item
                         name={`answers[${inputId}].answerName`}
                         rules={[
-                          { required: true, message: t('Tên câu trả lời là cần thiết') },
+                          { required: true, message: t('Hãy nhập câu trả lời') },
                           () => ({
                             validator: async (_, value) => {
                               if (
                                 answerInputs.length === 4 &&
-                                answerInputs.every(
-                                  (id) => form.getFieldValue(`answers[${id}].answerName`).trim() !== '',
-                                )
+                                answerInputs.every((id) => form.getFieldValue(`answers[${id}].answerName`))
                               ) {
                                 return Promise.resolve();
                               }
@@ -570,7 +642,10 @@ export const QuestionBankTable: React.FC = () => {
                           }),
                         ]}
                       >
-                        <Input style={{ maxWidth: '256px', marginBottom: '8px' }} placeholder={'Nhập câu trả lời'} />
+                        <Input
+                          style={{ maxWidth: '256px', marginBottom: '8px' }}
+                          placeholder={'Nhập câu trả lời sai'}
+                        />
                       </BaseForm.Item>
                     </div>
                   ))}
@@ -613,11 +688,20 @@ export const QuestionBankTable: React.FC = () => {
         </S.FormContent>
       </Modal>
 
+      {/* <Button
+        type="dashed"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
+        icon={<DownloadOutlined />}
+      >
+        Mẫu đơn ngân hàng câu hỏi
+      </Button>
+
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 130px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '75px 130px' }}>
           Nhập Excel
         </Button>
-      </Upload>
+      </Upload> */}
 
       <SearchInput
         placeholder="Tìm kiếm..."

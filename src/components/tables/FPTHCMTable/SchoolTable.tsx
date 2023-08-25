@@ -391,6 +391,25 @@ export const SchoolTable: React.FC = () => {
     flex: 1;
   `;
 
+  const [filteredData, setFilteredData] = useState(data.data);
+
+  const handleSearch = (value: string) => {
+    const updatedFilteredData = data.data.filter((record) =>
+      Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+    );
+    setFilteredData(updatedFilteredData);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.trim();
+
+    if (inputValue === '') {
+      setFilteredData(data.data);
+    } else {
+      handleSearch(inputValue);
+    }
+  };
+
   return (
     <Form form={form} component={false}>
       <Button
@@ -512,17 +531,8 @@ export const SchoolTable: React.FC = () => {
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear
-        onSearch={(value) => {
-          const filteredData = data.data.filter((record) =>
-            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
-          );
-          setData((prevData) => ({ ...prevData, data: filteredData }));
-        }}
-        onChange={(e) => {
-          if (e.target.value.trim() === '') {
-            setData((prevData) => ({ ...prevData, data: originalData }));
-          }
-        }}
+        onSearch={handleSearch}
+        onChange={handleSearchChange}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
 

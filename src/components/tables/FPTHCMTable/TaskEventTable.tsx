@@ -14,7 +14,7 @@ import { Pagination, Task, getPaginatedTasks } from '@app/api/FPT_3DMAP_API/Task
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
-import { Col, Form, Input, Modal, Row, Select, Space, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, TimePicker, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -26,6 +26,7 @@ import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { TaskTableModal } from './TaskTableModal';
 import { Option } from '@app/components/common/selects/Select/Select';
+import moment from 'moment';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -89,16 +90,16 @@ export const TaskEventTable: React.FC = () => {
         setData({ ...data, data: newData, loading: false });
         await updateEventTask(key.toString(), row);
         fetch(data.pagination);
-        message.success('Task data updated successfully');
+        message.success('Cập nhật nhiệm vụ thành công');
       } catch (error) {
-        message.error('Error updating Task data');
+        message.error('Cập nhật nhiệm vụ thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -204,17 +205,16 @@ export const TaskEventTable: React.FC = () => {
           loading: false,
         }));
 
-        fetch(data.pagination);
-
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Event Task data created successfully');
+        fetch(data.pagination);
+        message.success('Thêm nhiệm vụ vào sự kiện thành công');
       } catch (error) {
-        message.error('Error creating Event Task data');
+        message.error('Thêm nhiệm vụ vào sự kiện thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -229,6 +229,7 @@ export const TaskEventTable: React.FC = () => {
     {
       title: t('Tên nhiệm vụ'),
       dataIndex: 'name',
+      width: '25%',
       render: (text: string, record: TaskByEvent) => {
         const editable = isEditing(record);
         const dataIndex: keyof TaskByEvent = 'taskId';
@@ -237,7 +238,7 @@ export const TaskEventTable: React.FC = () => {
             key={record.taskId}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Địa điểm là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên nhiệm vụ' }]}
           >
             <Select
               value={record[dataIndex]}
@@ -261,20 +262,16 @@ export const TaskEventTable: React.FC = () => {
     {
       title: t('Tên sự kiện'),
       dataIndex: 'eventName',
+      width: '25%',
       render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
         const dataIndex: keyof TaskByEvent = 'eventId';
         return editable ? (
-          <Form.Item
-            key={record.eventId}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
-          >
+          <Form.Item key={record.eventId} name={dataIndex} initialValue={text}>
             <Input
               disabled
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.eventName, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.eventId, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -285,6 +282,7 @@ export const TaskEventTable: React.FC = () => {
     {
       title: t('Điểm thưởng'),
       dataIndex: 'point',
+      width: '8%',
       render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
         const dataIndex: keyof TaskByEvent = 'point';
@@ -293,7 +291,7 @@ export const TaskEventTable: React.FC = () => {
             key={record.point}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên nhiệm vụ là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập điểm thưởng' }]}
           >
             <Input
               value={record[dataIndex]}
@@ -308,6 +306,7 @@ export const TaskEventTable: React.FC = () => {
     {
       title: t('Mức độ'),
       dataIndex: 'priority',
+      width: '8%',
       render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
         const dataIndex: keyof TaskByEvent = 'priority';
@@ -316,7 +315,7 @@ export const TaskEventTable: React.FC = () => {
             key={record.priority}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Please enter a type' }]}
+            rules={[{ required: true, message: 'Hãy nhập mức độ' }]}
           >
             <Input
               maxLength={100}
@@ -329,73 +328,12 @@ export const TaskEventTable: React.FC = () => {
         );
       },
     },
-    // {
-    //   title: t('Thời gian bắt đầu'),
-    //   dataIndex: 'starttime',
-    //   render: (text: any, record: TaskByEvent) => {
-    //     const editable = isEditing(record);
-    //     const dataIndex: keyof TaskByEvent = 'starttime';
-
-    //     const startTimeHours = String(record.starttime.hours).padStart(2, '0');
-    //     const startTimeMinutes = String(record.starttime.minutes).padStart(2, '0');
-    //     const startTimeFormatted = `${startTimeHours}:${startTimeMinutes}`;
-
-    //     return editable ? (
-    //       <Form.Item
-    //         key={`${record.starttime.hours}-${record.starttime.minutes}`}
-    //         name={dataIndex}
-    //         initialValue={startTimeFormatted}
-    //         rules={[{ required: true, message: 'Thời gian bắt đầu là cần thiết' }]}
-    //       >
-    //         <Input
-    //           type="time"
-    //           value={startTimeFormatted}
-    //           onChange={(e) => handleInputChange(e.target.value, record.starttime.hours, dataIndex)}
-    //         />
-    //       </Form.Item>
-    //     ) : (
-    //       <span>{formatTimeSpan(startTimeFormatted)}</span>
-    //     );
-    //   },
-    // },
-    // {
-    //   title: t('Thời gian kết thúc'),
-    //   dataIndex: 'endtime',
-    //   render: (text: string, record: TaskByEvent) => {
-    //     const editable = isEditing(record);
-    //     const dataIndex: keyof TaskByEvent = 'endtime';
-    //     return editable ? (
-    //       <Form.Item
-    //         key={record.endtime}
-    //         name={dataIndex}
-    //         initialValue={text}
-    //         rules={[{ required: true, message: 'Thời gian kết thúc là cần thiết' }]}
-    //       >
-    //         <Input
-    //           type="datetime-local"
-    //           value={record[dataIndex]}
-    //           onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
-    //         />
-    //       </Form.Item>
-    //     ) : (
-    //       <span>{formatTimeSpan(record.endtime)}</span>
-    //     );
-    //   },
-    // },
-    // {
-    //   title: t('Thời gian'),
-    //   render: (_, record: TaskByEvent) => {
-    //     const formattedStartTime = moment(record.starttime).format('HH:mm:ss');
-    //     const formattedEndTime = moment(record.endtime).format('HH:mm:ss');
-    //     return <span>{`${formattedStartTime} - ${formattedEndTime}`}</span>;
-    //   },
-    // },
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
+      width: '8%',
       render: (text: string, record: TaskByEvent) => {
         const editable = isEditing(record);
-
         return (
           <Space>
             {editable ? (
@@ -442,6 +380,20 @@ export const TaskEventTable: React.FC = () => {
   const InputContainer = styled.div`
     flex: 1;
   `;
+
+  const handleStartTimeChange = (time: moment.Moment | null, timeString: string, form: any) => {
+    form.setFieldsValue({ endTime: moment(time).add(4, 'hours') });
+  };
+
+  const handleEndTimeChange = (time: moment.Moment | null, timeString: string, form: any) => {
+    const startTime = form.getFieldValue('startTime');
+    if (startTime) {
+      const diff = moment(time).diff(startTime, 'hours');
+      if (diff !== 4) {
+        form.setFieldsValue({ startTime: moment(time).subtract(4, 'hours') });
+      }
+    }
+  };
 
   return (
     <Form form={form} component={false} initialValues={{ eventId }}>
@@ -491,9 +443,101 @@ export const TaskEventTable: React.FC = () => {
                 <InputContainer>
                   <BaseForm.Item
                     name="startTime"
-                    rules={[{ required: true, message: t('Thời gian bắt đầu là bắt buộc') }]}
+                    rules={[{ required: true, message: t('Hãy nhập thời gian bắt đầu') }]}
                   >
-                    <Input type="time" required />
+                    <TimePicker
+                      format="HH:mm"
+                      allowClear={true}
+                      onChange={(time, timeString) => handleStartTimeChange(time, timeString, form)}
+                      showNow={false}
+                      disabledHours={() => [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        9,
+                        10,
+                        11,
+                        12,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                      ]}
+                      disabledMinutes={() => [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47,
+                        48,
+                        49,
+                        50,
+                        51,
+                        52,
+                        53,
+                        54,
+                        55,
+                        56,
+                        57,
+                        58,
+                        59,
+                      ]}
+                      placeholder="Chọn thời gian bắt đầu"
+                      style={{ width: '250px' }}
+                    />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -501,36 +545,24 @@ export const TaskEventTable: React.FC = () => {
               <FlexContainer>
                 <Label>{'Thời gian kết thúc'}</Label>
                 <InputContainer>
-                  <BaseForm.Item
-                    name="endTime"
-                    rules={[{ required: true, message: t('Thời gian kết thúc là bắt buộc') }]}
-                  >
-                    <Input type="time" required />
+                  <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Hãy nhập thời gian kết thúc') }]}>
+                    <TimePicker
+                      format="HH:mm"
+                      allowClear={false}
+                      disabled
+                      showNow={false}
+                      onChange={(time, timeString) => handleEndTimeChange(time, timeString, form)}
+                      placeholder="Chọn thời gian kết thúc"
+                      style={{ width: '250px' }}
+                    />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
 
-              {/* <FlexContainer>
-                <Label>{'Mức độ'}</Label>
-                <InputContainer>
-                  <BaseForm.Item name="priority" rules={[{ required: true, message: t('Số lượng là cần thiết') }]}>
-                    <Select
-                      style={{ width: '128px' }}
-                      placeholder={'Chọn mức độ'}
-                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                    >
-                      <Option value="1">{1}</Option>
-                      <Option value="2">{2}</Option>
-                      <Option value="3">{3}</Option>
-                    </Select>
-                  </BaseForm.Item>
-                </InputContainer>
-              </FlexContainer> */}
-
               <FlexContainer>
                 <Label>{'Điểm thưởng'}</Label>
                 <InputContainer>
-                  <BaseForm.Item name="point" rules={[{ required: true, message: t('Điểm thưởng là cần thiết') }]}>
+                  <BaseForm.Item name="point" rules={[{ required: true, message: t('Hãy nhập điểm thưởng') }]}>
                     <Input style={{ width: '100px' }} type="number" />
                   </BaseForm.Item>
                 </InputContainer>
@@ -549,7 +581,7 @@ export const TaskEventTable: React.FC = () => {
             <Col span={19} offset={12}>
               <FlexContainer
                 style={{
-                  marginTop: '-405px',
+                  marginTop: '-355px',
                   marginLeft: '100px',
                   maxHeight: '300px',
                   overflowY: 'auto',
@@ -557,7 +589,7 @@ export const TaskEventTable: React.FC = () => {
               >
                 <div>
                   <Label>{'Tên nhiệm vụ'}</Label>
-                  <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Tên nhiệm vụ là cần thiết') }]}>
+                  <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Hãy chọn nhiệm vụ') }]}>
                     <Select
                       mode="multiple"
                       style={{ width: '300px' }}
@@ -566,10 +598,12 @@ export const TaskEventTable: React.FC = () => {
                       filterOption={(inputValue, option) =>
                         option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
                       }
-                      options={tasks.map((task) => ({
-                        label: task.name,
-                        value: task.id,
-                      }))}
+                      options={tasks
+                        .filter((taskItem) => taskItem.status !== 'INACTIVE')
+                        .map((task) => ({
+                          label: task.name,
+                          value: task.id,
+                        }))}
                     />
                   </BaseForm.Item>
                 </div>
@@ -612,7 +646,7 @@ export const TaskEventTable: React.FC = () => {
         }}
         onChange={handleTableChange}
         loading={data.loading}
-        scroll={{ x: 1500 }}
+        scroll={{ x: 800 }}
         bordered
       />
     </Form>

@@ -1,38 +1,24 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import {
-  Pagination,
-  School,
-  SchoolEvent,
-  createSchool,
-  getPaginatedSchools,
-  updateSchool,
-} from '@app/api/FPT_3DMAP_API/School';
+import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { EventSchool, addEventSchool, createEventSchool, getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
+import { Pagination, School, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Col, DatePicker, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, Spin, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
+import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import {
-  EventSchool,
-  SchoolByEvent,
-  addEventSchool,
-  createEventSchool,
-  getSchoolbyEventId,
-} from '@app/api/FPT_3DMAP_API/EventSchool';
-import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
-import moment from 'moment';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -50,7 +36,7 @@ export const SchoolEventTable: React.FC = () => {
     loading: false,
   });
 
-  const isEditing = (record: SchoolByEvent) => record.id === editingKey;
+  const isEditing = (record: EventSchool) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -87,9 +73,9 @@ export const SchoolEventTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
-        message.success('Thêm trường thành công');
+        message.success('Cập nhật trường thành công');
       } catch (error) {
-        message.error('Thêm trường thất bại');
+        message.error('Cập nhật trường thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
@@ -152,7 +138,7 @@ export const SchoolEventTable: React.FC = () => {
 
   useEffect(() => {
     if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 10 };
+      const pagination: Pagination = { current: 1, pageSize: 1000 };
 
       getPaginatedEvents(pagination)
         .then((response) => {
@@ -195,10 +181,10 @@ export const SchoolEventTable: React.FC = () => {
 
       try {
         await createEventSchool(newData);
-        fetch(data.pagination);
-        message.success('Thêm trường thành công');
         form.resetFields();
         setIsBasicModalOpen(false);
+        fetch(data.pagination);
+        message.success('Thêm trường thành công');
       } catch (error) {
         message.error('Thêm trường thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
@@ -220,10 +206,10 @@ export const SchoolEventTable: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<SchoolByEvent> = [
+  const columns: ColumnsType<EventSchool> = [
     {
       title: t('Tên trường'),
-      dataIndex: 'name',
+      dataIndex: 'schoolName',
     },
     {
       title: t('Điện thoại'),
@@ -238,43 +224,67 @@ export const SchoolEventTable: React.FC = () => {
       dataIndex: 'email',
     },
     {
-      title: t('Địa chỉ nhà trường'),
-      dataIndex: 'address',
-    },
-    // {
-    //   title: t('Thời gian bắt đầu'),
-    //   dataIndex: 'startTime',
-    //   render: (text: string) => moment(text).format('DD/MM/YYYY - HH:mm:ss'),
-    // },
-    // {
-    //   title: t('Thời gian kết thúc'),
-    //   dataIndex: 'endTime',
-    //   render: (text: string) => moment(text).format('DD/MM/YYYY - HH:mm:ss'),
-    // },
-    {
       title: t('Thời gian'),
       dataIndex: 'timeRange',
-      render: (_, record: SchoolByEvent) => {
+      render: (_, record: EventSchool) => {
         const formattedStartTime = moment(record.startTime).format('DD/MM/YYYY - HH:mm:ss');
         const formattedEndTime = moment(record.endTime).format('DD/MM/YYYY - HH:mm:ss');
 
         const editable = isEditing(record);
-        const startTimeIndex: keyof SchoolByEvent = 'startTime';
-        const endTimeIndex: keyof SchoolByEvent = 'endTime';
+        const startTimeIndex: keyof EventSchool = 'startTime';
+        const endTimeIndex: keyof EventSchool = 'endTime';
 
         return editable ? (
-          <div>
-            Start time:
-            <Form.Item key={startTimeIndex} name={startTimeIndex} initialValue={moment(record.startTime)}>
-              <DatePicker showTime format="DD/MM/YYYY - HH:mm:ss" style={{ maxWidth: '200px', marginRight: '8px' }} />
+          <>
+            Thời gian bắt đầu
+            <Form.Item name={startTimeIndex} initialValue={moment(record.startTime)}>
+              <Input type="datetime-local" style={{ maxWidth: '200px' }} disabled />
             </Form.Item>
-            End time:
-            <Form.Item key={endTimeIndex} name={endTimeIndex} initialValue={moment(record.endTime)}>
-              <DatePicker showTime format="DD/MM/YYYY - HH:mm:ss" style={{ maxWidth: '200px' }} />
+            Thời gian kết thúc
+            <Form.Item
+              name={endTimeIndex}
+              initialValue={moment(record.startTime)}
+              rules={[
+                {
+                  validator: async (_, value) => {
+                    const startTime = moment(record.startTime);
+                    const endTime = moment(value);
+
+                    if (startTime.hour() === 8 && endTime.hour() > 12) {
+                      throw new Error('Thời gian kết thúc không được sau 12:00 PM');
+                    }
+
+                    if (startTime.hour() === 13 && endTime.hour() > 17) {
+                      throw new Error('Thời gian kết thúc không được sau 5:00 PM');
+                    }
+
+                    if (endTime.isBefore(startTime.add(2, 'hours'))) {
+                      throw new Error('Thời gian kết thúc phải sau ít nhất 2 giờ so với thời gian bắt đầu');
+                    }
+                  },
+                },
+              ]}
+            >
+              <Input type="datetime-local" style={{ maxWidth: '200px' }} />
             </Form.Item>
-          </div>
+          </>
         ) : (
-          <span>{`${formattedStartTime} - ${formattedEndTime}`}</span>
+          <span>
+            {formattedStartTime} - {formattedEndTime}
+          </span>
+        );
+      },
+    },
+    {
+      title: t('Xác nhận'),
+      dataIndex: 'approvalStatus',
+      render: (text: string, record: EventSchool) => {
+        const dataIndex: keyof EventSchool = 'status';
+
+        return dataIndex ? (
+          <span>{text !== 'REFUSE' ? <Tag color="#77DD77">ACCEPT</Tag> : <Tag color="#FF5252">REFUSE</Tag>}</span>
+        ) : (
+          'Đang đợi trạng thái'
         );
       },
     },
@@ -286,8 +296,8 @@ export const SchoolEventTable: React.FC = () => {
         { text: 'INACTIVE', value: 'INACTIVE' },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (text: string, record: SchoolByEvent) => {
-        const dataIndex: keyof Event = 'status';
+      render: (text: string, record: EventSchool) => {
+        const dataIndex: keyof EventSchool = 'status';
 
         return dataIndex ? (
           <span>{text !== 'INACTIVE' ? <Tag color="#339CFD">ACTIVE</Tag> : <Tag color="#FF5252">INACTIVE</Tag>}</span>
@@ -299,7 +309,7 @@ export const SchoolEventTable: React.FC = () => {
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      render: (text: string, record: SchoolByEvent) => {
+      render: (text: string, record: EventSchool) => {
         const editable = isEditing(record);
         return (
           <Space>
@@ -357,8 +367,67 @@ export const SchoolEventTable: React.FC = () => {
     flex: 1;
   `;
 
+  const [filteredData, setFilteredData] = useState(data.data);
+  const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
+  const [existingValues, setExistingValues] = useState<EventSchool[]>([]);
+  const [availableSchools, setAvailableSchools] = useState<School[]>([]);
+
+  const handleSearch = (value: string) => {
+    const updatedFilteredData = data.data.filter((record) =>
+      Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
+    );
+    setFilteredData(updatedFilteredData);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.trim();
+
+    if (inputValue === '') {
+      setFilteredData(data.data);
+    } else {
+      handleSearch(inputValue);
+    }
+  };
+
+  const onFinish = (values: { startTime: string; endTime: string }) => {
+    console.log('Form values:', values);
+  };
+
+  const handleStartTimeChange = (startTime: string) => {
+    setLoading(true);
+    const formattedStartTime = moment(startTime, 'YYYY-MM-DDTHH:mm').startOf('hour');
+    const endTime = formattedStartTime.clone().add(4, 'hours').format('YYYY-MM-DDTHH:mm');
+    form.setFieldsValue({ endTime });
+    setLoading(false);
+  };
+
+  const handleSchoolChange = (values: string[]) => {
+    setSelectedSchools(values);
+  };
+
+  const handleSchoolBlur = () => {
+    const selectedStart = form.getFieldValue('startTime');
+
+    const isDuplicate = existingValues.some(
+      (item) =>
+        item.startTime === selectedStart &&
+        selectedSchools.some((selectedSchool) => item.schoolName === selectedSchool),
+    );
+
+    if (isDuplicate) {
+      form.setFields([
+        {
+          name: 'schoolId',
+          errors: ['One or more selected schools have already been chosen for the same start time.'],
+        },
+      ]);
+    }
+  };
+
+  const [loading, setLoading] = useState(false);
+
   return (
-    <Form form={form} component={false} initialValues={{ eventId }}>
+    <Form form={form} component={false} initialValues={{ eventId }} onFinish={onFinish}>
       <Button
         type="primary"
         onClick={() => setIsBasicModalOpen(true)}
@@ -416,11 +485,25 @@ export const SchoolEventTable: React.FC = () => {
                               return Promise.resolve();
                             }
 
-                            const selectedDate = moment(value);
+                            // Convert to a consistent format
+                            const formattedValue = moment(value, 'YYYY-MM-DDTHH:mm').format('HH:mm');
+
+                            const is8AM = formattedValue === '08:00';
+                            const is1PM = formattedValue === '13:00';
+
+                            if (!is8AM && !is1PM) {
+                              return Promise.reject(new Error('Chỉ được chọn thời gian 8 AM hoặc 1 PM'));
+                            }
+
+                            const selectedDate = moment(value, 'YYYY-MM-DDTHH:mm');
                             const tomorrow = moment().startOf('day').add(1, 'day');
 
                             if (selectedDate.isBefore(tomorrow)) {
-                              return Promise.reject(new Error('Thời gian bắt đầu phải bắt đầu từ ngày mai'));
+                              return Promise.reject(
+                                new Error(
+                                  'Thời gian bắt đầu phải bắt đầu từ ngày mai và chỉ được chọn thời gian 8 AM hoặc 1 PM',
+                                ),
+                              );
                             }
 
                             return Promise.resolve();
@@ -428,11 +511,12 @@ export const SchoolEventTable: React.FC = () => {
                         }),
                       ]}
                     >
-                      <Input type="datetime-local" required />
+                      <Input type="datetime-local" required onChange={(e) => handleStartTimeChange(e.target.value)} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
               </FlexContainer>
+              {loading && <Spin />}
 
               <FlexContainer>
                 <div>
@@ -445,32 +529,9 @@ export const SchoolEventTable: React.FC = () => {
                           required: true,
                           message: t('Hãy chọn thời gian kết thúc'),
                         },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (!value) {
-                              return Promise.resolve();
-                            }
-
-                            const startTime = getFieldValue('startTime');
-                            if (!startTime) {
-                              return Promise.resolve();
-                            }
-
-                            const startMoment = moment(startTime);
-                            const endMoment = moment(value);
-
-                            if (endMoment.isBefore(startMoment.add(2, 'hours'))) {
-                              return Promise.reject(
-                                new Error('Thời gian kết thúc phải ít nhất 2 giờ sau thời gian bắt đầu'),
-                              );
-                            }
-
-                            return Promise.resolve();
-                          },
-                        }),
                       ]}
                     >
-                      <Input type="datetime-local" required />
+                      <Input type="datetime-local" required disabled />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -517,19 +578,39 @@ export const SchoolEventTable: React.FC = () => {
                 <div>
                   <Label>{'Tên trường'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Xin hãy chọn trường') }]}>
+                    <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Hãy chọn trường') }]}>
                       <Select
                         mode="multiple"
                         placeholder={'Tìm kiếm và Chọn trường'}
+                        onBlur={handleSchoolBlur}
+                        onChange={handleSchoolChange}
                         suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                         style={{ width: '300px' }}
                         filterOption={(inputValue, option) =>
                           option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
                         }
-                        options={school.map((school) => ({
-                          label: school.name,
-                          value: school.id,
-                        }))}
+                        options={school
+                          .filter((schoolItem) => schoolItem.status !== 'INACTIVE')
+                          .filter((schoolItem) => {
+                            return !data.data.some((event) => {
+                              const eventStartTime = moment(event.startTime);
+                              const eventEndTime = moment(event.endTime);
+                              const formattedStartTime = moment(form.getFieldValue('startTime'));
+                              const formattedEndTime = moment(form.getFieldValue('endTime'));
+
+                              return (
+                                event.schoolId === schoolItem.id &&
+                                (formattedStartTime.isBetween(eventStartTime, eventEndTime) ||
+                                  formattedEndTime.isBetween(eventStartTime, eventEndTime) ||
+                                  eventStartTime.isBetween(formattedStartTime, formattedEndTime) ||
+                                  eventEndTime.isBetween(formattedStartTime, formattedEndTime))
+                              );
+                            });
+                          })
+                          .map((schoolItem) => ({
+                            label: schoolItem.name,
+                            value: schoolItem.id,
+                          }))}
                       />
                     </BaseForm.Item>
                   </InputContainer>
@@ -543,17 +624,8 @@ export const SchoolEventTable: React.FC = () => {
       <SearchInput
         placeholder="Tìm kiếm..."
         allowClear
-        onSearch={(value) => {
-          const filteredData = data.data.filter((record) =>
-            Object.values(record).some((fieldValue) => String(fieldValue).toLowerCase().includes(value.toLowerCase())),
-          );
-          setData((prevData) => ({ ...prevData, data: filteredData }));
-        }}
-        onChange={(e) => {
-          if (e.target.value.trim() === '') {
-            setData((prevData) => ({ ...prevData, data: originalData }));
-          }
-        }}
+        onSearch={handleSearch}
+        onChange={handleSearchChange}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
 
