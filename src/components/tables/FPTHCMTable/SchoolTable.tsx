@@ -204,7 +204,13 @@ export const SchoolTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập tên trường' }]}
+            rules={[
+              { required: true, message: 'Hãy nhập tên trường' },
+              {
+                pattern: /^[^\W_].*$/,
+                message: 'Không được bắt đầu ký tự đặc biệt',
+              },
+            ]}
           >
             <Input
               maxLength={100}

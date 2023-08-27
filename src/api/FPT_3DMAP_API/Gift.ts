@@ -5,7 +5,7 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Prizes`;
 
 export type Gift = {
   name: string;
-  decription: string;
+  description: string;
   quantity: number;
   eventId: string;
   eventName: string;
@@ -16,7 +16,7 @@ export type Gift = {
 export type addGift = {
   eventId: string;
   name: string;
-  decription: string;
+  description: string;
   status: string;
   quantity: number;
   id: string;
@@ -25,7 +25,7 @@ export type addGift = {
 export type updateGiftData = {
   eventId: string;
   name: string;
-  decription: string;
+  description: string;
   status: string;
   quantity: number;
   id: string;
@@ -91,9 +91,9 @@ export const getGiftById = async (giftId: string): Promise<Gift> => {
   }
 };
 
-export const createGift = async (giftData: addGift): Promise<Gift> => {
+export const createGift = async (giftData: addGift) => {
   try {
-    const response = await httpApi.post<Gift>(`${API_BASE_URL}/Gift`, giftData);
+    const response = await httpApi.post<addGift>(`${API_BASE_URL}/Gift`, giftData);
     return response.data;
   } catch (error) {
     console.error('Error creating gift:', error);

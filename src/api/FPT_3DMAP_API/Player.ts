@@ -9,6 +9,7 @@ export type Player = {
   studentId: string;
   eventId: string;
   studentName: string;
+  schoolName: string;
   studentEmail: string;
   eventName: string;
   nickname: string;

@@ -341,6 +341,7 @@ export const EventTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
+    showUploadList: false,
     beforeUpload: async (file: File): Promise<void> => {
       const formData = new FormData();
       formData.append('file', file);

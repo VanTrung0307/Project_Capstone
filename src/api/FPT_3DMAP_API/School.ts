@@ -48,7 +48,7 @@ export const getPaginatedSchools = async (pagination: Pagination): Promise<Pagin
   try {
     const response = await httpApi.get<SchoolList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -66,6 +66,17 @@ export const getPaginatedSchools = async (pagination: Pagination): Promise<Pagin
     };
   } catch (error) {
     console.error('Error fetching paginated schools:', error);
+    throw error;
+  }
+};
+
+export const getAllSchools = async (): Promise<School[]> => {
+  try {
+    const response = await httpApi.get<SchoolList>(API_BASE_URL);
+    const { data } = response.data;
+    return data;
+  } catch (error) {
+    console.error('Error fetching schools:', error);
     throw error;
   }
 };

@@ -393,7 +393,9 @@ export const TaskTable: React.FC = () => {
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'type';
-        return editable ? (
+        const isExchangeItem = record.type === TaskType.EXCHANGEITEM;
+
+        return editable && !isExchangeItem ? (
           <Form.Item
             key={record.type}
             name={dataIndex}
@@ -424,8 +426,13 @@ export const TaskTable: React.FC = () => {
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof updateTaskData = 'itemName';
-        return editable ? (
-          <Form.Item key={record.itemName} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+
+        const isExchangeItem = record.type === TaskType.EXCHANGEITEM;
+
+        const requiredRule = isExchangeItem ? { required: true, message: 'Hãy chọn vật phẩm' } : { required: false };
+
+        return editable && isExchangeItem ? (
+          <Form.Item key={record.itemName} name={dataIndex} initialValue={text} rules={[requiredRule]}>
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.itemName, dataIndex)}
@@ -434,7 +441,7 @@ export const TaskTable: React.FC = () => {
             >
               {items.map((item) => (
                 <Select.Option key={item.id} value={item.name}>
-                  {item.name}
+                  {item.name === null ? 'Không có' : item.name}
                 </Select.Option>
               ))}
             </Select>

@@ -90,9 +90,13 @@ export const getItemById = async (itemId: string): Promise<Item> => {
   }
 };
 
-export const createItem = async (itemData: addItem): Promise<Item> => {
+export const createItem = async (itemData: FormData) => {
   try {
-    const response = await httpApi.post<Item>(`${API_BASE_URL}/item`, itemData);
+    const response = await httpApi.post(`${API_BASE_URL}/item`, itemData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating item:', error);
@@ -100,13 +104,16 @@ export const createItem = async (itemData: addItem): Promise<Item> => {
   }
 };
 
-export const updateItem = async (id: string, itemData: updateItemData): Promise<Item> => {
+export const updateItem = async (id: string, itemData: FormData) => {
   try {
-    const response = await httpApi.put<Item>(`${API_BASE_URL}/${id}`, itemData);
+    const response = await httpApi.put(`${API_BASE_URL}/${id}`, itemData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   } catch (error) {
     console.error('Error updating item:', error);
     throw error;
   }
 };
-

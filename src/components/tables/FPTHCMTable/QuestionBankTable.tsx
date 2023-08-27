@@ -31,7 +31,7 @@ import { httpApi } from '@app/api/http.api';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 10,
+  pageSize: 5,
 };
 
 export const QuestionBankTable: React.FC = () => {
@@ -194,18 +194,12 @@ export const QuestionBankTable: React.FC = () => {
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdQuestion = await createQuestion(newData);
+        await createQuestion(newData);
 
         const selectedMajor = majors.find((major) => major.id === newData.majorId);
         if (selectedMajor) {
           newData.majorId = selectedMajor.id;
         }
-
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdQuestion],
-          loading: false,
-        }));
 
         form.resetFields();
         setIsBasicModalOpen(false);
@@ -451,13 +445,14 @@ export const QuestionBankTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
+    showUploadList: false,
     beforeUpload: async (file: File): Promise<void> => {
       const formData = new FormData();
       formData.append('file', file);
 
       try {
         const response = await httpApi.post(
-          `http://anhkiet-001-site1.htempurl.com/api/Questions/upload-excel-question`,
+          `https://anhkiet-001-site1.htempurl.com/api/Questions/upload-excel-question`,
           formData,
           {
             headers: {
@@ -469,6 +464,7 @@ export const QuestionBankTable: React.FC = () => {
         if (response.status === 200) {
           fetch(data.pagination);
           message.success('Tải lên thành công', response.data);
+          setTimeout(() => message.destroy(), 1000);
         } else {
           message.error('Tải lên thất bại', response.status);
         }
@@ -688,20 +684,20 @@ export const QuestionBankTable: React.FC = () => {
         </S.FormContent>
       </Modal>
 
-      {/* <Button
+      <Button
         type="dashed"
         onClick={handleDownloadTemplate}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 285px' }}
         icon={<DownloadOutlined />}
       >
-        Mẫu đơn ngân hàng câu hỏi
+        Mẫu đơn Excel
       </Button>
 
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '75px 130px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 125px' }}>
           Nhập Excel
         </Button>
-      </Upload> */}
+      </Upload>
 
       <SearchInput
         placeholder="Tìm kiếm..."

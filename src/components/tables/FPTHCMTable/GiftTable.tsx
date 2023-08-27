@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
-import { Gift, Pagination, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
+import { Gift, Pagination, addGift, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -59,7 +59,7 @@ export const GiftTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Gift:', updatedItem);
+        // message.warn('Updated null Gift:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -73,16 +73,16 @@ export const GiftTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateGift(key.toString(), row);
-        message.success('Gift data updated successfully');
+        message.success('Cập nhật phần thưởng thành công');
       } catch (error) {
-        message.error('Error updating Gift data');
+        message.error('Cập nhật phần thưởng thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -119,7 +119,7 @@ export const GiftTable: React.FC = () => {
           }
         })
         .catch((error) => {
-          message.error('Error fetching paginated gifts:', error);
+          message.error('Không thấy dữ liệu', error);
           setData((tableData) => ({ ...tableData, loading: false }));
         });
 
@@ -127,7 +127,7 @@ export const GiftTable: React.FC = () => {
         const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
-        message.error('Error fetching events');
+        // message.error('Error fetching events');
       }
     },
     [isMounted],
@@ -148,11 +148,10 @@ export const GiftTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: Gift = {
+      const newData: addGift = {
         name: values.name,
-        decription: values.decription,
+        description: values.description,
         eventId: values.eventId,
-        eventName: values.eventName,
         quantity: values.quantity,
         status: values.status,
         id: values.id,
@@ -171,22 +170,16 @@ export const GiftTable: React.FC = () => {
 
         newData.id = createdGift.id;
 
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdGift],
-          loading: false,
-        }));
-
         form.resetFields();
         setIsBasicModalOpen(false);
-        message.success('Gift data created successfully');
         fetch(data.pagination);
+        message.success('Tạo phần thưởng thành công');
       } catch (error) {
-        message.error('Error creating Gift data');
+        message.error('Tạo phần thưởng thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
       }
     } catch (error) {
-      message.error('Error validating form');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -208,7 +201,7 @@ export const GiftTable: React.FC = () => {
             key={record.name}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Tên quà tặng là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy nhập tên phần thưởng' }]}
           >
             <Input
               maxLength={100}
@@ -233,7 +226,7 @@ export const GiftTable: React.FC = () => {
           <Form.Item
             key={record.eventId}
             name={dataIndex}
-            rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn tên sự kiện' }]}
           >
             <Select
               style={{ maxWidth: '212.03px' }}
@@ -260,7 +253,12 @@ export const GiftTable: React.FC = () => {
         const editable = isEditing(record);
         const dataIndex: keyof Gift = 'quantity';
         return editable ? (
-          <Form.Item key={record.quantity} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item
+            key={record.quantity}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hãy nhập số lượng phần thưởng' }]}
+          >
             <Input
               style={{ maxWidth: '150px' }}
               type="number"
@@ -276,18 +274,23 @@ export const GiftTable: React.FC = () => {
     },
     {
       title: t('Mô tả'),
-      dataIndex: 'decription',
+      dataIndex: 'description',
       render: (text: string, record: Gift) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Gift = 'decription';
+        const dataIndex: keyof Gift = 'description';
         const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
         return editable ? (
-          <Form.Item key={record.decription} name={dataIndex} initialValue={text} rules={[{ required: false }]}>
+          <Form.Item
+            key={record.description}
+            name={dataIndex}
+            initialValue={text}
+            rules={[{ required: true, message: 'Hãy nhập mô tả' }]}
+          >
             <TextArea
               autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.decription, dataIndex)}
+              onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
             />
           </Form.Item>
         ) : (
@@ -314,7 +317,7 @@ export const GiftTable: React.FC = () => {
             key={record.status}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: true, message: 'Trạng thái phần qùa là cần thiết' }]}
+            rules={[{ required: true, message: 'Hãy chọn trạng thái' }]}
           >
             <Select
               style={{ maxWidth: '212.03px' }}
@@ -344,10 +347,10 @@ export const GiftTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -357,7 +360,7 @@ export const GiftTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửu
                 </Button>
               </>
             )}
@@ -410,7 +413,16 @@ export const GiftTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Tên phần quà'}</Label>
             <InputContainer>
-              <BaseForm.Item name="name" rules={[{ required: true, message: t('Tên phần quà là cần thiết') }]}>
+              <BaseForm.Item
+                name="name"
+                rules={[
+                  { required: true, message: t('Hãy nhập tên phần quà') },
+                  {
+                    pattern: /^[^\d\W].*$/,
+                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                  },
+                ]}
+              >
                 <Input maxLength={100} />
               </BaseForm.Item>
             </InputContainer>
@@ -418,7 +430,16 @@ export const GiftTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Mô tả'}</Label>
             <InputContainer>
-              <BaseForm.Item name="decription">
+              <BaseForm.Item
+                name="description"
+                rules={[
+                  { required: true, message: t('Hãy nhập mô tả') },
+                  {
+                    pattern: /^[^\d\W].*$/,
+                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                  },
+                ]}
+              >
                 <TextArea autoSize={{ maxRows: 6 }} />
               </BaseForm.Item>
             </InputContainer>
@@ -426,25 +447,27 @@ export const GiftTable: React.FC = () => {
           <FlexContainer>
             <Label>{'Số lượng'}</Label>
             <InputContainer>
-              <BaseForm.Item name="quantity">
-                <Input type="number" min={0} />
+              <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
+                <Input type="number" min={1} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
           <FlexContainer>
             <Label>{'Tên sự kiện'}</Label>
             <InputContainer>
-              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Tên sự kiện là cần thiết') }]}>
+              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Hãy chọn tên sự kiện') }]}>
                 <Select
                   style={{ maxWidth: '256px' }}
                   placeholder={'---- Chọn sự kiện ----'}
                   suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                 >
-                  {events.map((event) => (
-                    <Option key={event.id} value={event.id}>
-                      {event.name}
-                    </Option>
-                  ))}
+                  {events
+                    .filter((event) => event.status === 'ACTIVE')
+                    .map((event) => (
+                      <Option key={event.id} value={event.id}>
+                        {event.name}
+                      </Option>
+                    ))}
                 </Select>
               </BaseForm.Item>
             </InputContainer>

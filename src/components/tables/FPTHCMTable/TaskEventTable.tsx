@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
@@ -21,12 +22,13 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { TaskTableModal } from './TaskTableModal';
 import { Option } from '@app/components/common/selects/Select/Select';
 import moment from 'moment';
+import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -189,7 +191,6 @@ export const TaskEventTable: React.FC = () => {
         eventId: values.eventId,
         startTime: values.startTime,
         endTime: values.endTime,
-        // priority: values.priority,
         point: values.point,
         status: values.status,
       };
@@ -364,7 +365,7 @@ export const TaskEventTable: React.FC = () => {
   ];
 
   const FlexContainer = styled.div`
-    display: flex;
+    display: relative;
     align-items: center;
     margin-bottom: 16px;
   `;
@@ -381,17 +382,51 @@ export const TaskEventTable: React.FC = () => {
     flex: 1;
   `;
 
-  const handleStartTimeChange = (time: moment.Moment | null, timeString: string, form: any) => {
-    form.setFieldsValue({ endTime: moment(time).add(4, 'hours') });
+  const handleStartTimeChange = (timeValue: string, form: any) => {
+    const [hour, minute] = timeValue.split(':');
+
+    if ((hour === '08' && minute === '00') || (hour === '13' && minute === '00')) {
+      let newEndTime;
+      if (hour === '08') {
+        newEndTime = moment().set({ hour: 12, minute: 0 });
+      } else {
+        newEndTime = moment().set({ hour: 17, minute: 0 });
+      }
+
+      form.setFieldsValue({ startTime: timeValue, endTime: newEndTime.format('HH:mm') });
+    } else {
+      message.error('Thời gian bắt đầu phải là 8 AM hoặc 1 PM');
+      form.setFieldsValue({ startTime: '', endTime: '' });
+    }
   };
 
-  const handleEndTimeChange = (time: moment.Moment | null, timeString: string, form: any) => {
-    const startTime = form.getFieldValue('startTime');
-    if (startTime) {
-      const diff = moment(time).diff(startTime, 'hours');
-      if (diff !== 4) {
-        form.setFieldsValue({ startTime: moment(time).subtract(4, 'hours') });
+  const handleEndTimeChange = (timeValue: string, form: any) => {
+    const [hour, minute] = timeValue.split(':');
+
+    if ((hour === '12' && minute === '00') || (hour === '17' && minute === '00')) {
+      let newStartTime;
+      if (hour === '12') {
+        newStartTime = moment().set({ hour: 8, minute: 0 });
+      } else {
+        newStartTime = moment().set({ hour: 13, minute: 0 });
       }
+
+      form.setFieldsValue({ endTime: timeValue, startTime: newStartTime.format('HH:mm') });
+    } else {
+      message.error('Thời gian kết thúc phải là 12 PM hoặc 5 PM');
+      form.setFieldsValue({ endTime: '', startTime: '' });
+    }
+  };
+
+  const navigate = useNavigate();
+
+  const handleSchoolClick = async (eventId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 100 };
+      await getSchoolbyEventId(eventId, pagination);
+      navigate(`/schools/${eventId}`);
+    } catch (error) {
+      message.error('Không tìm thấy trường');
     }
   };
 
@@ -445,99 +480,7 @@ export const TaskEventTable: React.FC = () => {
                     name="startTime"
                     rules={[{ required: true, message: t('Hãy nhập thời gian bắt đầu') }]}
                   >
-                    <TimePicker
-                      format="HH:mm"
-                      allowClear={true}
-                      onChange={(time, timeString) => handleStartTimeChange(time, timeString, form)}
-                      showNow={false}
-                      disabledHours={() => [
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        9,
-                        10,
-                        11,
-                        12,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18,
-                        19,
-                        20,
-                        21,
-                        22,
-                        23,
-                      ]}
-                      disabledMinutes={() => [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18,
-                        19,
-                        20,
-                        21,
-                        22,
-                        23,
-                        24,
-                        25,
-                        26,
-                        27,
-                        28,
-                        29,
-                        30,
-                        31,
-                        32,
-                        33,
-                        34,
-                        35,
-                        36,
-                        37,
-                        38,
-                        39,
-                        40,
-                        41,
-                        42,
-                        43,
-                        44,
-                        45,
-                        46,
-                        47,
-                        48,
-                        49,
-                        50,
-                        51,
-                        52,
-                        53,
-                        54,
-                        55,
-                        56,
-                        57,
-                        58,
-                        59,
-                      ]}
-                      placeholder="Chọn thời gian bắt đầu"
-                      style={{ width: '250px' }}
-                    />
+                    <Input type="time" required onChange={(e) => handleStartTimeChange(e.target.value, form)} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -546,15 +489,7 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Thời gian kết thúc'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Hãy nhập thời gian kết thúc') }]}>
-                    <TimePicker
-                      format="HH:mm"
-                      allowClear={false}
-                      disabled
-                      showNow={false}
-                      onChange={(time, timeString) => handleEndTimeChange(time, timeString, form)}
-                      placeholder="Chọn thời gian kết thúc"
-                      style={{ width: '250px' }}
-                    />
+                    <Input type="time" required onChange={(e) => handleEndTimeChange(e.target.value, form)} disabled />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -563,7 +498,7 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Điểm thưởng'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="point" rules={[{ required: true, message: t('Hãy nhập điểm thưởng') }]}>
-                    <Input style={{ width: '100px' }} type="number" />
+                    <Input style={{ width: '250px' }} type="number" />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -610,10 +545,17 @@ export const TaskEventTable: React.FC = () => {
               </FlexContainer>
             </Col>
           </Row>
-
           <TaskTableModal />
         </S.FormContent>
       </Modal>
+
+      <Button
+        type="ghost"
+        onClick={() => eventId && handleSchoolClick(eventId)}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}
+      >
+        Danh sách trường
+      </Button>
 
       <SearchInput
         placeholder="Search..."

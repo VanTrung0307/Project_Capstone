@@ -256,6 +256,8 @@ export const MajorTable: React.FC = () => {
               visible={descriptionModalVisible}
               onCancel={() => setDescriptionModalVisible(false)}
               footer={null}
+              mask={true}
+              maskStyle={{ opacity: 0.2 }}
             >
               <p>{selectedDescription}</p>
             </Modal>
@@ -373,6 +375,7 @@ export const MajorTable: React.FC = () => {
   const uploadProps = {
     name: 'file',
     multiple: true,
+    showUploadList: false,
     beforeUpload: async (file: File): Promise<void> => {
       const formData = new FormData();
       formData.append('file', file);

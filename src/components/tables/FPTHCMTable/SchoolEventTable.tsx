@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { EventSchool, addEventSchool, createEventSchool, getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
+import {
+  EventSchool,
+  addEventSchool,
+  createEventSchool,
+  getSchoolbyEventId,
+  updateEventSchool,
+  updateSchoolEvent,
+} from '@app/api/FPT_3DMAP_API/EventSchool';
 import { Pagination, School, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
 import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
@@ -19,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
+import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/EventTask';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -54,13 +62,6 @@ export const SchoolEventTable: React.FC = () => {
           ...item,
           ...row,
         };
-
-        Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === '') {
-            updatedItem[field] = null;
-          }
-        });
-
         newData.splice(index, 1, updatedItem);
       } else {
         newData.push(row);
@@ -72,17 +73,17 @@ export const SchoolEventTable: React.FC = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
-        await updateSchool(key.toString(), row);
-        message.success('Cập nhật trường thành công');
+        await updateSchoolEvent(key.toString(), row);
+        message.success('Cập nhật thành công');
       } catch (error) {
-        message.error('Cập nhật trường thất bại');
+        message.error('Cập nhật thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData }));
         }
       }
     } catch (errInfo) {
-      message.error('Hãy nhập đầy đủ');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -113,7 +114,7 @@ export const SchoolEventTable: React.FC = () => {
 
   const fetch = useCallback(
     async (pagination: Pagination) => {
-      setData((tableData) => ({ ...tableData, loading: true }));
+      setData((tableData) => ({ ...tableData, loading: false }));
       if (eventId) {
         try {
           const res = await getSchoolbyEventId(eventId, pagination);
@@ -196,13 +197,13 @@ export const SchoolEventTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleStudentClick = async (schoolId: string, eventId: string) => {
+  const handleStudentClick = async (schoolId: string) => {
     try {
-      const pagination = { current: 1, pageSize: 10 };
-      navigate(`/student/${schoolId}/${eventId}`);
-      await getStudenbySchoolandEventId(schoolId, eventId, pagination);
+      const pagination = { current: 1, pageSize: 1000 };
+      navigate(`/student/${schoolId}`);
+      await getStudenbySchoolandEventId(schoolId, pagination);
     } catch (error) {
-      message.error('Error fetching paginated schools');
+      // message.error('Error fetching paginated schools');
     }
   };
 
@@ -231,14 +232,19 @@ export const SchoolEventTable: React.FC = () => {
         const formattedEndTime = moment(record.endTime).format('DD/MM/YYYY - HH:mm:ss');
 
         const editable = isEditing(record);
-        const startTimeIndex: keyof EventSchool = 'startTime';
-        const endTimeIndex: keyof EventSchool = 'endTime';
+        const startTimeIndex: keyof updateEventSchool = 'startTime';
+        const endTimeIndex: keyof updateEventSchool = 'endTime';
 
         return editable ? (
           <>
             Thời gian bắt đầu
             <Form.Item name={startTimeIndex} initialValue={moment(record.startTime)}>
-              <Input type="datetime-local" style={{ maxWidth: '200px' }} disabled />
+              <Input
+                type="datetime-local"
+                style={{ maxWidth: '200px' }}
+                disabled
+                onChange={(e) => handleInputChange(e.target.value, record.id, startTimeIndex)}
+              />
             </Form.Item>
             Thời gian kết thúc
             <Form.Item
@@ -265,7 +271,11 @@ export const SchoolEventTable: React.FC = () => {
                 },
               ]}
             >
-              <Input type="datetime-local" style={{ maxWidth: '200px' }} />
+              <Input
+                type="datetime-local"
+                style={{ maxWidth: '200px' }}
+                onChange={(e) => handleInputChange(e.target.value, record.id, endTimeIndex)}
+              />
             </Form.Item>
           </>
         ) : (
@@ -315,7 +325,7 @@ export const SchoolEventTable: React.FC = () => {
           <Space>
             {editable ? (
               <>
-                <Button type="primary" onClick={() => save(record.id.toString())}>
+                <Button type="primary" onClick={() => save(record.id)}>
                   Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
@@ -335,7 +345,7 @@ export const SchoolEventTable: React.FC = () => {
                   type="ghost"
                   onClick={() => {
                     if (eventId) {
-                      handleStudentClick(record.id, eventId);
+                      handleStudentClick(record.id);
                     }
                   }}
                 >
@@ -370,7 +380,6 @@ export const SchoolEventTable: React.FC = () => {
   const [filteredData, setFilteredData] = useState(data.data);
   const [selectedSchools, setSelectedSchools] = useState<string[]>([]);
   const [existingValues, setExistingValues] = useState<EventSchool[]>([]);
-  const [availableSchools, setAvailableSchools] = useState<School[]>([]);
 
   const handleSearch = (value: string) => {
     const updatedFilteredData = data.data.filter((record) =>
@@ -425,6 +434,16 @@ export const SchoolEventTable: React.FC = () => {
   };
 
   const [loading, setLoading] = useState(false);
+
+  const handleTaskClick = async (eventId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 100 };
+      await getTaskbyEventId(eventId, pagination);
+      navigate(`/tasks/${eventId}`);
+    } catch (error) {
+      message.error('Không tìm thấy nhiệm vụ');
+    }
+  };
 
   return (
     <Form form={form} component={false} initialValues={{ eventId }} onFinish={onFinish}>
@@ -485,7 +504,6 @@ export const SchoolEventTable: React.FC = () => {
                               return Promise.resolve();
                             }
 
-                            // Convert to a consistent format
                             const formattedValue = moment(value, 'YYYY-MM-DDTHH:mm').format('HH:mm');
 
                             const is8AM = formattedValue === '08:00';
@@ -620,6 +638,14 @@ export const SchoolEventTable: React.FC = () => {
           </Row>
         </S.FormContent>
       </Modal>
+
+      <Button
+        type="ghost"
+        onClick={() => eventId && handleTaskClick(eventId)}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 170px' }}
+      >
+        Danh sách nhiệm vụ
+      </Button>
 
       <SearchInput
         placeholder="Tìm kiếm..."

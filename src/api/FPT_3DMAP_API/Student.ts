@@ -18,14 +18,16 @@ export type Student = {
 
 export type EventStudent = {
   id: string;
+  eventId: string;
+  eventName: string;
   schoolname: string;
-  passcode: string;
   fullname: string;
   email: string;
   phonenumber: number;
   graduateYear: number;
   classname: string;
   status: string;
+  passcode: string;
 };
 
 export type updateStudentData = {
@@ -92,7 +94,7 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
   try {
     const response = await httpApi.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -116,11 +118,10 @@ export const getStudenbySchoolById = async (schoolId: string, pagination: Pagina
 
 export const getStudenbySchoolandEventId = async (
   schoolId: string,
-  eventId: string,
   pagination: Pagination,
 ): Promise<EventStudentData> => {
   try {
-    const response = await httpApi.get<EventStudentList>(`${API_BASE_URL}/${schoolId}/${eventId}`);
+    const response = await httpApi.get<EventStudentList>(`${API_BASE_URL}/getstudentbyeventschoolId/${schoolId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
@@ -139,7 +140,7 @@ export const getStudenbySchoolandEventId = async (
       },
     };
   } catch (error) {
-    console.error('Error fetching paginated schools:', error);
+    // console.error('Error fetching paginated schools:', error);
     throw error;
   }
 };
@@ -203,7 +204,9 @@ export const exportStudentExcel = async (schoolId: string): Promise<void> => {
       responseType: 'blob',
     });
 
-    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
     const downloadLink = document.createElement('a');
     downloadLink.href = window.URL.createObjectURL(blob);
     downloadLink.download = 'student_export.xlsx';

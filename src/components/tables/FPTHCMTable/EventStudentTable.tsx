@@ -2,20 +2,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined, DownloadOutlined, UploadOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
-import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { createPlayer } from '@app/api/FPT_3DMAP_API/Player';
 import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
 import {
   EventStudent,
-  Student,
   exportStudentExcel,
   getExcelTemplateStudent,
-  getStudenbySchoolById,
   getStudenbySchoolandEventId,
 } from '@app/api/FPT_3DMAP_API/Student';
+import { httpApi } from '@app/api/http.api';
 import { Upload } from '@app/components/common/Upload/Upload';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Form, Input, Select, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -23,12 +22,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { httpApi } from '@app/api/http.api';
+import { EventSchool, getPaginatedEventSchools } from '@app/api/FPT_3DMAP_API/EventSchool';
 
 const initialPagination: Pagination = {
   current: 1,
-  pageSize: 10,
+  pageSize: 100,
 };
 
 export const EventStudentTable: React.FC = () => {
@@ -45,61 +43,8 @@ export const EventStudentTable: React.FC = () => {
 
   const [form] = Form.useForm();
 
-  const save = async (key: React.Key) => {
-    try {
-      const row = await form.validateFields();
-      const newData = [...data.data];
-      const index = newData.findIndex((item) => key === item.id);
-
-      let item;
-
-      if (index > -1) {
-        item = newData[index];
-        const updatedItem = {
-          ...item,
-          ...row,
-        };
-
-        Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === '') {
-            updatedItem[field] = null;
-          }
-        });
-
-        // message.warning('Updated null Major:', updatedItem);
-
-        newData.splice(index, 1, updatedItem);
-      } else {
-        newData.push(row);
-      }
-
-      setData((prevData) => ({ ...prevData, loading: true }));
-      setEditingKey('');
-
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setData({ ...data, data: newData, loading: false });
-        await updateSchool(key.toString(), row);
-        message.success('Cập nhật học sinh thành công');
-      } catch (error) {
-        message.error('Cập nhật học sinh thất bại');
-        if (index > -1 && item) {
-          newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
-        }
-      }
-    } catch (errInfo) {
-      message.error('Lỗi hệ thống');
-    }
-  };
-
   const cancel = () => {
     setEditingKey('');
-  };
-
-  const edit = (record: Partial<School> & { key: React.Key }) => {
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
   };
 
   const handleInputChange = (value: string, key: number | string, dataIndex: keyof EventStudent) => {
@@ -118,20 +63,38 @@ export const EventStudentTable: React.FC = () => {
   const [originalData, setOriginalData] = useState<EventStudent[]>([]);
 
   const fetchData = async (pagination: Pagination) => {
-    if (schoolId && eventId) {
+    setData((tableData) => ({ ...tableData, loading: false }));
+    if (schoolId) {
       try {
-        const res = await getStudenbySchoolandEventId(schoolId, eventId, pagination);
+        const res = await getStudenbySchoolandEventId(schoolId, pagination);
         if (isMounted.current) {
           setOriginalData(res.data);
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
       } catch (error) {
-        message.error('Không lấy được dữ liệu');
+        // message.error('Không lấy được dữ liệu');
       }
     }
   };
 
-  const fetch = useCallback(fetchData, [isMounted, schoolId, eventId]);
+  const [school, setSchool] = useState<EventSchool | undefined>(undefined);
+
+  useEffect(() => {
+    if (schoolId) {
+      const pagination: Pagination = { current: 1, pageSize: 10 };
+
+      getPaginatedEventSchools(pagination)
+        .then((response) => {
+          const schoolData = response.data.find((school) => school.id === schoolId);
+          setSchool(schoolData);
+        })
+        .catch((error) => {
+          console.error('Error fetching paginated event schools:', error);
+        });
+    }
+  }, [schoolId]);
+
+  const fetch = useCallback(fetchData, [isMounted, schoolId]);
 
   useEffect(() => {
     fetch(initialPagination);
@@ -144,36 +107,46 @@ export const EventStudentTable: React.FC = () => {
 
   const handleSavePlayer = async (studentId: string, eventId: string, fullname: string) => {
     try {
-      if (studentId && eventId) {
+      // setData((tableData) => ({ ...tableData, loading: true }));
+      if (studentId && school && school.eventId) {
         await createPlayer({
           studentId: studentId,
-          eventId: eventId,
+          eventId: school.eventId,
           nickname: '',
           passcode: '',
           totalPoint: 0,
           totalTime: 0,
           isplayer: true,
         });
-        fetch(data.pagination);
+        form.resetFields();
+
+        setTimeout(() => {
+          fetchData(data.pagination);
+        }, 7000);
         // message.success(`${fullname} được tạo thành công`);
       }
     } catch (error) {
-      message.error('Tạo thất bại');
+      // message.error('Tạo thất bại');
     }
   };
 
   const handleGeneratePasscode = async () => {
+    setData((tableData) => ({ ...tableData, loading: true }));
+
     try {
       if (!data) {
         message.error('Data is null');
         return;
       }
 
-      if (eventId) {
+      if (schoolId) {
         for (const record of data.data) {
-          await handleSavePlayer(record.id, eventId, record.fullname);
+          await handleSavePlayer(record.id, schoolId, record.fullname);
         }
-        fetchData(data.pagination);
+        form.resetFields();
+        setTimeout(() => {
+          setData((tableData) => ({ ...tableData, loading: false }));
+        }, 7000);
         message.success('Mã tham gia đã tạo thành công');
       }
     } catch (error) {
@@ -244,7 +217,7 @@ export const EventStudentTable: React.FC = () => {
             key={record.phonenumber}
             name={dataIndex}
             initialValue={text}
-            rules={[{ required: false, message: 'Hãy nhập sôd điện thoại học sinh' }]}
+            rules={[{ required: false, message: 'Hãy nhập số điện thoại học sinh' }]}
           >
             <Input
               type="tel"
@@ -369,49 +342,19 @@ export const EventStudentTable: React.FC = () => {
         );
       },
     },
-    // {
-    //   title: t('Chức năng'),
-    //   dataIndex: 'actions',
-    //   render: (text: string, record: EventStudent) => {
-    //     const editable = isEditing(record);
-    //     return (
-    //       <Space>
-    //         {editable ? (
-    //           <>
-    //             <Button type="primary" onClick={() => save(record.id.toString())}>
-    //               {t('common.save')}
-    //             </Button>
-    //             <Button type="ghost" onClick={cancel}>
-    //               {t('common.cancel')}
-    //             </Button>
-    //           </>
-    //         ) : (
-    //           <>
-    //             <Button
-    //               type="ghost"
-    //               disabled={editingKey === record.id}
-    //               onClick={() => edit({ ...record, key: record.id })}
-    //             >
-    //               {t('common.edit')}
-    //             </Button>
-    //           </>
-    //         )}
-    //       </Space>
-    //     );
-    //   },
-    // },
   ];
 
   const uploadProps = {
     name: 'file',
     multiple: true,
+    showUploadList: false,
     beforeUpload: async (file: File): Promise<void> => {
       const formData = new FormData();
       formData.append('file', file);
 
       try {
         const response = await httpApi.post(
-          `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+          `https://anhkiet-001-site1.htempurl.com/api/Students/uploadfileexcelstudent?schooleventId=${schoolId}`,
           formData,
           {
             headers: {
@@ -422,10 +365,10 @@ export const EventStudentTable: React.FC = () => {
 
         if (response.status === 200) {
           fetch(data.pagination);
-          message.success('Tải lên thành công', response.data);
+          message.success('Tải lên thành công');
           setTimeout(() => message.destroy(), 3000);
         } else {
-          message.error('Tải lên thất bại', response.status);
+          message.error('Tải lên thất bại');
         }
       } catch (error) {
         message.error('Tải lên thất bại');
@@ -435,7 +378,9 @@ export const EventStudentTable: React.FC = () => {
       const { status } = info.file;
 
       if (status === 'done') {
+        // Handle successful upload if needed
       } else if (status === 'error') {
+        // Handle upload error if needed
       }
     },
   };
@@ -483,45 +428,47 @@ export const EventStudentTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Button
-        type="dashed"
-        onClick={handleDownloadTemplate}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 200px' }}
-        icon={<VerticalAlignBottomOutlined />}
-      >
-        Mẫu đơn học sinh
-      </Button>
-
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', right: '0', margin: '40px 200px' }}>
+        <Button icon={<UploadOutlined />} style={{ position: 'absolute', right: '0', top: '0', margin: '15px 200px' }}>
           Nhập file Excel
         </Button>
       </Upload>
 
-      {eventId && (
+      <div style={{ position: 'relative' }}>
+        <Button
+          type="default"
+          onClick={() => {
+            if (school && school.schoolId) {
+              exportStudentExcel(school.schoolId);
+            } else {
+              console.error('schoolId is undefined');
+            }
+          }}
+          style={{ position: 'absolute', right: '0', margin: '32px 20px' }}
+          icon={<DownloadOutlined />}
+        >
+          Xuất file Excel
+        </Button>
+
+        <Button
+          type="dashed"
+          onClick={handleDownloadTemplate}
+          style={{ position: 'absolute', right: '0', margin: '33px 200px' }}
+          icon={<VerticalAlignBottomOutlined />}
+        >
+          Mẫu đơn học sinh
+        </Button>
+      </div>
+
+      {schoolId && (
         <Button
           type="primary"
           onClick={handleGeneratePasscode}
-          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 20px' }}
+          style={{ position: 'absolute', right: '0', top: '0', margin: '15px 20px' }}
         >
           Tạo mã tham gia
         </Button>
       )}
-
-      <Button
-        type="default"
-        onClick={() => {
-          if (schoolId) {
-            exportStudentExcel(schoolId);
-          } else {
-            console.error('schoolId is undefined');
-          }
-        }}
-        style={{ position: 'absolute', right: '0', margin: '-40px 20px' }}
-        icon={<DownloadOutlined />}
-      >
-        Xuất file Excel
-      </Button>
 
       <SearchInput
         placeholder="Tìm kiếm..."

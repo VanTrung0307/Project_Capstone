@@ -71,7 +71,7 @@ export const PlayerTable: React.FC = () => {
         const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
         setEvents(eventResponse.data);
       } catch (error) {
-        message.error('Error fetching events');
+        // message.error('Error fetching events');
       }
       try {
         const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 });
@@ -80,9 +80,13 @@ export const PlayerTable: React.FC = () => {
         // message.error('Error fetching students');
       }
 
-      getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
-        setSchools(paginationData.data);
-      });
+      try {
+        // Fetch schools here and set the schools state
+        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
+        setSchools(schoolResponse.data);
+      } catch (error) {
+        // message.error('Error fetching schools');
+      }
     },
     [isMounted],
   );
@@ -93,6 +97,19 @@ export const PlayerTable: React.FC = () => {
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     fetch(pagination);
+
+    // Apply additional filtering based on selected school and event
+    let filteredDataAfterPagination = originalData;
+    if (selectedSchoolId) {
+      filteredDataAfterPagination = filteredDataAfterPagination.filter(
+        (record) => record.schoolName === selectedSchoolId,
+      );
+    }
+    if (selectedEventId) {
+      filteredDataAfterPagination = filteredDataAfterPagination.filter((record) => record.eventId === selectedEventId);
+    }
+
+    setFilteredData(filteredDataAfterPagination);
   };
 
   const uniqueEventNames = new Set(data.data.map((record) => record.eventName));
@@ -105,131 +122,37 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Tên học sinh'),
       dataIndex: 'studentName',
-      render: (text: string, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'studentName';
-        return editable ? (
-          <Form.Item
-            key={record.studentName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a fullname' }]}
-          ></Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Biệt danh'),
       dataIndex: 'nickname',
-      render: (text: string, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'nickname';
-        return editable ? (
-          <Form.Item
-            key={record.nickname}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a nickname' }]}
-          ></Form.Item>
-        ) : (
-          <span>{text === 'null' ? 'chưa có thông tin' : text}</span>
-        );
-      },
+    },
+    {
+      title: t('Email'),
+      dataIndex: 'studentEmail',
+    },
+    {
+      title: t('Tên trường'),
+      dataIndex: 'schoolName',
     },
     {
       title: t('Tên sự kiện'),
       dataIndex: 'eventName',
       filters: eventNameFilters,
       onFilter: (value, record) => record.eventName === value,
-      render: (text: string, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'eventName';
-        return editable ? (
-          <Form.Item
-            key={record.eventName}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Tên sự kiện là cần thiết' }]}
-          ></Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Mã tham gia'),
       dataIndex: 'passcode',
-      render: (text: string, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'passcode';
-        return editable ? (
-          <Form.Item
-            key={record.passcode}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Mã tham gia là cần thiết' }]}
-          ></Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Tổng điểm thưởng'),
       dataIndex: 'totalPoint',
-      render: (text: number, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalPoint';
-        return editable ? (
-          <Form.Item
-            key={record.totalPoint}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          ></Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Tổng thời gian hoàn thành'),
       dataIndex: 'totalTime',
-      render: (text: number, record: Player) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalTime';
-        return editable ? (
-          <Form.Item
-            key={record.totalTime}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: false }]}
-          ></Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
-    // {
-    //   title: t('Thời điểm đã tạo'),
-    //   dataIndex: 'createdAt',
-    //   render: (text: number, record: Player) => {
-    //     const editable = isEditing(record);
-    //     const dataIndex: keyof Player = 'createdAt';
-    //     return editable ? (
-    //       <Form.Item
-    //         key={record.createdAt}
-    //         name={dataIndex}
-    //         initialValue={text}
-    //         rules={[{ required: true, message: 'Người tạo là cần thiết' }]}
-    //       ></Form.Item>
-    //     ) : (
-    //       <span>{formatDateTime(record.createdAt)}</span>
-    //     );
-    //   },
-    // },
   ];
 
   const [filteredData, setFilteredData] = useState(data.data);
@@ -251,6 +174,9 @@ export const PlayerTable: React.FC = () => {
     }
   };
 
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+
   return (
     <Form form={form} component={false}>
       <SearchInput
@@ -261,36 +187,44 @@ export const PlayerTable: React.FC = () => {
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
 
-      <div>
+      <div style={{ marginBottom: '10px' }}>
         <Select
-          value={eventId}
-          onChange={(value) => setEventId(value)}
-          style={{ width: 350, marginRight: 10, marginBottom: 10 }}
+          value={selectedSchoolId}
+          onChange={(value) => {
+            setSelectedSchoolId(value);
+            const filteredDataBySchool = originalData.filter((record) => record.schoolName === value);
+            setFilteredData(filteredDataBySchool);
+          }}
+          placeholder="Hãy chọn trường"
+          style={{ width: 300, marginRight: 16 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          allowClear
         >
-          {!eventId && <Select.Option value="">Chọn sự kiện</Select.Option>}
+          {schools.map((school) => (
+            <Select.Option key={school.id} value={school.id}>
+              {school.name}
+            </Select.Option>
+          ))}
+        </Select>
+
+        <Select
+          value={selectedEventId}
+          onChange={(value) => {
+            setSelectedEventId(value);
+            const filteredDataByEvent = originalData.filter((record) => record.eventId === value);
+            setFilteredData(filteredDataByEvent);
+          }}
+          placeholder="Hãy chọn sự kiện"
+          style={{ width: 300, marginRight: 16 }}
+          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          allowClear
+        >
           {events.map((event) => (
             <Select.Option key={event.id} value={event.id}>
               {event.name}
             </Select.Option>
           ))}
         </Select>
-
-        {eventId && (
-          <Select
-            value={schoolId}
-            onChange={(value) => setSchoolId(value)}
-            style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-            suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-          >
-            <Select.Option value="">Chọn trường</Select.Option>
-            {schools.map((school) => (
-              <Select.Option key={school.id} value={school.id}>
-                {school.name}
-              </Select.Option>
-            ))}
-          </Select>
-        )}
       </div>
 
       <Table
@@ -300,7 +234,7 @@ export const PlayerTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={data.data}
+        dataSource={filteredData}
         pagination={data.pagination}
         onChange={handleTableChange}
         loading={data.loading}

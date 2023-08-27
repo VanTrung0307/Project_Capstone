@@ -5,6 +5,7 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/SchoolEvents`;
 
 export type EventSchool = {
   id: string;
+  eventId: string;
   schoolId: string;
   eventName: string;
   schoolName: string;
@@ -15,6 +16,7 @@ export type EventSchool = {
   email: string;
   phoneNumber: string;
 };
+
 export type SchoolByEvent = {
   name: string;
   phoneNumber: string;
@@ -33,6 +35,15 @@ export type addEventSchool = {
   status: string;
   startTime: string;
   endTime: string;
+};
+
+export type updateEventSchool = {
+  schoolId: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  approvalStatus: string;
+  id: string;
 };
 
 export type EventSchoolList = {
@@ -55,7 +66,7 @@ export interface PaginationSchoolEventData {
   pagination: Pagination;
 }
 
-export const getPaginatedEventSchools = async (eventId: string, pagination: Pagination): Promise<PaginationData> => {
+export const getPaginatedEventSchools = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await httpApi.get<EventSchoolList>(API_BASE_URL);
     const { data } = response.data;
@@ -92,13 +103,13 @@ export const createEventSchool = async (taskData: addEventSchool): Promise<Event
 };
 
 export const getSchoolbyEventId = async (
-  eventId: string,
+  schoolId: string,
   pagination: Pagination,
 ): Promise<PaginationSchoolEventData> => {
   try {
-    const response = await httpApi.get<EventSchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
+    const response = await httpApi.get<EventSchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${schoolId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -116,6 +127,16 @@ export const getSchoolbyEventId = async (
     };
   } catch (error) {
     console.error('Error fetching paginated schools:', error);
+    throw error;
+  }
+};
+
+export const updateSchoolEvent = async (id: string, update: updateEventSchool): Promise<EventSchool> => {
+  try {
+    const response = await httpApi.put<EventSchool>(`${API_BASE_URL}/Schooleventupdate/${id}`, update);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating event:', error);
     throw error;
   }
 };

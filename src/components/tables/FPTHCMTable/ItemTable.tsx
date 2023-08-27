@@ -1,7 +1,16 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DeleteOutlined, DownOutlined, UploadOutlined } from '@ant-design/icons';
-import { Item, Pagination, addItem, createItem, getPaginatedItems, updateItem } from '@app/api/FPT_3DMAP_API/Item';
+import {
+  Item,
+  Pagination,
+  addItem,
+  createItem,
+  getPaginatedItems,
+  updateItem,
+  updateItemData,
+} from '@app/api/FPT_3DMAP_API/Item';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
@@ -43,44 +52,44 @@ export const ItemTable: React.FC = () => {
       const newData = [...data.data];
       const index = newData.findIndex((item) => key === item.id);
 
-      let item;
-
       if (index > -1) {
-        item = newData[index];
-        const updatedItem = {
-          ...item,
+        const item = newData[index];
+
+        const updatedData = {
           ...row,
+          id: key.toString(),
         };
 
-        Object.keys(updatedItem).forEach((field) => {
-          if (updatedItem[field] === '') {
-            updatedItem[field] = null;
-          }
+        const formData = new FormData();
+
+        // Append fields to FormData
+        Object.keys(updatedData).forEach((field) => {
+          formData.append(field, updatedData[field]);
         });
 
-        // message.warn('Updated null Item:', updatedItem);
-
-        newData.splice(index, 1, updatedItem);
-      } else {
-        newData.push(row);
-      }
-
-      setData((prevData) => ({ ...prevData, loading: true }));
-      setEditingKey('');
-
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setData({ ...data, data: newData, loading: false });
-        await updateItem(key.toString(), row);
-        message.success('Cập nhật vật phẩm thành công');
-        fetch(data.pagination);
-      } catch (error) {
-        message.error('Cập nhật vật phẩm thất bại');
-        if (index > -1 && item) {
-          newData.splice(index, 1, item);
-          setData((prevData) => ({ ...prevData, data: newData }));
+        // Handle image separately
+        if (row.image instanceof File) {
+          formData.append('image', row.image);
         }
-        fetch(data.pagination);
+
+        newData.splice(index, 1, { ...item, ...row });
+
+        setData((prevData) => ({ ...prevData, loading: true }));
+        setEditingKey('');
+
+        try {
+          await updateItem(key.toString(), formData);
+          setData({ ...data, data: newData, loading: false });
+          message.success('Cập nhật vật phẩm thành công');
+          fetch(data.pagination);
+        } catch (error) {
+          message.error('Cập nhật vật phẩm thất bại');
+          if (item) {
+            newData.splice(index, 1, item);
+            setData((prevData) => ({ ...prevData, data: newData }));
+          }
+          fetch(data.pagination);
+        }
       }
     } catch (errInfo) {
       message.error('Lỗi hệ thống');
@@ -138,32 +147,26 @@ export const ItemTable: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      const newData: addItem = {
-        image: uploadedImage?.data || '',
-        name: values.name,
-        type: values.type,
-        price: values.price,
-        description: values.description,
-        imageUrl: values.imageUrl,
-        limitExchange: values.limitExchange,
-        status: values.status,
-        id: values.id,
-      };
+      const formData = new FormData();
 
-      if (!uploadedImage && !values.imageUrl) {
-        message.error('Hãy tải lên hoặc nhập đường dẫn của hình ảnh');
-        return;
-      }
+      // Convert base64 image data to a Blob
+      const imageBlob = dataURItoBlob(uploadedImage?.data);
+
+      formData.append('image', imageBlob);
+      formData.append('name', values.name);
+      formData.append('type', values.type);
+      formData.append('price', values.price);
+      formData.append('description', values.description);
+      formData.append('imageUrl', values.imageUrl);
+      formData.append('limitExchange', values.limitExchange);
+      formData.append('status', values.status);
+      formData.append('id', values.id);
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdItem = await createItem(newData);
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdItem],
-          loading: false,
-        }));
+        await createItem(formData);
+
         form.resetFields();
         setIsBasicModalOpen(false);
         message.success('Tạo vật phẩm thành công');
@@ -179,6 +182,18 @@ export const ItemTable: React.FC = () => {
       message.error('Lỗi hệ thống');
     }
   };
+
+  // Function to convert base64 data to Blob
+  function dataURItoBlob(dataURI: string) {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  }
 
   const uniqueItemTypes = new Set(data.data.map((record) => record.type));
   const itemTypeFilters = Array.from(uniqueItemTypes).map((taskType) => ({
@@ -198,59 +213,73 @@ export const ItemTable: React.FC = () => {
     {
       title: t('Hình ảnh'),
       dataIndex: 'imageUrl',
-      render: (text: string, record: Item) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Item = 'imageUrl';
-
-        return editable ? (
-          <Form.Item
-            key={record.imageUrl}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Hãy tải lên hoặc nhập đường dẫn hình ảnh' }]}
-          >
-            {text ? (
-              <>
-                <div style={{ position: 'relative' }}>
-                  <Avatar style={{ width: '50px', height: '50px', borderRadius: '10px' }} src={text} alt="Hình ảnh" />
-                  <Button
-                    style={{ position: 'absolute', top: '0', right: '0', width: '20px', height: '20px' }}
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleDeleteImage(record)}
-                  />
-                </div>
-              </>
-            ) : (
-              <div>
-                <Upload {...uploadProps(record)} style={{ display: 'flex', alignItems: 'center' }}>
-                  <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
-                </Upload>
-                <span style={{ margin: '0 10px' }}>hoặc</span>
-                <Input
-                  placeholder="Nhập URL hình ảnh"
-                  defaultValue={text}
-                  onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
-                />
-              </div>
-            )}
-          </Form.Item>
-        ) : (
-          <span>
-            <Avatar
-              style={{ width: '50px', height: '50px', borderRadius: '10px' }}
-              src={record.imageUrl}
-              alt="Hình ảnh"
-            />
-          </span>
-        );
-      },
+      render: (text: string, record: Item) => (
+        <span>
+          <Avatar
+            style={{ width: '50px', height: '50px', borderRadius: '10px' }}
+            src={record.imageUrl}
+            alt="Hình ảnh"
+          />
+        </span>
+      ),
     },
+
+    // {
+    //   title: t('Hình ảnh'),
+    //   dataIndex: 'imageUrl',
+    //   render: (text: string, record: Item) => {
+    //     const editable = isEditing(record);
+    //     const dataIndex: keyof updateItemData = 'imageUrl';
+
+    //     return editable ? (
+    //       <Form.Item
+    //         key={record.imageUrl}
+    //         name={dataIndex}
+    //         initialValue={text}
+    //         rules={[{ required: true, message: 'Hãy tải lên hoặc nhập đường dẫn hình ảnh' }]}
+    //       >
+    //         {text ? (
+    //           <>
+    //             <div style={{ position: 'relative' }}>
+    //               <Avatar style={{ width: '50px', height: '50px', borderRadius: '10px' }} src={text} alt="Hình ảnh" />
+    //               <Button
+    //                 style={{ position: 'absolute', top: '0', right: '0', width: '20px', height: '20px' }}
+    //                 icon={<DeleteOutlined />}
+    //                 onClick={() => handleDeleteImage(record)}
+    //               />
+    //             </div>
+    //           </>
+    //         ) : (
+    //           <div>
+    //             <Upload {...uploadProps(record)} style={{ display: 'flex', alignItems: 'center' }}>
+    //               <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
+    //             </Upload>
+    //             {/* <span style={{ margin: '0 10px' }}>hoặc</span> */}
+    //             {/* <Input
+    //               placeholder="Nhập URL hình ảnh"
+    //               defaultValue={text}
+    //               onChange={(e) => handleInputChange(e.target.value, record.id, dataIndex)}
+    //             /> */}
+    //           </div>
+    //         )}
+    //       </Form.Item>
+    //     ) : (
+    //       <span>
+    //         <Avatar
+    //           style={{ width: '50px', height: '50px', borderRadius: '10px' }}
+    //           src={record.imageUrl}
+    //           alt="Hình ảnh"
+    //         />
+    //       </span>
+    //     );
+    //   },
+    // },
     {
       title: t('Tên vật phẩm'),
       dataIndex: 'name',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'name';
+        const dataIndex: keyof updateItemData = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -276,7 +305,7 @@ export const ItemTable: React.FC = () => {
       onFilter: (value, record) => record.type === value,
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'type';
+        const dataIndex: keyof updateItemData = 'type';
         return editable ? (
           <Form.Item
             key={record.type}
@@ -301,7 +330,7 @@ export const ItemTable: React.FC = () => {
       width: '10%',
       render: (text: number, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'price';
+        const dataIndex: keyof updateItemData = 'price';
         return editable ? (
           <Form.Item
             key={record.price}
@@ -326,7 +355,7 @@ export const ItemTable: React.FC = () => {
       dataIndex: 'limitExchange',
       render: (text: boolean, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'limitExchange';
+        const dataIndex: keyof updateItemData = 'limitExchange';
 
         const selectOptions = [
           { value: true, label: 'Có giới hạn' },
@@ -362,7 +391,7 @@ export const ItemTable: React.FC = () => {
       dataIndex: 'description',
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'description';
+        const dataIndex: keyof updateItemData = 'description';
         const maxTextLength = 50;
         const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
@@ -411,6 +440,8 @@ export const ItemTable: React.FC = () => {
               visible={descriptionModalVisible}
               onCancel={() => setDescriptionModalVisible(false)}
               footer={null}
+              mask={true}
+              maskStyle={{ opacity: 0.2 }}
             >
               <p>{selectedDescription}</p>
             </Modal>
@@ -428,7 +459,7 @@ export const ItemTable: React.FC = () => {
       onFilter: (value, record) => record.status === value,
       render: (text: string, record: Item) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Item = 'status';
+        const dataIndex: keyof updateItemData = 'status';
 
         const statusOptions = ['ACTIVE', 'INACTIVE'];
 
@@ -533,10 +564,20 @@ export const ItemTable: React.FC = () => {
     name: 'file',
     multiple: false,
     beforeUpload: (file: File): boolean => {
-      handleAddImageUpload(file);
+      if (isValidFileType(file)) {
+        handleAddImageUpload(file);
+      } else {
+        message.error('Chỉ cho phép tải lên các tệp PNG và JPEG.');
+      }
       return false;
     },
     showUploadList: false,
+  };
+
+  const validFileTypes = ['image/png', 'image/jpeg'];
+
+  const isValidFileType = (file: File): boolean => {
+    return validFileTypes.includes(file.type);
   };
 
   const [uploadedImage, setUploadedImage] = useState<{ name: string; data: any } | undefined>(undefined);
@@ -649,10 +690,10 @@ export const ItemTable: React.FC = () => {
                         { required: true, message: t('Hãy nhập điểm thưởng') },
                         {
                           validator: (_, value) => {
-                            if (value > 100) {
+                            if (value >= 100) {
                               return Promise.resolve();
                             }
-                            return Promise.reject('Điểm thưởng phải lớn hơn 100 điểm');
+                            return Promise.reject('Điểm thưởng phải bắt đàu từ 100 điểm');
                           },
                         },
                       ]}
@@ -712,7 +753,7 @@ export const ItemTable: React.FC = () => {
             </Col>
 
             <Col span={12}>
-              <FlexContainer >
+              <FlexContainer>
                 <div>
                   <Label>{'Hình ảnh'}</Label>
                   <InputContainer>
@@ -726,7 +767,13 @@ export const ItemTable: React.FC = () => {
                         <img
                           src={uploadedImage.data}
                           alt="Uploaded"
-                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                          style={{
+                            width: '100px',
+                            height: '100px',
+                            objectFit: 'cover',
+                            borderRadius: '10px',
+                            marginTop: '10px',
+                          }}
                         />
                         <Button
                           type="link"
@@ -737,12 +784,12 @@ export const ItemTable: React.FC = () => {
                       </div>
                     )}
                   </InputContainer>
-                  <span style={{ margin: '0 10px' }}>hoặc</span>
+                  {/* <span style={{ margin: '0px 10px' }}>hoặc</span>
                   <InputContainer>
-                    <BaseForm.Item name="imageUrl" >
+                    <BaseForm.Item name="imageUrl">
                       <Input style={{ width: '300px' }} placeholder="Nhập URL hình ảnh" />
                     </BaseForm.Item>
-                  </InputContainer>
+                  </InputContainer> */}
                 </div>
               </FlexContainer>
             </Col>

@@ -6,13 +6,12 @@ import { useParams } from 'react-router-dom';
 
 const EventStudentPage: React.FC = () => {
   const { schoolId } = useParams();
-  const { eventId } = useParams();
 
   return (
     <>
       <Suspense fallback={<div>Loading...</div>}>
         <PageTitle>Student</PageTitle>
-        <EventStudentTables schoolId={schoolId} eventId={eventId}/>
+        <EventStudentTables schoolId={schoolId}/>
       </Suspense>
     </>
   );
