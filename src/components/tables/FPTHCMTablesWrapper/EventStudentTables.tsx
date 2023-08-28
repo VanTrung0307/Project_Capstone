@@ -16,7 +16,7 @@ export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId }) =
   useEffect(() => {
     if (schoolId) {
       console.log(schoolId);
-      const pagination: Pagination = { current: 1, pageSize: 10 };
+      const pagination: Pagination = { current: 1, pageSize: 100 };
 
       getPaginatedEventSchools(pagination)
         .then((response) => {

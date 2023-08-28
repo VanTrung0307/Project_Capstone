@@ -19,8 +19,12 @@ export type addQuestion = {
 };
 
 export type updateQuestionData = {
-  answerId: string;
-  majorId: string;
+  answers: {
+    [answerId: string]: {
+      answerName: string;
+    };
+  };
+  majorName: string;
   name: string;
   status: string;
 };
@@ -95,7 +99,6 @@ export const updateQuestion = async (id: string, questionData: updateQuestionDat
     throw error;
   }
 };
-
 
 export const getExcelTemplateQnA = async (): Promise<Blob> => {
   try {

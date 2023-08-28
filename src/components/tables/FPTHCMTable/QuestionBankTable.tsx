@@ -13,6 +13,7 @@ import {
   getExcelTemplateQnA,
   getPaginatedQuestions,
   updateQuestion,
+  updateQuestionData,
 } from '@app/api/FPT_3DMAP_API/QuestionBank';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
@@ -230,7 +231,7 @@ export const QuestionBankTable: React.FC = () => {
       dataIndex: 'name',
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'name';
+        const dataIndex: keyof updateQuestionData = 'name';
         return editable ? (
           <Form.Item
             key={record.name}
@@ -257,7 +258,7 @@ export const QuestionBankTable: React.FC = () => {
       onFilter: (value, record) => record.majorName === value,
       render: (text: string, record: Question) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Question = 'majorName';
+        const dataIndex: keyof updateQuestionData = 'majorName';
         return editable ? (
           <Form.Item
             key={record.majorName}
@@ -267,7 +268,7 @@ export const QuestionBankTable: React.FC = () => {
             <Select
               style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
+              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {majors.map((major) => (
@@ -303,6 +304,7 @@ export const QuestionBankTable: React.FC = () => {
               const truncatedText = text?.length > maxTextLength ? `${text.slice(0, maxTextLength)}...` : text;
 
               const answerIndicator = answer.isRight ? <Tag color="#87d068">Đúng</Tag> : <Tag color="#f50">Sai</Tag>;
+              const dataIndex: keyof updateQuestionData['answers'][string] = answer.id as keyof updateQuestionData['answers'][string];
 
               return (
                 <div
@@ -324,9 +326,9 @@ export const QuestionBankTable: React.FC = () => {
                   <span style={{ marginLeft: '8px' }}>{truncatedText}</span>
                   {editable && (
                     <Form.Item
-                      name={`answers[${answer.id}].id`}
+                      name={dataIndex}
                       rules={[{ required: true, message: 'Hãy nhập câu trả lời' }]}
-                      initialValue={answer.id}
+                        initialValue={answer.answerName}
                     >
                       <Input
                         style={{ maxWidth: '212.03px', marginLeft: '8px' }}

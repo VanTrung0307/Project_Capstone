@@ -498,10 +498,10 @@ export const ItemTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.id)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -511,7 +511,7 @@ export const ItemTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}

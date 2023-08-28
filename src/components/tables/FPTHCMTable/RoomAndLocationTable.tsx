@@ -80,17 +80,17 @@ export const RoomAndLocationTable: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setData({ ...data, data: newData, loading: false });
         await updateRoomLocation(key.toString(), row);
-        message.success('Room location data updated successfully');
+        message.success('Cập nhật thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Error updating room location data');
+        message.error('Cập nhật thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
           setData((prevData) => ({ ...prevData, data: newData, loading: false }));
         }
       }
     } catch (errInfo) {
-      message.error('Validate Failed');
+      message.error('Lỗi hệ thống');
     }
   };
 

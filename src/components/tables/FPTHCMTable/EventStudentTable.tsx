@@ -428,11 +428,14 @@ export const EventStudentTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', right: '0', top: '0', margin: '15px 200px' }}>
-          Nhập file Excel
-        </Button>
-      </Upload>
+      <Button
+        type="dashed"
+        onClick={handleDownloadTemplate}
+        style={{ position: 'absolute', right: '0', top: '0', margin: '15px 200px' }}
+        icon={<VerticalAlignBottomOutlined />}
+      >
+        Mẫu đơn học sinh
+      </Button>
 
       <div style={{ position: 'relative' }}>
         <Button
@@ -444,20 +447,20 @@ export const EventStudentTable: React.FC = () => {
               console.error('schoolId is undefined');
             }
           }}
-          style={{ position: 'absolute', right: '0', margin: '32px 20px' }}
+          style={{ position: 'absolute', right: '0', margin: '60px 1px' }}
           icon={<DownloadOutlined />}
         >
           Xuất file Excel
         </Button>
 
-        <Button
-          type="dashed"
-          onClick={handleDownloadTemplate}
-          style={{ position: 'absolute', right: '0', margin: '33px 200px' }}
-          icon={<VerticalAlignBottomOutlined />}
-        >
-          Mẫu đơn học sinh
-        </Button>
+        <Upload {...uploadProps}>
+          <Button
+            icon={<UploadOutlined />}
+            style={{ position: 'absolute', right: '0', top: '0', margin: '60px 190px' }}
+          >
+            Nhập file Excel
+          </Button>
+        </Upload>
       </div>
 
       {schoolId && (

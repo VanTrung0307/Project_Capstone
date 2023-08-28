@@ -70,6 +70,7 @@ export const SchoolTable: React.FC = () => {
         setData({ ...data, data: newData, loading: false });
         await updateSchool(key.toString(), row);
         message.success('Cập nhật thành công');
+        setData({ ...data, data: newData, loading: false });
         fetch(data.pagination);
       } catch (error) {
         message.error('Cập nhật không thành công');

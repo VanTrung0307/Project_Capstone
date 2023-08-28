@@ -86,6 +86,7 @@ export const TaskTable: React.FC = () => {
         await updateTask(key.toString(), row);
         message.success('Cập nhật nhiệm vụ thành công');
       } catch (error) {
+        fetch(data.pagination);
         message.error('Cập nhật nhiệm vụ thất bại');
         if (index > -1 && item) {
           newData.splice(index, 1, item);
@@ -238,11 +239,11 @@ export const TaskTable: React.FC = () => {
         message.success('Tạo nhiệm vụ thành công');
         fetch(data.pagination);
       } catch (error) {
-        message.error('Tạo nhiệm vụ thất bại');
         setData((prevData) => ({ ...prevData, loading: false }));
+        message.error('Tạo nhiệm vụ thất bại');
       }
     } catch (error) {
-      message.error('Hãy nhập đầy đủ');
+      message.error('Lỗi hệ thống');
     }
   };
 
@@ -393,9 +394,7 @@ export const TaskTable: React.FC = () => {
       render: (text: string, record: Task) => {
         const editable = isEditing(record);
         const dataIndex: keyof Task = 'type';
-        const isExchangeItem = record.type === TaskType.EXCHANGEITEM;
-
-        return editable && !isExchangeItem ? (
+        return editable ? (
           <Form.Item
             key={record.type}
             name={dataIndex}
@@ -544,6 +543,7 @@ export const TaskTable: React.FC = () => {
     CHECKIN = 'CHECKIN',
     QUESTIONANDANSWER = 'QUESTIONANDANSWER',
     EXCHANGEITEM = 'EXCHANGEITEM',
+    MINGAME = 'MINGAME',
   }
 
   const [selectedTaskType, setSelectedTaskType] = useState<string | null>(null);

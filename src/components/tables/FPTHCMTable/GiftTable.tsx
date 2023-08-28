@@ -360,7 +360,7 @@ export const GiftTable: React.FC = () => {
                   disabled={editingKey === record.id}
                   onClick={() => edit({ ...record, key: record.id })}
                 >
-                  Chỉnh sửu
+                  Chỉnh sửa
                 </Button>
               </>
             )}

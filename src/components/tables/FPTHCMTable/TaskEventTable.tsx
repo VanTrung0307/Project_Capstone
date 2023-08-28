@@ -77,7 +77,7 @@ export const TaskEventTable: React.FC = () => {
           }
         });
 
-        message.warn('Updated null Task:', updatedItem);
+        // message.warn('Updated null Task:', updatedItem);
 
         newData.splice(index, 1, updatedItem);
       } else {
@@ -261,22 +261,58 @@ export const TaskEventTable: React.FC = () => {
       showSorterTooltip: false,
     },
     {
-      title: t('Tên sự kiện'),
-      dataIndex: 'eventName',
-      width: '25%',
+      title: 'Thời gian bắt đầu',
+      dataIndex: 'starttime',
+      width: '8%',
       render: (text: number, record: TaskByEvent) => {
         const editable = isEditing(record);
-        const dataIndex: keyof TaskByEvent = 'eventId';
+        const dataIndex: keyof TaskByEvent = 'starttime';
+        const formattedText = moment(text, 'HH:mm').format('HH:mm');
+        const formattedValue = moment(record[dataIndex], 'HH:mm').format('HH:mm');
+
         return editable ? (
-          <Form.Item key={record.eventId} name={dataIndex} initialValue={text}>
+          <Form.Item
+            key={record.starttime}
+            name={dataIndex}
+            initialValue={text} // Use the raw value here
+            rules={[{ required: true, message: 'Hãy nhập thời gian bắt đầu' }]}
+          >
             <Input
-              disabled
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.eventId, dataIndex)}
+              type="time"
+              value={formattedValue} // Use the formatted value here
+              onChange={(e) => handleInputChange(e.target.value, record.starttime, dataIndex)}
             />
           </Form.Item>
         ) : (
-          <span>{text}</span>
+          <span>{formattedText}</span>
+        );
+      },
+    },
+    {
+      title: 'Thời gian kết thúc',
+      dataIndex: 'endtime',
+      width: '8%',
+      render: (text: number, record: TaskByEvent) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof TaskByEvent = 'endtime';
+        const formattedText = moment(text, 'HH:mm').format('HH:mm');
+        const formattedValue = moment(record[dataIndex], 'HH:mm').format('HH:mm');
+
+        return editable ? (
+          <Form.Item
+            key={record.endtime}
+            name={dataIndex}
+            initialValue={text} // Use the raw value here
+            rules={[{ required: true, message: 'Hãy nhập thời gian kết thúc' }]}
+          >
+            <Input
+              type="time"
+              value={formattedValue} // Use the formatted value here
+              onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
+            />
+          </Form.Item>
+        ) : (
+          <span>{formattedText}</span>
         );
       },
     },
@@ -308,26 +344,6 @@ export const TaskEventTable: React.FC = () => {
       title: t('Mức độ'),
       dataIndex: 'priority',
       width: '8%',
-      render: (text: number, record: TaskByEvent) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof TaskByEvent = 'priority';
-        return editable ? (
-          <Form.Item
-            key={record.priority}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Hãy nhập mức độ' }]}
-          >
-            <Input
-              maxLength={100}
-              value={record[dataIndex]}
-              onChange={(e) => handleInputChange(e.target.value, record.priority, dataIndex)}
-            />
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
     },
     {
       title: t('Chức năng'),
@@ -340,11 +356,11 @@ export const TaskEventTable: React.FC = () => {
             {editable ? (
               <>
                 <Button type="primary" onClick={() => save(record.eventtaskId)}>
-                  {t('common.save')}
+                  Lưu
                 </Button>
 
                 <Button type="ghost" onClick={cancel}>
-                  {t('common.cancel')}
+                  Huỷ
                 </Button>
               </>
             ) : (
@@ -354,7 +370,7 @@ export const TaskEventTable: React.FC = () => {
                   disabled={editingKey === record.eventtaskId}
                   onClick={() => edit({ ...record, key: record.eventtaskId })}
                 >
-                  {t('common.edit')}
+                  Chỉnh sửa
                 </Button>
               </>
             )}
@@ -552,7 +568,7 @@ export const TaskEventTable: React.FC = () => {
       <Button
         type="ghost"
         onClick={() => eventId && handleSchoolClick(eventId)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 150px' }}
+        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 140px' }}
       >
         Danh sách trường
       </Button>

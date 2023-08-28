@@ -28,32 +28,8 @@ export type TaskByEvent = {
   type: string;
   status: string;
   priority: 0;
-  starttime: {
-    ticks: number;
-    days: number;
-    hours: number;
-    milliseconds: number;
-    minutes: number;
-    seconds: number;
-    totalDays: number;
-    totalHours: number;
-    totalMilliseconds: number;
-    totalMinutes: number;
-    totalSeconds: number;
-  };
-  endtime: {
-    ticks: number;
-    days: number;
-    hours: number;
-    milliseconds: number;
-    minutes: number;
-    seconds: number;
-    totalDays: number;
-    totalHours: number;
-    totalMilliseconds: number;
-    totalMinutes: number;
-    totalSeconds: number;
-  };
+  starttime: string;
+  endtime: string;
   eventStartTime: number;
   eventEndTime: number;
 };
@@ -70,7 +46,6 @@ export type addEventTask = {
 
 export type updateEventTaskData = {
   taskId: string;
-  eventId: string;
   startTime: number;
   endTime: number;
   priority: number;
