@@ -328,7 +328,7 @@ export const QuestionBankTable: React.FC = () => {
                     <Form.Item
                       name={dataIndex}
                       rules={[{ required: true, message: 'Hãy nhập câu trả lời' }]}
-                        initialValue={answer.answerName}
+                      initialValue={answer.answerName}
                     >
                       <Input
                         style={{ maxWidth: '212.03px', marginLeft: '8px' }}

@@ -56,11 +56,11 @@ export const RankTable: React.FC = () => {
     (pagination: Pagination) => {
       setData((tableData) => ({ ...tableData, loading: false }));
 
-      getPaginatedEvents({ current: 1, pageSize: 10 }).then((paginationData) => {
+      getPaginatedEvents({ current: 1, pageSize: 100 }).then((paginationData) => {
         setEvents(paginationData.data);
       });
 
-      getPaginatedSchools({ current: 1, pageSize: 10 }).then((paginationData) => {
+      getPaginatedSchools({ current: 1, pageSize: 100 }).then((paginationData) => {
         setSchools(paginationData.data);
       });
 
