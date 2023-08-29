@@ -90,7 +90,7 @@ export const getItemById = async (itemId: string): Promise<Item> => {
   }
 };
 
-export const createItem = async (itemData: FormData) => {
+export const createItem = async (itemData: FormData): Promise<Item> => {
   try {
     const response = await httpApi.post(`${API_BASE_URL}/item`, itemData, {
       headers: {
@@ -104,7 +104,7 @@ export const createItem = async (itemData: FormData) => {
   }
 };
 
-export const updateItem = async (id: string, itemData: FormData) => {
+export const updateItem = async (id: string, itemData: FormData): Promise<Item> => {
   try {
     const response = await httpApi.put(`${API_BASE_URL}/${id}`, itemData, {
       headers: {

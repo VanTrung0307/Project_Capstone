@@ -91,7 +91,7 @@ export const getGiftById = async (giftId: string): Promise<Gift> => {
   }
 };
 
-export const createGift = async (giftData: addGift) => {
+export const createGift = async (giftData: addGift): Promise<addGift> => {
   try {
     const response = await httpApi.post<addGift>(`${API_BASE_URL}/Gift`, giftData);
     return response.data;

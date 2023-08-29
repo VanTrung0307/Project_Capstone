@@ -3,7 +3,7 @@ import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { Item, getPaginatedItems } from '@app/api/FPT_3DMAP_API/Item';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 import { Npc, getPaginatedNpcs } from '@app/api/FPT_3DMAP_API/NPC';
-import { RoomLocation, getPaginatedRoomLocations } from '@app/api/FPT_3DMAP_API/Room&Location';
+import { RoomLocation, getPaginatedRoomLocationsWithNPC } from '@app/api/FPT_3DMAP_API/Room&Location';
 import {
   Pagination,
   Task,
@@ -13,6 +13,7 @@ import {
   updateTaskData,
 } from '@app/api/FPT_3DMAP_API/Task';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Col, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
@@ -22,9 +23,8 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -136,7 +136,7 @@ export const TaskTable: React.FC = () => {
         });
 
       try {
-        const locationResponse = await getPaginatedRoomLocations({ current: 1, pageSize: 123 });
+        const locationResponse = await getPaginatedRoomLocationsWithNPC({ current: 1, pageSize: 1000 });
         setLocations(locationResponse.data);
       } catch (error) {
         // message.error('Error fetching locations');
@@ -150,7 +150,7 @@ export const TaskTable: React.FC = () => {
       }
 
       try {
-        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 100 });
+        const npcResponse = await getPaginatedNpcs({ current: 1, pageSize: 1000 });
         setNpcs(npcResponse.data);
       } catch (error) {
         // message.error('Error fetching npcs');
@@ -308,7 +308,7 @@ export const TaskTable: React.FC = () => {
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               {locations
-                .filter((locationItem) => locationItem.status !== 'INACTIVE')
+                // .filter((locationItem) => locationItem.status !== 'INACTIVE')
                 .map((location) => (
                   <Select.Option key={location.id} value={location.locationName}>
                     {location.locationName}
@@ -619,7 +619,7 @@ export const TaskTable: React.FC = () => {
                         style={{ width: '300px' }}
                       >
                         {locations
-                          .filter((location) => location.status === 'ACTIVE')
+                          // .filter((location) => location.status === 'ACTIVE')
                           .map((location) => (
                             <Option key={location.id} value={location.id}>
                               {location.locationName}

@@ -53,6 +53,32 @@ export const getPaginatedRoomLocations = async (pagination: Pagination): Promise
   }
 };
 
+export const getPaginatedRoomLocationsWithNPC = async (pagination: Pagination): Promise<PaginationData> => {
+  try {
+    const response = await httpApi.get<RoomLocationList>(`${API_BASE_URL}/GetLocationListWithNPC`);
+    const { data } = response.data;
+    const { current = 1, pageSize = 1000 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated schools:', error);
+    throw error;
+  }
+};
+
 export const getRoomLocations = async (): Promise<RoomLocation[]> => {
   try {
     const response = await httpApi.get<RoomLocationList>(API_BASE_URL);
