@@ -9,7 +9,7 @@ export const RoomAndLocationTables: React.FC = () => {
   return (
     <>
       <S.FPTHCMTablesWrapper>
-        <S.Card id="basic-table" title={t('Bảng Vị trí & Phòng')} padding="1.25rem 1.25rem 0">
+        <S.Card id="basic-table" title={t('Bảng Phòng & Vị trí')} padding="1.25rem 1.25rem 0">
           <RoomAndLocationTable />
         </S.Card>
       </S.FPTHCMTablesWrapper>

@@ -198,7 +198,6 @@ export const PlayerTable: React.FC = () => {
           placeholder="Hãy chọn sự kiện"
           style={{ width: 300, marginRight: 16 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-          allowClear
         >
           {events.map((event) => (
             <Select.Option key={event.id} value={event.id}>
@@ -217,7 +216,6 @@ export const PlayerTable: React.FC = () => {
           placeholder="Hãy chọn trường"
           style={{ width: 300, marginRight: 16 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-          allowClear
         >
           {schools.map((school) => (
             <Select.Option key={school.id} value={school.id}>
