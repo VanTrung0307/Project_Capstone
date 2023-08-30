@@ -543,7 +543,7 @@ export const TaskTable: React.FC = () => {
     CHECKIN = 'CHECKIN',
     QUESTIONANDANSWER = 'QUESTIONANDANSWER',
     EXCHANGEITEM = 'EXCHANGEITEM',
-    MINGAME = 'MINGAME',
+    MINIGAME = 'MINIGAME',
   }
 
   const [selectedTaskType, setSelectedTaskType] = useState<string | null>(null);
@@ -665,7 +665,7 @@ export const TaskTable: React.FC = () => {
                 <FlexContainer>
                   <div>
                     <InputContainer>
-                      <BaseForm.Item name="itemID">
+                      <BaseForm.Item name="itemId">
                         <Select
                           placeholder={'---- Chọn vật phẩm ----'}
                           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}

@@ -189,25 +189,6 @@ export const PlayerTable: React.FC = () => {
 
       <div style={{ marginBottom: '10px' }}>
         <Select
-          value={selectedSchoolId}
-          onChange={(value) => {
-            setSelectedSchoolId(value);
-            const filteredDataBySchool = originalData.filter((record) => record.schoolName === value);
-            setFilteredData(filteredDataBySchool);
-          }}
-          placeholder="Hãy chọn trường"
-          style={{ width: 300, marginRight: 16 }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-          allowClear
-        >
-          {schools.map((school) => (
-            <Select.Option key={school.id} value={school.id}>
-              {school.name}
-            </Select.Option>
-          ))}
-        </Select>
-
-        <Select
           value={selectedEventId}
           onChange={(value) => {
             setSelectedEventId(value);
@@ -222,6 +203,25 @@ export const PlayerTable: React.FC = () => {
           {events.map((event) => (
             <Select.Option key={event.id} value={event.id}>
               {event.name}
+            </Select.Option>
+          ))}
+        </Select>
+
+        <Select
+          value={selectedSchoolId}
+          onChange={(value) => {
+            setSelectedSchoolId(value);
+            const filteredDataBySchool = originalData.filter((record) => record.schoolName === value);
+            setFilteredData(filteredDataBySchool);
+          }}
+          placeholder="Hãy chọn trường"
+          style={{ width: 300, marginRight: 16 }}
+          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          allowClear
+        >
+          {schools.map((school) => (
+            <Select.Option key={school.id} value={school.id}>
+              {school.name}
             </Select.Option>
           ))}
         </Select>
