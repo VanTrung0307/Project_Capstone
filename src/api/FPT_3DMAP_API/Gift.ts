@@ -110,3 +110,13 @@ export const updateGift = async (id: string, giftData: updateGiftData): Promise<
     throw error;
   }
 };
+
+export const deleteGift = async (giftId: string): Promise<Gift> => {
+  try {
+    const response = await httpApi.delete<Gift>(`${API_BASE_URL}/deleteprize?id=${giftId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating school:', error);
+    throw error;
+  }
+};

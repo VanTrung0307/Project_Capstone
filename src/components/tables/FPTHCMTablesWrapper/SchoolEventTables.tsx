@@ -31,7 +31,6 @@ export const SchoolEventTables: React.FC<SchoolTablesProps> = ({ eventId }) => {
     }
   }, [eventId]);
 
-  console.log('eventname', event ? event.name : '');
   return (
     <>
       <S.FPTHCMTablesWrapper>

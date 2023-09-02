@@ -8,6 +8,7 @@ import {
   Pagination,
   Task,
   createTask,
+  deleteTask,
   getPaginatedTasks,
   updateTask,
   updateTaskData,
@@ -258,6 +259,24 @@ export const TaskTable: React.FC = () => {
     text: taskType,
     value: taskType,
   }));
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTask(id);
+
+      setData((prevTableData) => ({
+        ...prevTableData,
+        data: prevTableData.data.filter((item) => item.id !== id),
+        pagination: {
+          ...prevTableData.pagination,
+          total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
+        },
+      }));
+      message.success(`Xoá trường thành công`);
+    } catch (error) {
+      message.error('Xoá trường thất bại');
+    }
+  };
 
   const columns: ColumnsType<Task> = [
     {
@@ -512,6 +531,9 @@ export const TaskTable: React.FC = () => {
                   onClick={() => edit({ ...record, key: record.id })}
                 >
                   Chỉnh sửa
+                </Button>
+                <Button danger onClick={() => handleDelete(record.id)}>
+                  Xoá
                 </Button>
               </>
             )}

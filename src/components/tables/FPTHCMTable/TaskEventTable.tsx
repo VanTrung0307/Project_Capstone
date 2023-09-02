@@ -8,6 +8,7 @@ import {
   TaskByEvent,
   addEventTask,
   createListEventTask,
+  deleteEventTask,
   getTaskbyEventId,
   updateEventTask,
 } from '@app/api/FPT_3DMAP_API/EventTask';
@@ -219,12 +220,23 @@ export const TaskEventTable: React.FC = () => {
     }
   };
 
-  // const formatTimeSpan = (timeSpan: any): string => {
-  //   const hours = timeSpan.hours ? `${timeSpan.hours}h ` : '';
-  //   const minutes = timeSpan.minutes ? `${timeSpan.minutes}m` : '';
-  //   const seconds = timeSpan.seconds ? `${timeSpan.seconds}s` : '';
-  //   return `${hours}:${minutes}:${seconds}`;
-  // };
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteEventTask(id);
+
+      setData((prevTableData) => ({
+        ...prevTableData,
+        data: prevTableData.data.filter((item) => item.eventtaskId !== id),
+        pagination: {
+          ...prevTableData.pagination,
+          total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
+        },
+      }));
+      message.success(`Xoá trường thành công`);
+    } catch (error) {
+      message.error('Xoá trường thất bại');
+    }
+  };
 
   const columns: ColumnsType<TaskByEvent> = [
     {
@@ -259,6 +271,10 @@ export const TaskEventTable: React.FC = () => {
       },
 
       showSorterTooltip: false,
+    },
+    {
+      title: 'Tên ngành',
+      dataIndex: 'majorName',
     },
     {
       title: 'Thời gian bắt đầu',
@@ -371,6 +387,9 @@ export const TaskEventTable: React.FC = () => {
                   onClick={() => edit({ ...record, key: record.eventtaskId })}
                 >
                   Chỉnh sửa
+                </Button>
+                <Button danger onClick={() => handleDelete(record.eventtaskId)}>
+                  Xoá
                 </Button>
               </>
             )}

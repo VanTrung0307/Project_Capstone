@@ -122,3 +122,13 @@ export const updateTask = async (id: string, taskData: updateTaskData): Promise<
     throw error;
   }
 };
+
+export const deleteTask = async (id: string): Promise<Task> => {
+  try {
+    const response = await httpApi.delete<Task>(`${API_BASE_URL}/deletetask?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating school:', error);
+    throw error;
+  }
+};

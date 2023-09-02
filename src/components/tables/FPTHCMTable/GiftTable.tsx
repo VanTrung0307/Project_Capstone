@@ -1,6 +1,14 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
-import { Gift, Pagination, addGift, createGift, getPaginatedGifts, updateGift } from '@app/api/FPT_3DMAP_API/Gift';
+import {
+  Gift,
+  Pagination,
+  addGift,
+  createGift,
+  deleteGift,
+  getPaginatedGifts,
+  updateGift,
+} from '@app/api/FPT_3DMAP_API/Gift';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
@@ -189,6 +197,24 @@ export const GiftTable: React.FC = () => {
     value: eventName,
   }));
 
+  const handleDelete = async (giftId: string) => {
+    try {
+      await deleteGift(giftId);
+
+      setData((prevTableData) => ({
+        ...prevTableData,
+        data: prevTableData.data.filter((item) => item.id !== giftId),
+        pagination: {
+          ...prevTableData.pagination,
+          total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
+        },
+      }));
+      message.success(`Xoá phần thưởng thành công`);
+    } catch (error) {
+      message.error('Xoá phần thưởng thất bại');
+    }
+  };
+
   const columns: ColumnsType<Gift> = [
     {
       title: t('Tên quà tặng'),
@@ -361,6 +387,9 @@ export const GiftTable: React.FC = () => {
                   onClick={() => edit({ ...record, key: record.id })}
                 >
                   Chỉnh sửa
+                </Button>
+                <Button danger onClick={() => handleDelete(record.id)}>
+                  Xoá
                 </Button>
               </>
             )}

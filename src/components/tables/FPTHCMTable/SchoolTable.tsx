@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
-import { Pagination, School, createSchool, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import {
+  Pagination,
+  School,
+  createSchool,
+  deleteSchool,
+  getPaginatedSchools,
+  updateSchool,
+} from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
@@ -188,8 +195,22 @@ export const SchoolTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleDetailClick = (schoolId: string) => {
-    navigate(`/students/${schoolId}`);
+  const handleDeleteSchool = async (schoolId: string) => {
+    try {
+      await deleteSchool(schoolId);
+
+      setData((prevTableData) => ({
+        ...prevTableData,
+        data: prevTableData.data.filter((item) => item.id !== schoolId),
+        pagination: {
+          ...prevTableData.pagination,
+          total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
+        },
+      }));
+      message.success(`Xoá trường thành công`);
+    } catch (error) {
+      message.error('Xoá trường thất bại');
+    }
   };
 
   const columns: ColumnsType<School> = [
@@ -369,9 +390,9 @@ export const SchoolTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                {/* <Button type="ghost" onClick={() => handleDetailClick(record.id)}>
-                  Danh sách học sinh
-                </Button> */}
+                <Button danger onClick={() => handleDeleteSchool(record.id)}>
+                  Xoá
+                </Button>
               </>
             )}
           </Space>

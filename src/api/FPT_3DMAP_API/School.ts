@@ -110,3 +110,13 @@ export const updateSchool = async (schoolId: string, schoolData: School): Promis
     throw error;
   }
 };
+
+export const deleteSchool = async (schoolId: string): Promise<School> => {
+  try {
+    const response = await httpApi.delete<School>(`${API_BASE_URL}/deleteschool?id=${schoolId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating school:', error);
+    throw error;
+  }
+};

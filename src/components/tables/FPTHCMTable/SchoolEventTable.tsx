@@ -6,6 +6,7 @@ import {
   EventSchool,
   addEventSchool,
   createEventSchool,
+  deleteSchoolEvent,
   getSchoolbyEventId,
   updateEventSchool,
   updateSchoolEvent,
@@ -207,6 +208,24 @@ export const SchoolEventTable: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteSchoolEvent(id);
+
+      setData((prevTableData) => ({
+        ...prevTableData,
+        data: prevTableData.data.filter((item) => item.id !== id),
+        pagination: {
+          ...prevTableData.pagination,
+          total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
+        },
+      }));
+      message.success(`Xoá trường thành công`);
+    } catch (error) {
+      message.error('Xoá trường thất bại');
+    }
+  };
+
   const columns: ColumnsType<EventSchool> = [
     {
       title: t('Tên trường'),
@@ -340,6 +359,9 @@ export const SchoolEventTable: React.FC = () => {
                   onClick={() => edit({ ...record, key: record.id })}
                 >
                   Chỉnh sửa
+                </Button>
+                <Button danger onClick={() => handleDelete(record.id)}>
+                  Xoá
                 </Button>
                 <Button
                   type="ghost"

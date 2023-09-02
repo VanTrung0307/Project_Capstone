@@ -14,8 +14,6 @@ httpApi.interceptors.request.use((config) => {
     ...config.headers,
     Authorization: `Bearer ${readToken()}`,
   } as AxiosRequestHeaders;
-  console.log(config.headers);
-
   return config;
 });
 

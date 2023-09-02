@@ -7,10 +7,13 @@ export const References: React.FC = () => {
     <S.ReferencesWrapper>
       <S.Text>
         Made by{' '}
-        <a href="https://github.com/VanTrung0307/Project_Capstone" target="_blank" rel="noreferrer">
-          FPT_HCM Adventure Team{' '}
+        <a href="https://altence.com" target="_blank" rel="noreferrer">
+          Altence{' '}
         </a>
-        in 2023 &copy;.
+        in 2022 &copy;. Based on{' '}
+        <a href="https://ant.design/" target="_blank" rel="noreferrer">
+          Ant-design.
+          </a>
       </S.Text>
     </S.ReferencesWrapper>
   );

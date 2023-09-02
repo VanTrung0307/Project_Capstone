@@ -133,3 +133,13 @@ export const updateEventTask = async (id: string, taskeventData: updateEventTask
     throw error;
   }
 };
+
+export const deleteEventTask = async (id: string): Promise<TaskByEvent> => {
+  try {
+    const response = await httpApi.delete<TaskByEvent>(`${API_BASE_URL}/deleteeventtask?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating school:', error);
+    throw error;
+  }
+};

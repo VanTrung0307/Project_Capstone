@@ -1,10 +1,16 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { Pagination, Player, getPaginatedPlayers } from '@app/api/FPT_3DMAP_API/Player';
+import {
+  Pagination,
+  Player,
+  PlayerFilter,
+  getPaginatedPlayers,
+  getPaginatedPlayersWithEventandSchool,
+} from '@app/api/FPT_3DMAP_API/Player';
 import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Select, message } from 'antd';
+import { Button, Form, Select, Space, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -13,6 +19,8 @@ import { EditableCell } from '../editableTable/EditableCell';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { DownOutlined } from '@ant-design/icons';
+import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer';
+import { useNavigate } from 'react-router-dom';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -23,7 +31,7 @@ export const PlayerTable: React.FC = () => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: PlayerFilter[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
@@ -42,53 +50,37 @@ export const PlayerTable: React.FC = () => {
     return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
   };
 
-  const isEditing = (record: Player) => record.id === editingKey;
+  const isEditing = (record: PlayerFilter) => record.id === editingKey;
+  const cancel = () => {
+    setEditingKey('');
+  };
 
   const [form] = Form.useForm();
 
   const { isMounted } = useMounted();
-  const [originalData, setOriginalData] = useState<Player[]>([]);
 
   const [eventId, setEventId] = useState<string>('');
   const [schoolId, setSchoolId] = useState<string>('');
 
   const fetch = useCallback(
-    async (pagination: Pagination) => {
-      setData((tableData) => ({ ...tableData, loading: true }));
-      getPaginatedPlayers(pagination)
-        .then((res) => {
-          if (isMounted.current) {
-            setOriginalData(res.data);
-            setData({ data: res.data, pagination: res.pagination, loading: false });
-          }
-        })
-        .catch((error) => {
-          message.error('Error fetching paginated players:', error);
-          setData((tableData) => ({ ...tableData, loading: false }));
-        });
+    (pagination: Pagination) => {
+      setData((tableData) => ({ ...tableData, loading: false }));
 
-      try {
-        const eventResponse = await getPaginatedEvents({ current: 1, pageSize: 1000 });
-        setEvents(eventResponse.data);
-      } catch (error) {
-        // message.error('Error fetching events');
-      }
-      try {
-        const studentResponse = await getPaginatedUsers({ current: 1, pageSize: 1000 });
-        setStudents(studentResponse.data);
-      } catch (error) {
-        // message.error('Error fetching students');
-      }
+      getPaginatedEvents({ current: 1, pageSize: 100 }).then((paginationData) => {
+        setEvents(paginationData.data);
+      });
 
-      try {
-        // Fetch schools here and set the schools state
-        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
-        setSchools(schoolResponse.data);
-      } catch (error) {
-        // message.error('Error fetching schools');
-      }
+      getPaginatedSchools({ current: 1, pageSize: 100 }).then((paginationData) => {
+        setSchools(paginationData.data);
+      });
+
+      getPaginatedPlayersWithEventandSchool(schoolId, eventId, pagination).then((res) => {
+        if (isMounted.current) {
+          setData({ data: res.data, pagination: res.pagination, loading: false });
+        }
+      });
     },
-    [isMounted],
+    [isMounted, eventId, schoolId],
   );
 
   useEffect(() => {
@@ -97,28 +89,22 @@ export const PlayerTable: React.FC = () => {
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     fetch(pagination);
-
-    // Apply additional filtering based on selected school and event
-    let filteredDataAfterPagination = originalData;
-    if (selectedSchoolId) {
-      filteredDataAfterPagination = filteredDataAfterPagination.filter(
-        (record) => record.schoolName === selectedSchoolId,
-      );
-    }
-    if (selectedEventId) {
-      filteredDataAfterPagination = filteredDataAfterPagination.filter((record) => record.eventId === selectedEventId);
-    }
-
-    setFilteredData(filteredDataAfterPagination);
+    cancel();
   };
 
-  const uniqueEventNames = new Set(data.data.map((record) => record.eventName));
-  const eventNameFilters = Array.from(uniqueEventNames).map((eventName) => ({
-    text: eventName,
-    value: eventName,
-  }));
+  const navigate = useNavigate();
 
-  const columns: ColumnsType<Player> = [
+  const handlePlayerClick = async (playerId: string) => {
+    try {
+      const pagination = { current: 1, pageSize: 100 };
+      await getHistoryPaginatedPlayers(playerId, pagination);
+      navigate(`/players/${playerId}`);
+    } catch (error) {
+      message.error('Không tìm thấy học sinh này');
+    }
+  };
+
+  const columns: ColumnsType<PlayerFilter> = [
     {
       title: t('Tên học sinh'),
       dataIndex: 'studentName',
@@ -132,16 +118,6 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'studentEmail',
     },
     {
-      title: t('Tên trường'),
-      dataIndex: 'schoolName',
-    },
-    {
-      title: t('Tên sự kiện'),
-      dataIndex: 'eventName',
-      filters: eventNameFilters,
-      onFilter: (value, record) => record.eventName === value,
-    },
-    {
       title: t('Mã tham gia'),
       dataIndex: 'passcode',
     },
@@ -152,6 +128,21 @@ export const PlayerTable: React.FC = () => {
     {
       title: t('Tổng thời gian hoàn thành'),
       dataIndex: 'totalTime',
+    },
+    {
+      title: t('Chức năng'),
+      dataIndex: 'actions',
+      width: '1%',
+      render: (text: string, record: PlayerFilter) => {
+        const editable = isEditing(record);
+        return (
+          <Space>
+            <Button type="ghost" onClick={() => handlePlayerClick(record.id)}>
+              Lịch sử người chơi
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -174,9 +165,6 @@ export const PlayerTable: React.FC = () => {
     }
   };
 
-  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
-  const [selectedEventId, setSelectedEventId] = useState<string>('');
-
   return (
     <Form form={form} component={false}>
       <SearchInput
@@ -189,37 +177,29 @@ export const PlayerTable: React.FC = () => {
 
       <div style={{ marginBottom: '10px' }}>
         <Select
-          value={selectedEventId}
-          onChange={(value) => {
-            setSelectedEventId(value);
-            const filteredDataByEvent = originalData.filter((record) => record.eventId === value);
-            setFilteredData(filteredDataByEvent);
-          }}
-          placeholder="Hãy chọn sự kiện"
-          style={{ width: 300, marginRight: 16 }}
+          value={schoolId}
+          onChange={(value) => setSchoolId(value)}
+          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
         >
-          {events.map((event) => (
-            <Select.Option key={event.id} value={event.id}>
-              {event.name}
+          <Select.Option value="">Chọn trường</Select.Option>
+          {schools.map((school) => (
+            <Select.Option key={school.id} value={school.id}>
+              {school.name}
             </Select.Option>
           ))}
         </Select>
 
         <Select
-          value={selectedSchoolId}
-          onChange={(value) => {
-            setSelectedSchoolId(value);
-            const filteredDataBySchool = originalData.filter((record) => record.schoolName === value);
-            setFilteredData(filteredDataBySchool);
-          }}
-          placeholder="Hãy chọn trường"
-          style={{ width: 300, marginRight: 16 }}
+          value={eventId}
+          onChange={(value) => setEventId(value)}
+          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
         >
-          {schools.map((school) => (
-            <Select.Option key={school.id} value={school.id}>
-              {school.name}
+          <Select.Option value="">Chọn sự kiện</Select.Option>
+          {events.map((event) => (
+            <Select.Option key={event.id} value={event.id}>
+              {event.name}
             </Select.Option>
           ))}
         </Select>
@@ -232,7 +212,7 @@ export const PlayerTable: React.FC = () => {
           },
         }}
         columns={columns}
-        dataSource={filteredData}
+        dataSource={data.data}
         pagination={data.pagination}
         onChange={handleTableChange}
         loading={data.loading}

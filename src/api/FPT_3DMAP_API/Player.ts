@@ -19,6 +19,19 @@ export type Player = {
   isplayer: boolean;
 };
 
+export type PlayerFilter = {
+  id: string;
+  studentEmail: string;
+  schoolName: string;
+  studentId: string;
+  studentName: string;
+  nickname: string;
+  passcode: string;
+  totalPoint: number;
+  totalTime: number;
+  createdAt: string;
+};
+
 interface PlayerData {
   studentId: string;
   eventId: string;
@@ -33,6 +46,10 @@ export type PlayerList = {
   data: Player[];
 };
 
+export type PlayerFilterList = {
+  data: PlayerFilter[];
+};
+
 export interface Pagination {
   current?: number;
   pageSize?: number;
@@ -44,11 +61,48 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
+export interface PaginationPlayerData {
+  data: PlayerFilter[];
+  pagination: Pagination;
+}
+
 export const getPaginatedPlayers = async (pagination: Pagination): Promise<PaginationData> => {
   try {
     const response = await axios.get<PlayerList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 1000 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated players:', error);
+    throw error;
+  }
+};
+
+export const getPaginatedPlayersWithEventandSchool = async (
+  schoolId: string,
+  eventId: string,
+  pagination: Pagination,
+): Promise<PaginationPlayerData> => {
+  try {
+    const response = await httpApi.get<PlayerFilterList>(
+      `${API_BASE_URL}/filterdatawithschoolandevent?schoolId=${schoolId}&eventId=${eventId}`,
+    );
+    const { data } = response.data;
+    const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;
@@ -78,7 +132,7 @@ export const getRankedPlayers = async (
   try {
     const response = await axios.get<PlayerList>(`${API_BASE_URL}/GetRankedPlayer/${eventId}/${schoolId}`);
     const { data } = response.data;
-    const { current = 1, pageSize = 10 } = pagination;
+    const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;

@@ -140,3 +140,13 @@ export const updateSchoolEvent = async (id: string, update: updateEventSchool): 
     throw error;
   }
 };
+
+export const deleteSchoolEvent = async (id: string): Promise<EventSchool> => {
+  try {
+    const response = await httpApi.delete<EventSchool>(`${API_BASE_URL}/deleteschoolevent?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating school:', error);
+    throw error;
+  }
+};
