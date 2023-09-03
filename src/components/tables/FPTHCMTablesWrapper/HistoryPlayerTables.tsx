@@ -32,7 +32,7 @@ export const HistoryPlayerTables: React.FC<PlayerProps> = ({playerId}) => {
   return (
     <>
       <S.FPTHCMTablesWrapper>
-        <S.Card id="basic-table" title={t(`${player?.studentName}`)} padding="1.25rem 1.25rem 0">
+        <S.Card id="basic-table" title={t(`📂 ${player?.studentName}`)} padding="1.25rem 1.25rem 0">
           <HistoryPlayerTable />
         </S.Card>
       </S.FPTHCMTablesWrapper>

@@ -31,7 +31,7 @@ export interface PaginationData {
 
 export const getHistoryPaginatedPlayers = async (playerId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await httpApi.get<HistoryPlayerList>(`${API_BASE_URL}/playerid?playerid=${playerId}`);
+    const response = await httpApi.get<HistoryPlayerList>(`${API_BASE_URL}/player/${playerId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
