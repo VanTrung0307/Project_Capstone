@@ -4,14 +4,28 @@ import { httpApi } from '../http.api';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/PlayerHistorys`;
 
 export type HistoryPlayer = {
+  id: string;
   eventtaskId: string;
   playerId: string;
+  taskId: string;
+  majorId: string;
+  majorName: string;
   taskName: string;
   playerNickName: string;
   completedTime: number;
   taskPoint: number;
   status: string;
   createdAt: string;
+  studentId: string;
+  eventId: string;
+  studentName: string;
+  schoolName: string;
+  studentEmail: string;
+  eventName: string;
+  passcode: string;
+  totalPoint: number;
+  totalTime: number;
+  isplayer: true;
 };
 
 export type HistoryPlayerList = {
