@@ -12,7 +12,7 @@ import {
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
-import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, Tag, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
@@ -24,6 +24,7 @@ import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 import styled from 'styled-components';
+import { initValues } from './../../auth/LoginForm/LoginForm';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -155,20 +156,24 @@ export const GiftTable: React.FC = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const currentDate = new Date();
 
       const newData: addGift = {
+        prizeRank: values.prizeRank,
+        eventId: values.eventId,
         name: values.name,
         description: values.description,
-        eventId: values.eventId,
         quantity: values.quantity,
         status: values.status,
-        id: values.id,
+        dateReceived: currentDate.toISOString(),
+        // id: values.id,
       };
 
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        const createdGift = await createGift(newData);
+        await createGift(newData);
+        // const createdGift = await createGift(newData);
 
         const selectedEvent = events.find((event) => event.id === newData.eventId);
 
@@ -176,7 +181,7 @@ export const GiftTable: React.FC = () => {
           newData.eventId = selectedEvent.id;
         }
 
-        newData.id = createdGift.id;
+        // newData.id = createdGift.id;
 
         form.resetFields();
         setIsBasicModalOpen(false);
@@ -400,7 +405,6 @@ export const GiftTable: React.FC = () => {
   ];
 
   const FlexContainer = styled.div`
-    display: flex;
     align-items: center;
     margin-bottom: 16px;
   `;
@@ -412,6 +416,15 @@ export const GiftTable: React.FC = () => {
   const InputContainer = styled.div`
     flex: 1;
   `;
+
+  const rankNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  // Use useEffect to update the currentDateTime state with the current date and time
+  useEffect(() => {
+    setCurrentDateTime(new Date());
+  }, []);
 
   return (
     <Form form={form} component={false}>
@@ -426,6 +439,7 @@ export const GiftTable: React.FC = () => {
         title={'Thêm mới PHẦN QUÀ'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
+        width={800}
         onCancel={() => setIsBasicModalOpen(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -439,76 +453,125 @@ export const GiftTable: React.FC = () => {
         }
       >
         <S.FormContent>
-          <FlexContainer>
-            <Label>{'Tên phần quà'}</Label>
-            <InputContainer>
-              <BaseForm.Item
-                name="name"
-                rules={[
-                  { required: true, message: t('Hãy nhập tên phần quà') },
-                  {
-                    pattern: /^[^\d\W].*$/,
-                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
-                  },
-                ]}
-              >
-                <Input maxLength={100} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          <FlexContainer>
-            <Label>{'Mô tả'}</Label>
-            <InputContainer>
-              <BaseForm.Item
-                name="description"
-                rules={[
-                  { required: true, message: t('Hãy nhập mô tả') },
-                  {
-                    pattern: /^[^\d\W].*$/,
-                    message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
-                  },
-                ]}
-              >
-                <TextArea autoSize={{ maxRows: 6 }} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          <FlexContainer>
-            <Label>{'Số lượng'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
-                <Input type="number" min={1} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          <FlexContainer>
-            <Label>{'Tên sự kiện'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Hãy chọn tên sự kiện') }]}>
-                <Select
-                  style={{ maxWidth: '256px' }}
-                  placeholder={'---- Chọn sự kiện ----'}
-                  suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-                >
-                  {events
-                    .filter((event) => event.status === 'ACTIVE')
-                    .map((event) => (
-                      <Option key={event.id} value={event.id}>
-                        {event.name}
-                      </Option>
-                    ))}
-                </Select>
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
-          <FlexContainer>
-            <Label>{'Trạng thái'}</Label>
-            <InputContainer>
-              <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                <Input disabled={true} style={{ width: '80px' }} />
-              </BaseForm.Item>
-            </InputContainer>
-          </FlexContainer>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Tên phần quà'}</Label>
+                <InputContainer>
+                  <BaseForm.Item
+                    name="name"
+                    rules={[
+                      { required: true, message: t('Hãy nhập tên phần quà') },
+                      {
+                        pattern: /^[^\d\W].*$/,
+                        message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                      },
+                    ]}
+                  >
+                    <Input maxLength={100} style={{ width: '256px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Mô tả'}</Label>
+                <InputContainer>
+                  <BaseForm.Item
+                    name="description"
+                    rules={[
+                      { required: true, message: t('Hãy nhập mô tả') },
+                      {
+                        pattern: /^[^\d\W].*$/,
+                        message: 'Không được bắt đầu bằng số hoặc ký tự đặc biệt',
+                      },
+                    ]}
+                  >
+                    <TextArea style={{ width: '256px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Số lượng'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
+                    <Input type="number" min={1} style={{ width: '256px' }}/>
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Xếp hạng'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="prizeRank" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
+                    <Select
+                      mode="multiple"
+                      placeholder={'Chọn số xếp hạng'}
+                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      style={{ width: '256px' }}
+                    >
+                      {rankNumbers.map((number) => (
+                        <Select.Option key={number} value={number}>
+                          {number}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Tên sự kiện'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="eventId" rules={[{ required: true, message: t('Hãy chọn tên sự kiện') }]}>
+                    <Select
+                      style={{ maxWidth: '256px' }}
+                      placeholder={'---- Chọn sự kiện ----'}
+                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                    >
+                      {events
+                        .filter((event) => event.status === 'ACTIVE')
+                        .map((event) => (
+                          <Option key={event.id} value={event.id}>
+                            {event.name}
+                          </Option>
+                        ))}
+                    </Select>
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Trạng thái'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                    <Input disabled={true} style={{ width: '80px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Ngày tạo'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="dateReceived" initialValue={currentDateTime.toISOString()}>
+                    <Input disabled={true} style={{ width: '256px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col>
+          </Row>
         </S.FormContent>
       </Modal>
 

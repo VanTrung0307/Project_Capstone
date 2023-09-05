@@ -14,12 +14,13 @@ export type Gift = {
 };
 
 export type addGift = {
+  prizeRank: number;
   eventId: string;
   name: string;
   description: string;
   status: string;
   quantity: number;
-  id: string;
+  dateReceived: string;
 };
 
 export type updateGiftData = {
