@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditableCell } from '../editableTable/EditableCell';
 import { DownOutlined } from '@ant-design/icons';
+import { PlayerPrize, getRankedPlayerPrizes } from '@app/api/FPT_3DMAP_API/PlayerPrize';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -21,13 +22,13 @@ export const RankTable: React.FC = () => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: PlayerPrize[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: Player) => record.id === editingKey;
+  const isEditing = (record: PlayerPrize) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -35,7 +36,7 @@ export const RankTable: React.FC = () => {
     setEditingKey('');
   };
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Player) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof PlayerPrize) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -64,7 +65,7 @@ export const RankTable: React.FC = () => {
         setSchools(paginationData.data);
       });
 
-      getRankedPlayers(eventId, schoolId, pagination).then((res) => {
+      getRankedPlayerPrizes(eventId, schoolId, pagination).then((res) => {
         if (isMounted.current) {
           setData({ data: res.data, pagination: res.pagination, loading: false });
         }
@@ -82,13 +83,13 @@ export const RankTable: React.FC = () => {
     cancel();
   };
 
-  const columns: ColumnsType<Player> = [
+  const columns: ColumnsType<PlayerPrize> = [
     {
       title: t('Username'),
       dataIndex: 'nickname',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'nickname';
+        const dataIndex: keyof PlayerPrize = 'nickname';
         return editable ? (
           <Form.Item
             key={record.nickname}
@@ -109,9 +110,9 @@ export const RankTable: React.FC = () => {
     {
       title: t('Tên người chơi'),
       dataIndex: 'studentName',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'studentName';
+        const dataIndex: keyof PlayerPrize = 'studentName';
         return editable ? (
           <Form.Item
             key={record.studentName}
@@ -132,9 +133,9 @@ export const RankTable: React.FC = () => {
     {
       title: t('Tổng thời gian'),
       dataIndex: 'totalTime',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalTime';
+        const dataIndex: keyof PlayerPrize = 'totalTime';
         return editable ? (
           <Form.Item
             key={record.totalTime}
@@ -155,9 +156,9 @@ export const RankTable: React.FC = () => {
     {
       title: t('Tổng điểm'),
       dataIndex: 'totalPoint',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalPoint';
+        const dataIndex: keyof PlayerPrize = 'totalPoint';
         return editable ? (
           <Form.Item
             key={record.totalPoint}
@@ -174,6 +175,10 @@ export const RankTable: React.FC = () => {
           <span>{text}</span>
         );
       },
+    },
+    {
+      title: t('Phần thưởng'),
+      dataIndex: 'prizeName',
     },
   ];
 

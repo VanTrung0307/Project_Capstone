@@ -4,13 +4,15 @@ import { httpApi } from '../http.api';
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Prizes`;
 
 export type Gift = {
-  name: string;
-  description: string;
-  quantity: number;
+  prizeRank: number;
   eventId: string;
   eventName: string;
+  name: string;
+  description: string;
   status: string;
+  quantity: number;
   id: string;
+  rankNumber: number;
 };
 
 export type addGift = {

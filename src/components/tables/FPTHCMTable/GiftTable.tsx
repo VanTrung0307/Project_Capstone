@@ -24,7 +24,6 @@ import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 import styled from 'styled-components';
-import { initValues } from './../../auth/LoginForm/LoginForm';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -221,6 +220,10 @@ export const GiftTable: React.FC = () => {
   };
 
   const columns: ColumnsType<Gift> = [
+    {
+      title: t('Số hạng'),
+      dataIndex: 'rankNumber'
+    },
     {
       title: t('Tên quà tặng'),
       dataIndex: 'name',
@@ -499,7 +502,7 @@ export const GiftTable: React.FC = () => {
                 <Label>{'Số lượng'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
-                    <Input type="number" min={1} style={{ width: '256px' }}/>
+                    <Input type="number" min={1} style={{ width: '256px' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
