@@ -360,9 +360,6 @@ export const SchoolEventTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button danger onClick={() => handleDelete(record.id)}>
-                  Xoá
-                </Button>
                 <Button
                   type="ghost"
                   onClick={() => {
@@ -372,6 +369,9 @@ export const SchoolEventTable: React.FC = () => {
                   }}
                 >
                   Danh sách học sinh
+                </Button>
+                <Button danger onClick={() => handleDelete(record.id)}>
+                  Xoá
                 </Button>
               </>
             )}

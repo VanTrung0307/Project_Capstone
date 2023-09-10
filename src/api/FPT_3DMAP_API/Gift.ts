@@ -7,6 +7,8 @@ export type Gift = {
   prizeRank: number;
   eventId: string;
   eventName: string;
+  schoolId: string;
+  schoolName: string;
   name: string;
   description: string;
   status: string;
@@ -18,6 +20,7 @@ export type Gift = {
 export type addGift = {
   prizeRank: number;
   eventId: string;
+  schoolId: string;
   name: string;
   description: string;
   status: string;

@@ -24,6 +24,7 @@ import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 
 import styled from 'styled-components';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -41,6 +42,7 @@ export const GiftTable: React.FC = () => {
     loading: false,
   });
   const [events, setEvents] = useState<Event[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
 
   const isEditing = (record: Gift) => record.id === editingKey;
 
@@ -137,6 +139,12 @@ export const GiftTable: React.FC = () => {
       } catch (error) {
         // message.error('Error fetching events');
       }
+      try {
+        const schoolResponse = await getPaginatedSchools({ current: 1, pageSize: 1000 });
+        setSchools(schoolResponse.data);
+      } catch (error) {
+        // message.error('Error fetching events');
+      }
     },
     [isMounted],
   );
@@ -160,6 +168,7 @@ export const GiftTable: React.FC = () => {
       const newData: addGift = {
         prizeRank: values.prizeRank,
         eventId: values.eventId,
+        schoolId: values.schoolId,
         name: values.name,
         description: values.description,
         quantity: values.quantity,
@@ -220,10 +229,10 @@ export const GiftTable: React.FC = () => {
   };
 
   const columns: ColumnsType<Gift> = [
-    {
-      title: t('Số hạng'),
-      dataIndex: 'rankNumber'
-    },
+    // {
+    //   title: t('Số hạng'),
+    //   dataIndex: 'rankNumber',
+    // },
     {
       title: t('Tên quà tặng'),
       dataIndex: 'name',
@@ -271,6 +280,38 @@ export const GiftTable: React.FC = () => {
               {events.map((event) => (
                 <Select.Option key={event.id} value={event.id}>
                   {event.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        ) : (
+          <span>{text !== null ? text : 'Chưa có thông tin'}</span>
+        );
+      },
+    },
+    {
+      title: t('Tên trường'),
+      dataIndex: 'schoolName',
+      // filters: eventNameFilters,
+      onFilter: (value, record) => record.schoolName === value,
+      render: (text: string, record: Gift) => {
+        const editable = isEditing(record);
+        const dataIndex: keyof Gift = 'schoolId';
+        return editable ? (
+          <Form.Item
+            key={record.schoolId}
+            name={dataIndex}
+            rules={[{ required: true, message: 'Hãy chọn tên sự kiện' }]}
+          >
+            <Select
+              style={{ maxWidth: '212.03px' }}
+              value={record[dataIndex]}
+              onChange={(value) => handleInputChange(value, record.schoolId, dataIndex)}
+              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+            >
+              {schools.map((school) => (
+                <Select.Option key={school.id} value={school.id}>
+                  {school.name}
                 </Select.Option>
               ))}
             </Select>
@@ -422,12 +463,12 @@ export const GiftTable: React.FC = () => {
 
   const rankNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  // const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   // Use useEffect to update the currentDateTime state with the current date and time
-  useEffect(() => {
-    setCurrentDateTime(new Date());
-  }, []);
+  // useEffect(() => {
+  //   setCurrentDateTime(new Date());
+  // }, []);
 
   return (
     <Form form={form} component={false}>
@@ -513,7 +554,6 @@ export const GiftTable: React.FC = () => {
                 <InputContainer>
                   <BaseForm.Item name="prizeRank" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
                     <Select
-                      mode="multiple"
                       placeholder={'Chọn số xếp hạng'}
                       suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                       style={{ width: '256px' }}
@@ -554,22 +594,44 @@ export const GiftTable: React.FC = () => {
             </Col>
             <Col span={12}>
               <FlexContainer>
-                <Label>{'Trạng thái'}</Label>
+                <Label>{'Tên trường'}</Label>
                 <InputContainer>
-                  <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input disabled={true} style={{ width: '80px' }} />
+                  <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Hãy chọn tên trường') }]}>
+                    <Select
+                      style={{ maxWidth: '256px' }}
+                      placeholder={'---- Chọn sự kiện ----'}
+                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                    >
+                      {schools
+                        .filter((school) => school.status === 'ACTIVE')
+                        .map((school) => (
+                          <Option key={school.id} value={school.id}>
+                            {school.name}
+                          </Option>
+                        ))}
+                    </Select>
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col span={12}>
+            {/* <Col span={12}>
               <FlexContainer>
                 <Label>{'Ngày tạo'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="dateReceived" initialValue={currentDateTime.toISOString()}>
                     <Input disabled={true} style={{ width: '256px' }} />
+                  </BaseForm.Item>
+                </InputContainer>
+              </FlexContainer>
+            </Col> */}
+            <Col span={12}>
+              <FlexContainer>
+                <Label>{'Trạng thái'}</Label>
+                <InputContainer>
+                  <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                    <Input disabled={true} style={{ width: '80px' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>

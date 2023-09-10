@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+import { httpApi } from '../http.api';
 // import { httpApi } from '../http.api';
 
 const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/PlayerPrizes`;
@@ -19,25 +20,14 @@ export type PlayerPrize = {
   isplayer: boolean;
 };
 
-export type PlayerFilter = {
-  id: string;
-  studentEmail: string;
-  schoolName: string;
-  studentId: string;
-  studentName: string;
-  nickname: string;
-  passcode: string;
-  totalPoint: number;
-  totalTime: number;
-  createdAt: string;
+export type PlayerPrizeSend = {
+  prizeId: string;
+  dateReceived: string;
+  status: string;
 };
 
 export type PlayerList = {
   data: PlayerPrize[];
-};
-
-export type PlayerFilterList = {
-  data: PlayerFilter[];
 };
 
 export interface Pagination {
@@ -77,6 +67,16 @@ export const getRankedPlayerPrizes = async (
     };
   } catch (error) {
     console.error('Error fetching ranked players:', error);
+    throw error;
+  }
+};
+
+export const createPlayerPrize = async (send: PlayerPrizeSend, playerId: string): Promise<PlayerPrizeSend> => {
+  try {
+    const response = await httpApi.post<PlayerPrizeSend>(`${API_BASE_URL}/CreatePlayerPrize/${playerId}`, send);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating gift:', error);
     throw error;
   }
 };
