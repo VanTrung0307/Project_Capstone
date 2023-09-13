@@ -6,14 +6,16 @@ const API_BASE_URL = `${process.env.REACT_APP_BASE_URL}/api/Students`;
 
 export type Student = {
   id: string;
-  schoolId: string;
+  eventId: string;
+  eventName: string;
   schoolname: string;
   fullname: string;
   email: string;
   phonenumber: number;
-  graduateYear: string;
+  graduateYear: number;
   classname: string;
   status: string;
+  passcode: string;
 };
 
 export type EventStudent = {

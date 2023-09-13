@@ -22,7 +22,11 @@ const initialPagination: Pagination = {
   pageSize: 10,
 };
 
-export const RankTable: React.FC = () => {
+type EventsProps = {
+  eventId?: string;
+};
+
+export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = ({ eventId, selectedSchoolId }) => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
@@ -53,7 +57,6 @@ export const RankTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const [eventId, setEventId] = useState<string>('');
   const [schoolId, setSchoolId] = useState<string>('');
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -71,14 +74,16 @@ export const RankTable: React.FC = () => {
         setSchools(paginationData.data);
       });
 
-      getRankedPlayers(eventId, schoolId, pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-          setPlayerId(res.data[0].id);
-        }
-      });
+      if (eventId && selectedSchoolId) {
+        getRankedPlayers(eventId, selectedSchoolId, pagination).then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+            setPlayerId(res.data[0].id);
+          }
+        });
+      }
     },
-    [isMounted, eventId, schoolId],
+    [isMounted, eventId, selectedSchoolId],
   );
 
   useEffect(() => {
@@ -282,10 +287,10 @@ export const RankTable: React.FC = () => {
                     <BaseForm.Item
                       name="prizeId"
                       rules={[{ required: true, message: t('Phải có phần thưởng') }]}
-                      initialValue={record.prizedName}
+                      initialValue={record.prizedId}
                     >
-                      <Input maxLength={100} onChange={(e) => handlePrizeIdChange(e.target.value)} disabled />
-                      <input type="hidden" value={record.prizeId} />
+                      <Input maxLength={100} onChange={(e) => handlePrizeIdChange(record.prizedId)} disabled />
+                      {/* <input type="hidden" value={record.prizedId} /> */}
                     </BaseForm.Item>
                   </InputContainer>
                 </FlexContainer>
@@ -310,7 +315,7 @@ export const RankTable: React.FC = () => {
                 <FlexContainer>
                   <Label>{'Trạng thái'}</Label>
                   <InputContainer>
-                    <BaseForm.Item name="status" initialValue={'ACTIVE'}>
+                    <BaseForm.Item name="status" initialValue={'RECEIVED'}>
                       <Input disabled={true} />
                     </BaseForm.Item>
                   </InputContainer>
@@ -325,7 +330,7 @@ export const RankTable: React.FC = () => {
 
   return (
     <Form form={form} component={false}>
-      <Select
+      {/* <Select
         value={eventId}
         onChange={(value) => setEventId(value)}
         style={{ width: 300, marginRight: 10, marginBottom: 10 }}
@@ -337,9 +342,9 @@ export const RankTable: React.FC = () => {
             {event.name}
           </Select.Option>
         ))}
-      </Select>
+      </Select> */}
 
-      {eventId && (
+      {/* {eventId && (
         <Select
           value={schoolId}
           onChange={(value) => setSchoolId(value)}
@@ -353,7 +358,7 @@ export const RankTable: React.FC = () => {
             </Select.Option>
           ))}
         </Select>
-      )}
+      )} */}
 
       <Table
         components={{

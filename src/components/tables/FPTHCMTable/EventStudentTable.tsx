@@ -8,6 +8,7 @@ import {
   EventStudent,
   exportStudentExcel,
   getExcelTemplateStudent,
+  getStudenbySchoolById,
   getStudenbySchoolandEventId,
 } from '@app/api/FPT_3DMAP_API/Student';
 import { httpApi } from '@app/api/http.api';
@@ -29,7 +30,14 @@ const initialPagination: Pagination = {
   pageSize: 100,
 };
 
-export const EventStudentTable: React.FC = () => {
+type EventsProps = {
+  eventId?: string;
+};
+
+export const EventStudentTable: React.FC<EventsProps & { selectedSchoolId: string }> = ({
+  eventId,
+  selectedSchoolId,
+}) => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
@@ -58,15 +66,14 @@ export const EventStudentTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const { schoolId } = useParams<{ schoolId: string | undefined }>();
-  const { eventId } = useParams<{ eventId: string | undefined }>();
+  // const { schoolId } = useParams<{ schoolId: string | undefined }>();
   const [originalData, setOriginalData] = useState<EventStudent[]>([]);
 
   const fetchData = async (pagination: Pagination) => {
     setData((tableData) => ({ ...tableData, loading: false }));
-    if (schoolId) {
+    if (selectedSchoolId) {
       try {
-        const res = await getStudenbySchoolandEventId(schoolId, pagination);
+        const res = await getStudenbySchoolById(selectedSchoolId, pagination);
         if (isMounted.current) {
           setOriginalData(res.data);
           setData({ data: res.data, pagination: res.pagination, loading: false });
@@ -80,21 +87,21 @@ export const EventStudentTable: React.FC = () => {
   const [school, setSchool] = useState<EventSchool | undefined>(undefined);
 
   useEffect(() => {
-    if (schoolId) {
+    if (selectedSchoolId) {
       const pagination: Pagination = { current: 1, pageSize: 10 };
 
       getPaginatedEventSchools(pagination)
         .then((response) => {
-          const schoolData = response.data.find((school) => school.id === schoolId);
+          const schoolData = response.data.find((school) => school.id === selectedSchoolId);
           setSchool(schoolData);
         })
         .catch((error) => {
           console.error('Error fetching paginated event schools:', error);
         });
     }
-  }, [schoolId]);
+  }, [selectedSchoolId]);
 
-  const fetch = useCallback(fetchData, [isMounted, schoolId]);
+  const fetch = useCallback(fetchData, [isMounted, selectedSchoolId]);
 
   useEffect(() => {
     fetch(initialPagination);
@@ -105,13 +112,13 @@ export const EventStudentTable: React.FC = () => {
     cancel();
   };
 
-  const handleSavePlayer = async (studentId: string, eventId: string, fullname: string) => {
+  const handleSavePlayer = async (studentId: string, fullname: string) => {
     try {
       // setData((tableData) => ({ ...tableData, loading: true }));
-      if (studentId && school && school.eventId) {
+      if (studentId && eventId && selectedSchoolId) {
         await createPlayer({
           studentId: studentId,
-          eventId: school.eventId,
+          eventId: eventId,
           nickname: '',
           passcode: '',
           totalPoint: 0,
@@ -139,9 +146,9 @@ export const EventStudentTable: React.FC = () => {
         return;
       }
 
-      if (schoolId) {
+      if (selectedSchoolId) {
         for (const record of data.data) {
-          await handleSavePlayer(record.id, schoolId, record.fullname);
+          await handleSavePlayer(record.id, record.fullname);
         }
         form.resetFields();
         setTimeout(() => {
@@ -354,7 +361,7 @@ export const EventStudentTable: React.FC = () => {
 
       try {
         const response = await httpApi.post(
-          `https://anhkiet-001-site1.htempurl.com/api/Students/uploadfileexcelstudent?schooleventId=${schoolId}`,
+          `https://anhkiet-001-site1.htempurl.com/api/Students/uploadfileexcelstudentwithschoolId?schoolId=${selectedSchoolId}`,
           formData,
           {
             headers: {
@@ -463,7 +470,7 @@ export const EventStudentTable: React.FC = () => {
         </Upload>
       </div>
 
-      {schoolId && (
+      {selectedSchoolId && (
         <Button
           type="primary"
           onClick={handleGeneratePasscode}

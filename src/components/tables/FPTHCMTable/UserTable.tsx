@@ -3,8 +3,9 @@
 /* eslint-disable prettier/prettier */
 import { DownOutlined } from '@ant-design/icons';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
-import { Pagination, Student, createStudent, getPaginatedStudent, updateStudent } from '@app/api/FPT_3DMAP_API/Student';
+import { Pagination, Student, getPaginatedStudent, updateStudent } from '@app/api/FPT_3DMAP_API/Student';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { Option } from '@app/components/common/selects/Select/Select';
 import { useMounted } from '@app/hooks/useMounted';
 import { Form, Input, Modal, Select, Space, Tag, message } from 'antd';
@@ -14,9 +15,8 @@ import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -141,53 +141,53 @@ export const UserTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
+  // const handleModalOk = async () => {
+  //   try {
+  //     const values = await form.validateFields();
 
-      const newData: Student = {
-        schoolId: values.schoolId,
-        schoolname: values.schoolname,
-        email: values.email,
-        graduateYear: values.graduateYear,
-        phonenumber: values.phoneNumber,
+  //     const newData: Student = {
+  //       schoolId: values.schoolId,
+  //       schoolname: values.schoolname,
+  //       email: values.email,
+  //       graduateYear: values.graduateYear,
+  //       phonenumber: values.phoneNumber,
 
-        fullname: values.fullname,
-        classname: values.classname,
-        status: values.status,
-        id: values.id,
-      };
+  //       fullname: values.fullname,
+  //       classname: values.classname,
+  //       status: values.status,
+  //       id: values.id,
+  //     };
 
-      setData((prevData) => ({ ...prevData, loading: true }));
+  //     setData((prevData) => ({ ...prevData, loading: true }));
 
-      try {
-        const createdStudent = await createStudent(newData);
-        const selectedschool = schools.find((school) => school.id === newData.schoolId);
+  //     try {
+  //       const createdStudent = await createStudent(newData);
+  //       const selectedschool = schools.find((school) => school.id === newData.schoolId);
 
-        if (selectedschool) {
-          newData.schoolId = selectedschool.id;
-        }
+  //       if (selectedschool) {
+  //         newData.schoolId = selectedschool.id;
+  //       }
 
-        newData.id = createdStudent.id;
+  //       newData.id = createdStudent.id;
 
-        setData((prevData) => ({
-          ...prevData,
-          data: [...prevData.data, createdStudent],
-          loading: false,
-        }));
+  //       setData((prevData) => ({
+  //         ...prevData,
+  //         data: [...prevData.data, createdStudent],
+  //         loading: false,
+  //       }));
 
-        form.resetFields();
-        setIsBasicModalOpen(false);
-        message.success('Student data created successfully');
-        fetch(data.pagination);
-      } catch (error) {
-        message.error('Error creating Student data');
-        setData((prevData) => ({ ...prevData, loading: false }));
-      }
-    } catch (error) {
-      message.error('Error validating form');
-    }
-  };
+  //       form.resetFields();
+  //       setIsBasicModalOpen(false);
+  //       message.success('Student data created successfully');
+  //       fetch(data.pagination);
+  //     } catch (error) {
+  //       message.error('Error creating Student data');
+  //       setData((prevData) => ({ ...prevData, loading: false }));
+  //     }
+  //   } catch (error) {
+  //     message.error('Error validating form');
+  //   }
+  // };
 
   const uniqueGraduateYears = new Set(data.data.map((record) => record.graduateYear));
   const graduateYearFilters = Array.from(uniqueGraduateYears).map((year) => ({
@@ -278,38 +278,38 @@ export const UserTable: React.FC = () => {
         );
       },
     },
-    {
-      title: t('Tên trường'),
-      dataIndex: 'schoolname',
-      filters: schools.map((school) => ({ text: school.name, value: school.name })),
-      onFilter: (value, record) => record.schoolname === value,
-      render: (text: string, record: Student) => {
-        const editable = isEditing(record);
-        const dataIndex: keyof Student = 'schoolId';
-        return editable ? (
-          <Form.Item
-            key={record.schoolId}
-            name={dataIndex}
-            initialValue={text}
-            rules={[{ required: true, message: 'Please enter a schoolname' }]}
-          >
-            <Select
-              value={record[dataIndex]}
-              onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-            >
-              {schools.map((school) => (
-                <Select.Option key={school.id} value={school.id}>
-                  {school.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        ) : (
-          <span>{text}</span>
-        );
-      },
-    },
+    // {
+    //   title: t('Tên trường'),
+    //   dataIndex: 'schoolname',
+    //   filters: schools.map((school) => ({ text: school.name, value: school.name })),
+    //   onFilter: (value, record) => record.schoolname === value,
+    //   render: (text: string, record: Student) => {
+    //     const editable = isEditing(record);
+    //     const dataIndex: keyof Student = 'schoolId';
+    //     return editable ? (
+    //       <Form.Item
+    //         key={record.schoolId}
+    //         name={dataIndex}
+    //         initialValue={text}
+    //         rules={[{ required: true, message: 'Please enter a schoolname' }]}
+    //       >
+    //         <Select
+    //           value={record[dataIndex]}
+    //           onChange={(value) => handleInputChange(value, record.id, dataIndex)}
+    //           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+    //         >
+    //           {schools.map((school) => (
+    //             <Select.Option key={school.id} value={school.id}>
+    //               {school.name}
+    //             </Select.Option>
+    //           ))}
+    //         </Select>
+    //       </Form.Item>
+    //     ) : (
+    //       <span>{text}</span>
+    //     );
+    //   },
+    // },
     {
       title: t('Năm học'),
       dataIndex: 'graduateYear',
@@ -459,7 +459,7 @@ export const UserTable: React.FC = () => {
       <Modal
         title={'Thêm mới HỌC SINH'}
         open={isBasicModalOpen}
-        onOk={handleModalOk}
+        // onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
       >
         <S.FormContent>

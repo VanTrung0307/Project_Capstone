@@ -584,13 +584,13 @@ export const TaskEventTable: React.FC = () => {
         </S.FormContent>
       </Modal>
 
-      <Button
+      {/* <Button
         type="ghost"
         onClick={() => eventId && handleSchoolClick(eventId)}
         style={{ position: 'absolute', top: '0', right: '0', margin: '15px 140px' }}
       >
         Danh sách trường
-      </Button>
+      </Button> */}
 
       <SearchInput
         placeholder="Search..."

@@ -1,17 +1,14 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { dashboardNews } from '@app/constants/dashboardNews';
-import { DashboardCard } from '../DashboardCard/DashboardCard';
-import * as S from './NewsCard.styles';
 import { useTranslation } from 'react-i18next';
-import { ArticleCard } from 'components/common/ArticleCard/ArticleCard';
+import { DashboardCard } from '../DashboardCard/DashboardCard';
 
 export const NewsCard: React.FC = () => {
   const { t } = useTranslation();
 
   return (
     <DashboardCard title={t('medical-dashboard.news')}>
-      <S.Wrapper>
+      {/* <S.Wrapper>
         {dashboardNews.map((advice, index) => (
           <ArticleCard
             key={index}
@@ -24,7 +21,7 @@ export const NewsCard: React.FC = () => {
             tags={advice.tags}
           />
         ))}
-      </S.Wrapper>
+      </S.Wrapper> */}
     </DashboardCard>
   );
 };

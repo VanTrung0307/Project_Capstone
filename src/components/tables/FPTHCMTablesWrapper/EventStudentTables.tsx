@@ -3,7 +3,6 @@ import { EventSchool, getPaginatedEventSchools } from '@app/api/FPT_3DMAP_API/Ev
 import { Pagination } from '@app/api/FPT_3DMAP_API/School';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { EventStudentTable } from '../FPTHCMTable/EventStudentTable';
 import * as S from './FPTHCMTables.styles';
 
 type StudentTablesProps = {
@@ -80,7 +79,7 @@ export const EventStudentTables: React.FC<StudentTablesProps> = ({ schoolId }) =
               <h1 style={{ fontWeight: 'bold' }}>Danh sách học sinh {school ? school.schoolName : ''}</h1>
             </div>
           </div>
-          <EventStudentTable />
+          {/* <EventStudentTable /> */}
         </S.Card>
       </S.FPTHCMTablesWrapper>
     </>

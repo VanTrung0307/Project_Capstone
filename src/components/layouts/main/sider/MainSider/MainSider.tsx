@@ -1,10 +1,10 @@
 /* eslint-disable prettier/prettier */
-import React, { useMemo } from 'react';
-import Overlay from '../../../../common/Overlay';
 import { useResponsive } from 'hooks/useResponsive';
-import * as S from './MainSider.styles';
+import React, { useMemo } from 'react';
 import { SiderLogo } from '../SiderLogo';
 import SiderMenu from '../SiderMenu/SiderMenu';
+import * as S from './MainSider.styles';
+import Overlay from '@app/components/common/Overlay';
 
 interface MainSiderProps {
   isCollapsed: boolean;
@@ -12,9 +12,9 @@ interface MainSiderProps {
 }
 
 const MainSider: React.FC<MainSiderProps> = ({ isCollapsed, setCollapsed, ...props }) => {
-  const { isDesktop, mobileOnly, tabletOnly } = useResponsive();
+  const { isDesktop, tabletOnly } = useResponsive();
 
-  const isCollapsible = useMemo(() => mobileOnly && tabletOnly, [mobileOnly, tabletOnly]);
+  const isCollapsible = useMemo(() => isDesktop && tabletOnly, [isDesktop, tabletOnly]);
 
   const toggleSider = () => setCollapsed(!isCollapsed);
 
@@ -22,18 +22,19 @@ const MainSider: React.FC<MainSiderProps> = ({ isCollapsed, setCollapsed, ...pro
     <>
       <S.Sider
         trigger={null}
-        collapsed={!isDesktop && isCollapsed}
-        collapsedWidth={tabletOnly ? 80 : 0}
+        collapsed={(isDesktop || tabletOnly) && isCollapsed}
+        collapsedWidth={(isDesktop || tabletOnly) ? 80 : 80}
         collapsible={isCollapsible}
         width={260}
         {...props}
       >
+        {/* <SiderLogo isSiderCollapsed={isCollapsed} toggleSider={toggleSider} /> */}
         <SiderLogo isSiderCollapsed={isCollapsed} toggleSider={toggleSider} />
         <S.SiderContent>
           <SiderMenu setCollapsed={setCollapsed} />
         </S.SiderContent>
       </S.Sider>
-      {mobileOnly && <Overlay onClick={toggleSider} show={!isCollapsed} />}
+      {(isDesktop || tabletOnly) && <Overlay onClick={toggleSider} show={!isCollapsed} />}
     </>
   );
 };

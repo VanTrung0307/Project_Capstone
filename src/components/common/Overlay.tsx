@@ -14,7 +14,7 @@ export default styled.div<OverlayProps>`
     props.show &&
     css`
       backdrop-filter: blur(6px);
-      width: 100vw;
-      height: 100vh;
+      width: 10vw;
+      height: 10vh;
     `}
 `;

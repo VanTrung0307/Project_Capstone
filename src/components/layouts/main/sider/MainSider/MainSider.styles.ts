@@ -31,12 +31,12 @@ export const CollapseButton = styled(Button)<{ $isCollapsed: boolean }>`
   border: 1px solid var(--border-color);
   transition: all 0.2s ease;
   position: absolute;
-  right: 0.5rem;
+  left: 240px;
 
   ${(props) =>
     props.$isCollapsed &&
     css`
-      right: -1rem;
+      left: 65px;
     `}
 
   color: var(--text-secondary-color);

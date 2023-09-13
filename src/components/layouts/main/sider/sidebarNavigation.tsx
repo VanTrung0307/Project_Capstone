@@ -1,16 +1,16 @@
 /* eslint-disable prettier/prettier */
 import {
   AimOutlined,
+  AppstoreAddOutlined,
   CalendarOutlined,
   DashboardOutlined,
   FileDoneOutlined,
   GiftOutlined,
-  InboxOutlined,
   QuestionCircleOutlined,
   RobotOutlined
 } from '@ant-design/icons';
 import React from 'react';
-import { IoLocationOutline, IoSchoolOutline } from 'react-icons/io5';
+import { IoSchoolOutline } from 'react-icons/io5';
 import { MdOutlineCategory } from 'react-icons/md';
 
 export interface SidebarNavigationItem {
@@ -29,75 +29,74 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <DashboardOutlined />,
   },
   {
-    title: 'Sự kiện',
-    key: 'event',
-    url: '/events',
-    icon: <CalendarOutlined />,
+    title: 'Quản lý hệ thống',
+    key: 'system',
+    icon: <AppstoreAddOutlined />,
+    children: [
+      {
+        title: 'Sự kiện',
+        key: 'event',
+        url: 'system/events',
+        icon: <CalendarOutlined />,
+      },
+      {
+        title: 'Trường học',
+        key: 'schools',
+        url: 'system/school',
+        icon: <IoSchoolOutline />,
+      },
+      {
+        title: 'Người chơi',
+        key: 'players',
+        url: 'system/players',
+        icon: <AimOutlined />,
+      },
+      {
+        title: 'Nhiệm vụ',
+        key: 'task',
+        url: 'system/tasks',
+        icon: <FileDoneOutlined />,
+      },
+      {
+        title: 'Ngành học',
+        key: 'major',
+        url: 'system/majors',
+        icon: <MdOutlineCategory />,
+      },
+      {
+        title: 'Ngân hàng câu hỏi',
+        key: 'questionbanks',
+        url: 'system/questionbanks',
+        icon: <QuestionCircleOutlined />,
+      },
+      {
+        title: 'Phần thưởng',
+        key: 'gift',
+        url: 'system/gifts',
+        icon: <GiftOutlined />,
+      },
+    ],
   },
-  // {
-  //   title: 'Học sinh',
-  //   key: 'users',
-  //   url: '/users',
-  //   icon: <UserOutlined />,
-  // },
   {
-    title: 'Trường học',
-    key: 'schools',
-    url: '/school',
-    icon: <IoSchoolOutline />,
-  },
-  {
-    title: 'Người chơi',
-    key: 'players',
-    url: '/players',
-    icon: <AimOutlined />,
-  },
-  {
-    title: 'Phòng & Vị trí',
-    key: 'roomLocation',
-    url: '/rooms-location',
-    icon: <IoLocationOutline />,
-  },
-  {
-    title: 'Nhiệm vụ',
-    key: 'task',
-    url: '/tasks',
-    icon: <FileDoneOutlined />,
-  },
-  {
-    title: 'Ngành học',
-    key: 'major',
-    url: '/majors',
-    icon: <MdOutlineCategory />,
-  },
-  {
-    title: 'Ngân hàng câu hỏi',
-    key: 'questionbanks',
-    url: '/questionbanks',
-    icon: <QuestionCircleOutlined />,
-  },
-  // {
-  //   title: 'Ngân hàng câu trả lời',
-  //   key: 'answers',
-  //   url: '/answers',
-  //   icon: <RiQuestionAnswerLine />,
-  // },
-  {
-    title: 'NPCs',
-    key: 'npc',
-    url: '/npcs',
+    title: 'Quản lý trò chơi',
+    key: 'game',
     icon: <RobotOutlined />,
-  },
-  {
-    title: 'Phần thưởng',
-    key: 'gift',
-    url: '/gifts',
-    icon: <GiftOutlined />,
-  },
-  {
-    title: 'Vật phẩm ảo',
-    key: 'item',
-    url: '/items',
-    icon: <InboxOutlined />,
+    children: [
+      {
+        title: 'Phòng & Vị trí',
+        key: 'roomLocation',
+        url: 'game/rooms-location',
+      },
+      {
+        title: 'NPCs',
+        key: 'npc',
+        url: 'game/npcs',
+      },
+      {
+        title: 'Vật phẩm ảo',
+        key: 'item',
+        url: '/items',
+      },
+    ],
   },
 ];

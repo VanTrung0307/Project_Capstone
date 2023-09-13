@@ -24,7 +24,7 @@ const initialPagination: Pagination = {
   pageSize: 10,
 };
 
-export const StudentTable: React.FC = () => {
+export const StudentTable: React.FC<{ selectedSchoolId: string }> = ({ selectedSchoolId }) => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
@@ -105,25 +105,22 @@ export const StudentTable: React.FC = () => {
   };
 
   const { isMounted } = useMounted();
-  const { schoolId } = useParams<{ schoolId: string | undefined }>();
+  // const { schoolId } = useParams<{ schoolId: string | undefined }>();
   const [originalData, setOriginalData] = useState<Student[]>([]);
 
   const fetch = useCallback(
     (pagination: Pagination) => {
-      if (schoolId === undefined) {
-        message.error('Không tìm thấy mã trường');
-        return;
+      setData((tableData) => ({ ...tableData, loading: false }));
+      if (selectedSchoolId) {
+        getStudenbySchoolById(selectedSchoolId, pagination).then((res) => {
+          if (isMounted.current) {
+            setOriginalData(res.data);
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
       }
-
-      setData((tableData) => ({ ...tableData, loading: true }));
-      getStudenbySchoolById(schoolId, pagination).then((res) => {
-        if (isMounted.current) {
-          setOriginalData(res.data);
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
     },
-    [isMounted, schoolId],
+    [isMounted, selectedSchoolId],
   );
 
   useEffect(() => {
@@ -144,7 +141,7 @@ export const StudentTable: React.FC = () => {
 
       try {
         const response = await httpApi.post(
-          `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${schoolId}`,
+          `https://anhkiet-001-site1.htempurl.com/api/Students/student-getbyschool?schoolid=${selectedSchoolId}`,
           formData,
           {
             headers: {

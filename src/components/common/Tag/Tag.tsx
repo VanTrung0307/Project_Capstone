@@ -22,7 +22,7 @@ export const Tag: React.FC<TagProps> = ({ title, color, bgColor, removeTag, ...o
   };
   return (
     <S.TagWrapper style={style} {...otherProps}>
-      #{title}
+      {title}
       {!!removeTag && (
         <S.RemoveTagWrapper
           onClick={(e) => {

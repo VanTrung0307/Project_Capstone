@@ -16,6 +16,11 @@ export type addEvent = {
   status: string;
 };
 
+export type editEvent = {
+  name: string;
+  status: string;
+};
+
 export type EventList = {
   data: Event[];
 };
@@ -77,7 +82,7 @@ export const createEvent = async (eventData: addEvent): Promise<Event> => {
   }
 };
 
-export const updateEvent = async (eventId: string, eventData: Event): Promise<Event> => {
+export const updateEvent = async (eventId: string, eventData: editEvent): Promise<Event> => {
   try {
     const response = await httpApi.put<Event>(`${API_BASE_URL}/${eventId}`, eventData);
     return response.data;

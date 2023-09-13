@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Pagination, School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import React, { useEffect, useState } from 'react';
-import { StudentTable } from '../FPTHCMTable/StudentTable';
 import * as S from './FPTHCMTables.styles';
 
 type StudentTablesProps = {
@@ -37,7 +36,7 @@ export const StudentTables: React.FC<StudentTablesProps> = ({ schoolId }) => {
               </h1>
             </div>
           </div>
-          <StudentTable />
+          {/* <StudentTable /> */}
         </S.Card>
       </S.FPTHCMTablesWrapper>
     </>

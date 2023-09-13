@@ -63,6 +63,7 @@ const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
 const Event = React.lazy(() => import('@app/pages/EventPage'));
+const EventDetail = React.lazy(() => import('@app/pages/EventDetailPage'));
 const School = React.lazy(() => import('@app/pages/SchoolPage'));
 const SchoolEvent = React.lazy(() => import('@app/pages/SchoolEventPage'));
 const TaskEvent = React.lazy(() => import('@app/pages/TaskEventPage'));
@@ -142,26 +143,30 @@ export const AppRouter: React.FC = () => {
             <Route path="forms">
               <Route path="advanced-forms" element={<AdvancedForm />} />
             </Route>
+            <Route path="game">
+              <Route path="rooms-location" element={<RoomVsLocation />} />
+              <Route path="npcs" element={<NPC />} />
+              <Route path="items" element={<Item />} />
+            </Route>
+            <Route path="system">
+              <Route path="players" element={<Player />} />
+              <Route path="events" element={<Event />} />
+              <Route path="school" element={<School />} />
+              <Route path="tasks" element={<Task />} />
+              <Route path="majors" element={<Major />} />
+              <Route path="questionbanks" element={<QuestionBank />} />
+              {/* <Route path="answers" element={<Answer />} /> */}
+              <Route path="gifts" element={<Gift />} />
+              <Route path="ranks" element={<Rank />} />
+            </Route>
+            <Route path="players/:playerId" element={<HistoryPlayer />} />
+            <Route path="student/:schoolId" element={<StudentEvent />} />
+            <Route path="schools/:eventId" element={<SchoolEvent />} />
+            <Route path="tasks/:eventId" element={<TaskEvent />} />
+            <Route path="event/:eventId" element={<EventDetail />} />
             <Route path="data-tables" element={<DataTables />} />
             <Route path="player-profiles" element={<PlayerProfile />} />
             {/* <Route path="users" element={<User />} /> */}
-            <Route path="players" element={<Player />} />
-            <Route path="players/:playerId" element={<HistoryPlayer />} />
-            <Route path="rooms-location" element={<RoomVsLocation />} />
-            <Route path="events" element={<Event />} />
-            <Route path="school" element={<School />} />
-            <Route path="schools/:eventId" element={<SchoolEvent />} />
-            <Route path="tasks/:eventId" element={<TaskEvent />} />
-            {/* <Route path="students/:schoolId" element={<Student />} /> */}
-            <Route path="student/:schoolId" element={<StudentEvent />} />
-            <Route path="tasks" element={<Task />} />
-            <Route path="majors" element={<Major />} />
-            <Route path="questionbanks" element={<QuestionBank />} />
-            {/* <Route path="answers" element={<Answer />} /> */}
-            <Route path="npcs" element={<NPC />} />
-            <Route path="gifts" element={<Gift />} />
-            <Route path="items" element={<Item />} />
-            <Route path="ranks" element={<Rank />} />
             <Route path="charts" element={<Charts />} />
             <Route path="server-error" element={<ServerError />} />
             <Route path="404" element={<Error404 />} />

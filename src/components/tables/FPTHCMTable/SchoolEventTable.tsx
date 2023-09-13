@@ -198,15 +198,15 @@ export const SchoolEventTable: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleStudentClick = async (schoolId: string) => {
-    try {
-      const pagination = { current: 1, pageSize: 1000 };
-      navigate(`/student/${schoolId}`);
-      await getStudenbySchoolandEventId(schoolId, pagination);
-    } catch (error) {
-      // message.error('Error fetching paginated schools');
-    }
-  };
+  // const handleStudentClick = async (schoolId: string) => {
+  //   try {
+  //     const pagination = { current: 1, pageSize: 1000 };
+  //     navigate(`/student/${schoolId}`);
+  //     await getStudenbySchoolandEventId(schoolId, pagination);
+  //   } catch (error) {
+  //     // message.error('Error fetching paginated schools');
+  //   }
+  // };
 
   const handleDelete = async (id: string) => {
     try {
@@ -360,7 +360,7 @@ export const SchoolEventTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button
+                {/* <Button
                   type="ghost"
                   onClick={() => {
                     if (eventId) {
@@ -369,7 +369,7 @@ export const SchoolEventTable: React.FC = () => {
                   }}
                 >
                   Danh sách học sinh
-                </Button>
+                </Button> */}
                 <Button danger onClick={() => handleDelete(record.id)}>
                   Xoá
                 </Button>
@@ -456,16 +456,6 @@ export const SchoolEventTable: React.FC = () => {
   };
 
   const [loading, setLoading] = useState(false);
-
-  const handleTaskClick = async (eventId: string) => {
-    try {
-      const pagination = { current: 1, pageSize: 100 };
-      await getTaskbyEventId(eventId, pagination);
-      navigate(`/tasks/${eventId}`);
-    } catch (error) {
-      message.error('Không tìm thấy nhiệm vụ');
-    }
-  };
 
   return (
     <Form form={form} component={false} initialValues={{ eventId }} onFinish={onFinish}>
@@ -660,14 +650,6 @@ export const SchoolEventTable: React.FC = () => {
           </Row>
         </S.FormContent>
       </Modal>
-
-      <Button
-        type="ghost"
-        onClick={() => eventId && handleTaskClick(eventId)}
-        style={{ position: 'absolute', top: '0', right: '0', margin: '15px 170px' }}
-      >
-        Danh sách nhiệm vụ
-      </Button>
 
       <SearchInput
         placeholder="Tìm kiếm..."

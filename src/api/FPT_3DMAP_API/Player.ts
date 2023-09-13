@@ -18,7 +18,7 @@ export type Player = {
   totalTime: number;
   isplayer: boolean;
   prizedName: string;
-  prizeId: string;
+  prizedId: string;
 };
 
 export type PlayerFilter = {

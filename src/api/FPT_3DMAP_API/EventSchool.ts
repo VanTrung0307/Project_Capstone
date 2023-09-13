@@ -103,11 +103,11 @@ export const createEventSchool = async (taskData: addEventSchool): Promise<Event
 };
 
 export const getSchoolbyEventId = async (
-  schoolId: string,
+  eventId: string,
   pagination: Pagination,
 ): Promise<PaginationSchoolEventData> => {
   try {
-    const response = await httpApi.get<EventSchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${schoolId}`);
+    const response = await httpApi.get<EventSchoolList>(`${API_BASE_URL}/GetSchoolByEventId/${eventId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;

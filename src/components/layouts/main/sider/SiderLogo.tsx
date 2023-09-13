@@ -1,16 +1,16 @@
 /* eslint-disable prettier/prettier */
 import { RightOutlined } from '@ant-design/icons';
 import LogoImg from '@app/components/layouts/main/sider/logo-img/Logo.png';
-import { useResponsive } from 'hooks/useResponsive';
 import React from 'react';
 import * as S from './MainSider/MainSider.styles';
+import { useResponsive } from '@app/hooks/useResponsive';
 
 interface SiderLogoProps {
   isSiderCollapsed: boolean;
   toggleSider: () => void;
 }
 export const SiderLogo: React.FC<SiderLogoProps> = ({ isSiderCollapsed, toggleSider }) => {
-  const { tabletOnly } = useResponsive();
+  const { isDesktop, tabletOnly } = useResponsive();
 
   // const theme = useAppSelector((state) => state.theme.theme);
 
@@ -23,7 +23,7 @@ export const SiderLogo: React.FC<SiderLogoProps> = ({ isSiderCollapsed, toggleSi
         <img src={img} alt="FPTHCM" width={48} height={48} />
         <S.BrandSpan>FPTU HCM Admin</S.BrandSpan>
       </S.SiderLogoLink>
-      {tabletOnly && (
+      {(isDesktop || tabletOnly) && (
         <S.CollapseButton
           shape="circle"
           size="small"
