@@ -163,6 +163,20 @@ export const DetailButton = styled.span`
 `;
 
 export const EditButton = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  bottom: 0;
+  right: 0;
+  padding-bottom: 30px;
+  padding-right: 20px;
+  position: absolute;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
   font-size: 30px;
   cursor: pointer;
 `;

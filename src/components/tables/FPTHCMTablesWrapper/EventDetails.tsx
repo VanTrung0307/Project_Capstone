@@ -56,12 +56,13 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
   const createdAt = event?.createdAt;
   const [day, month, year] = createdAt ? formatDate(createdAt).split(' ') : ['', '', ''];
 
-  const [activeTab, setActiveTab] = useState('#info');
+  // const [activeTab, setActiveTab] = useState('#info');
+  const [activeTabOnScroll, setActiveTabOnScroll] = useState<string>('');
   const pageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleTabClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>, tabId: string) => {
     event.preventDefault();
-    setActiveTab(tabId);
+    setActiveTabOnScroll(tabId);
     const targetElement = document.querySelector(tabId);
     if (targetElement && pageContainerRef.current) {
       const containerScrollTop = pageContainerRef.current.scrollTop;
@@ -70,6 +71,36 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
       scrollToTargetOffset(targetOffset);
     }
   };
+
+  const handleScroll = () => {
+    const container = pageContainerRef.current;
+    if (!container) return;
+
+    const currentPosition = container.scrollTop + container.offsetHeight / 2;
+
+    if (currentPosition < container.scrollHeight * 0.25) {
+      setActiveTabOnScroll('#info');
+    } else if (currentPosition < container.scrollHeight * 0.5) {
+      setActiveTabOnScroll('#eventschool');
+    } else if (currentPosition < container.scrollHeight * 0.75) {
+      setActiveTabOnScroll('#rankstudent');
+    } else {
+      setActiveTabOnScroll('#eventask');
+    }
+  };
+
+  useEffect(() => {
+    const container = pageContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
 
   const scrollToTargetOffset = (targetOffset: number) => {
     const container = pageContainerRef.current;
@@ -134,28 +165,28 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           <S.TabWrapper>
             <S.TabLink
               href="#info"
-              className={activeTab === '#info' ? 'active' : ''}
+              className={activeTabOnScroll === '#info' || activeTabOnScroll === '#info' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#info')}
             >
               Thông tin
             </S.TabLink>
             <S.TabLink
               href="#eventschool"
-              className={activeTab === '#eventschool' ? 'active' : ''}
+              className={activeTabOnScroll === '#eventschool' || activeTabOnScroll === '#eventschool' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#eventschool')}
             >
               Danh sách trường
             </S.TabLink>
             <S.TabLink
               href="#eventask"
-              className={activeTab === '#eventask' ? 'active' : ''}
+              className={activeTabOnScroll === '#eventask' || activeTabOnScroll === '#eventask' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#eventask')}
             >
               Danh sách nhiệm vụ
             </S.TabLink>
             <S.TabLink
               href="#rankstudent"
-              className={activeTab === '#rankstudent' ? 'active' : ''}
+              className={activeTabOnScroll === '#rankstudent' || activeTabOnScroll === '#rankstudent' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#rankstudent')}
             >
               Xếp hạng và Học sinh

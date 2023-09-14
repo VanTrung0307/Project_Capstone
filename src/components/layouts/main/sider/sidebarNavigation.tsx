@@ -2,7 +2,6 @@
 import {
   AimOutlined,
   AppstoreAddOutlined,
-  CalendarOutlined,
   DashboardOutlined,
   FileDoneOutlined,
   GiftOutlined,
@@ -33,12 +32,12 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     key: 'system',
     icon: <AppstoreAddOutlined />,
     children: [
-      {
-        title: 'Sự kiện',
-        key: 'event',
-        url: 'system/events',
-        icon: <CalendarOutlined />,
-      },
+      // {
+      //   title: 'Sự kiện',
+      //   key: 'event',
+      //   url: 'system/events',
+      //   icon: <CalendarOutlined />,
+      // },
       {
         title: 'Trường học',
         key: 'schools',

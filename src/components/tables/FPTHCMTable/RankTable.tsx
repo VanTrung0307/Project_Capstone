@@ -1,21 +1,25 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DownOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
-import { Pagination, Player, getRankedPlayers } from '@app/api/FPT_3DMAP_API/Player';
-import { PlayerPrizeSend, createPlayerPrize } from '@app/api/FPT_3DMAP_API/PlayerPrize';
+import {
+  Pagination,
+  PlayerPrize,
+  PlayerPrizeSend,
+  createPlayerPrize,
+  getRankedPlayerPrizes,
+} from '@app/api/FPT_3DMAP_API/PlayerPrize';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
+import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { useMounted } from '@app/hooks/useMounted';
-import { Button, Form, Input, Modal, Select, message } from 'antd';
+import { Button, Form, Input, Modal, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import * as S from 'components/forms/StepForm/StepForm.styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
 import styled from 'styled-components';
-import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -30,13 +34,13 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
-  const [data, setData] = useState<{ data: Player[]; pagination: Pagination; loading: boolean }>({
+  const [data, setData] = useState<{ data: PlayerPrize[]; pagination: Pagination; loading: boolean }>({
     data: [],
     pagination: initialPagination,
     loading: false,
   });
 
-  const isEditing = (record: Player) => record.id === editingKey;
+  const isEditing = (record: PlayerPrize) => record.id === editingKey;
 
   const [form] = Form.useForm();
 
@@ -46,7 +50,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
 
   const [playerid, setPlayerId] = useState<string>('');
 
-  const handleInputChange = (value: string, key: number | string, dataIndex: keyof Player) => {
+  const handleInputChange = (value: string, key: number | string, dataIndex: keyof PlayerPrize) => {
     const updatedData = data.data.map((record) => {
       if (record.id === key) {
         return { ...record, [dataIndex]: value };
@@ -75,7 +79,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
       });
 
       if (eventId && selectedSchoolId) {
-        getRankedPlayers(eventId, selectedSchoolId, pagination).then((res) => {
+        getRankedPlayerPrizes(eventId, selectedSchoolId, pagination).then((res) => {
           if (isMounted.current) {
             setData({ data: res.data, pagination: res.pagination, loading: false });
             setPlayerId(res.data[0].id);
@@ -95,14 +99,12 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     cancel();
   };
 
-  const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
-
-  const handleModalOk = async (id: string) => {
+  const handleModalOk = async (selectedId: string, selectedPrizeId: string) => {
     try {
       const values = await form.validateFields();
 
       const newData: PlayerPrizeSend = {
-        prizeId: values.prizeId,
+        prizeId: selectedPrizeId,
         dateReceived: values.dateReceived,
         status: values.status,
       };
@@ -110,11 +112,11 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        await createPlayerPrize(newData, id);
+        await createPlayerPrize(newData, selectedId);
         message.success('Gửi đơn thành công');
         fetch(data.pagination);
         form.resetFields();
-        setIsBasicModalOpen(false);
+        setIsModalVisible(false);
       } catch (error) {
         message.error('Gửi đơn không thành công');
         setData((prevData) => ({ ...prevData, loading: false }));
@@ -142,13 +144,19 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     flex: 1;
   `;
 
-  const [prizeId, setPrizeId] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPrizeId, setSelectedPrizeId] = useState<string | null>(null);
+  const [selectedPrizeName, setSelectedPrizeName] = useState<string | null>(null);
 
-  const handlePrizeIdChange = (value: any) => {
-    setPrizeId(value);
+  const handleButtonClick = (id: string, prizedId: string, prizedName: string) => {
+    setSelectedId(id);
+    setSelectedPrizeId(prizedId);
+    setSelectedPrizeName(prizedName);
+    setIsModalVisible(true);
   };
 
-  const columns: ColumnsType<Player> = [
+  const columns: ColumnsType<PlayerPrize> = [
     {
       title: t('Xếp hạng'),
       dataIndex: 'index',
@@ -159,9 +167,9 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     {
       title: t('Username'),
       dataIndex: 'nickname',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'nickname';
+        const dataIndex: keyof PlayerPrize = 'nickname';
         return editable ? (
           <Form.Item
             key={record.nickname}
@@ -182,9 +190,9 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     {
       title: t('Tên người chơi'),
       dataIndex: 'studentName',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'studentName';
+        const dataIndex: keyof PlayerPrize = 'studentName';
         return editable ? (
           <Form.Item
             key={record.studentName}
@@ -205,9 +213,9 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     {
       title: t('Tổng thời gian'),
       dataIndex: 'totalTime',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalTime';
+        const dataIndex: keyof PlayerPrize = 'totalTime';
         return editable ? (
           <Form.Item
             key={record.totalTime}
@@ -228,9 +236,9 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     {
       title: t('Tổng điểm'),
       dataIndex: 'totalPoint',
-      render: (text: string, record: Player) => {
+      render: (text: string, record: PlayerPrize) => {
         const editable = isEditing(record);
-        const dataIndex: keyof Player = 'totalPoint';
+        const dataIndex: keyof PlayerPrize = 'totalPoint';
         return editable ? (
           <Form.Item
             key={record.totalPoint}
@@ -255,27 +263,30 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
     {
       title: t('Chức năng'),
       dataIndex: 'actions',
-      render: (text, record: Player) => {
+      render: (text, record: PlayerPrize) => {
         return (
           <>
-            <Button type="primary" onClick={() => setIsBasicModalOpen(true)}>
+            <Button type="primary" onClick={() => handleButtonClick(record.id, record.prizedId, record.prizedName)}>
               Chi tiết
             </Button>
 
             <Modal
               title={'Gửi đơn phần thưởng'}
-              open={isBasicModalOpen}
-              onOk={() => handleModalOk(record.id)}
-              onCancel={() => setIsBasicModalOpen(false)}
+              open={isModalVisible}
+              onCancel={() => setIsModalVisible(false)}
               mask={true}
               maskStyle={{ opacity: 1 }}
               footer={
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+                  <Button key="back" onClick={() => setIsModalVisible(false)}>
                     Huỷ
                   </Button>
-                  <Button key="submit" type="primary" onClick={() => handleModalOk(record.id)}>
-                    Gưi
+                  <Button
+                    key="submit"
+                    type="primary"
+                    onClick={() => handleModalOk(selectedId || '', selectedPrizeId || '')}
+                  >
+                    Gửi
                   </Button>
                 </div>
               }
@@ -284,14 +295,10 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
                 <FlexContainer>
                   <Label>{'Phần thưởng'}</Label>
                   <InputContainer>
-                    <BaseForm.Item
-                      name="prizeId"
-                      rules={[{ required: true, message: t('Phải có phần thưởng') }]}
-                      initialValue={record.prizedId}
-                    >
-                      <Input maxLength={100} onChange={(e) => handlePrizeIdChange(record.prizedId)} disabled />
-                      {/* <input type="hidden" value={record.prizedId} /> */}
-                    </BaseForm.Item>
+                    {/* <Input maxLength={100} value={selectedPrizeName || ''} disabled /> */}
+                    <span style={{ fontWeight: 'bold', fontFamily: 'Oswald, sans-serif', fontSize: '20px' }}>
+                      {selectedPrizeName || ''}
+                    </span>
                   </InputContainer>
                 </FlexContainer>
 
@@ -330,36 +337,6 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
 
   return (
     <Form form={form} component={false}>
-      {/* <Select
-        value={eventId}
-        onChange={(value) => setEventId(value)}
-        style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-      >
-        <Select.Option value="">Chọn sự kiện</Select.Option>
-        {events.map((event) => (
-          <Select.Option key={event.id} value={event.id}>
-            {event.name}
-          </Select.Option>
-        ))}
-      </Select> */}
-
-      {/* {eventId && (
-        <Select
-          value={schoolId}
-          onChange={(value) => setSchoolId(value)}
-          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-        >
-          <Select.Option value="">Chọn trường</Select.Option>
-          {schools.map((school) => (
-            <Select.Option key={school.id} value={school.id}>
-              {school.name}
-            </Select.Option>
-          ))}
-        </Select>
-      )} */}
-
       <Table
         components={{
           body: {

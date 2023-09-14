@@ -100,7 +100,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
   return (
     <S.Wrapper className={className}>
-      <S.Header>
+      <S.Header onClick={handleDetailClick}>
         {!!logoCard && <img src={logoCard} alt="author" style={{ width: '43px', height: '43px' }} />}
         <S.AuthorWrapper>
           {name && <S.Author>{name}</S.Author>}
@@ -109,20 +109,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       </S.Header>
 
       {status && (
-        <S.TagsWrapper>
+        <S.TagsWrapper onClick={handleDetailClick}>
           <Tag title={status} bgColor={getTagColor(status)} />
         </S.TagsWrapper>
       )}
 
-      <S.DotsButton onClick={handleDotsClick}>⋮</S.DotsButton>
-      <S.ButtonAction isOpen={isOpen}>
-        <Tooltip title="Chi tiết">
-          <S.DetailButton onClick={handleDetailClick}>👁‍🗨</S.DetailButton>
-        </Tooltip>
-        <Tooltip title="Chỉnh sửa">
-          <S.EditButton onClick={handleEditClick}>📝</S.EditButton>
-        </Tooltip>
-      </S.ButtonAction>
+      <Tooltip title="Chỉnh sửa">
+        <S.EditButton onClick={handleEditClick}>📝</S.EditButton>
+      </Tooltip>
 
       <Modal title="Edit Event" visible={isModalVisible} onOk={handleModalOk} onCancel={handleModalCancel}>
         <Form form={form} layout="vertical">

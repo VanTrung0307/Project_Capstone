@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-import axios from 'axios';
 import { httpApi } from '../http.api';
 // import { httpApi } from '../http.api';
 
@@ -18,6 +17,8 @@ export type PlayerPrize = {
   totalPoint: number;
   totalTime: number;
   isplayer: boolean;
+  prizedName: string;
+  prizedId: string;
 };
 
 export type PlayerPrizeSend = {
@@ -47,7 +48,7 @@ export const getRankedPlayerPrizes = async (
   pagination: Pagination,
 ): Promise<PaginationData> => {
   try {
-    const response = await axios.get<PlayerList>(`${API_BASE_URL}/GetPlayerPrize/${eventId}/${schoolId}`);
+    const response = await httpApi.get<PlayerList>(`${API_BASE_URL}/GetRankedPlayer/${eventId}/${schoolId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;

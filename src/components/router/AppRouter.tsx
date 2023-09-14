@@ -62,7 +62,7 @@ const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 // const User = React.lazy(() => import('@app/pages/UserPage'));
 const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
-const Event = React.lazy(() => import('@app/pages/EventPage'));
+// const Event = React.lazy(() => import('@app/pages/EventPage'));
 const EventDetail = React.lazy(() => import('@app/pages/EventDetailPage'));
 const School = React.lazy(() => import('@app/pages/SchoolPage'));
 const SchoolEvent = React.lazy(() => import('@app/pages/SchoolEventPage'));
@@ -150,7 +150,7 @@ export const AppRouter: React.FC = () => {
             </Route>
             <Route path="system">
               <Route path="players" element={<Player />} />
-              <Route path="events" element={<Event />} />
+              {/* <Route path="events" element={<Event />} /> */}
               <Route path="school" element={<School />} />
               <Route path="tasks" element={<Task />} />
               <Route path="majors" element={<Major />} />
