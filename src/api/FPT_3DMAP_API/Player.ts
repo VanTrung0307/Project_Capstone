@@ -27,6 +27,7 @@ export type PlayerFilter = {
   schoolName: string;
   studentId: string;
   studentName: string;
+  eventName: string;
   nickname: string;
   passcode: string;
   totalPoint: number;

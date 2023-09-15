@@ -118,6 +118,14 @@ export const PlayerTable: React.FC = () => {
       dataIndex: 'studentEmail',
     },
     {
+      title: t('Sự kiện'),
+      dataIndex: 'eventName',
+    },
+    {
+      title: t('Trên trường'),
+      dataIndex: 'schoolName',
+    },
+    {
       title: t('Mã tham gia'),
       dataIndex: 'passcode',
     },
@@ -190,19 +198,21 @@ export const PlayerTable: React.FC = () => {
           ))}
         </Select>
 
-        <Select
-          value={eventId}
-          onChange={(value) => setEventId(value)}
-          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-        >
-          <Select.Option value="">Chọn sự kiện</Select.Option>
-          {events.map((event) => (
-            <Select.Option key={event.id} value={event.id}>
-              {event.name}
-            </Select.Option>
-          ))}
-        </Select>
+        {schoolId && (
+          <Select
+            value={eventId}
+            onChange={(value) => setEventId(value)}
+            style={{ width: 300, marginRight: 10, marginBottom: 10 }}
+            suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          >
+            <Select.Option value="">Chọn sự kiện</Select.Option>
+            {events.map((event) => (
+              <Select.Option key={event.id} value={event.id}>
+                {event.name}
+              </Select.Option>
+            ))}
+          </Select>
+        )}
       </div>
 
       <Table
