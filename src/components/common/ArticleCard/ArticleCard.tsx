@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, getEventById, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
-import logoCard from '@app/assets/Logo.png';
+import logoCard from '@app/assets/logo.png';
 import { Dates } from '@app/constants/Dates';
 import { Form, Input, Modal, Select, Tooltip, message } from 'antd';
 import React, { useEffect, useState } from 'react';
