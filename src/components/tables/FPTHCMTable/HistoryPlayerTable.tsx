@@ -79,6 +79,22 @@ export const HistoryPlayerTable: React.FC = () => {
 
   const { Option } = Select;
   const [selectedMajor, setSelectedMajor] = useState('all');
+  const uniqueMajorNames = originalData
+    .filter(
+      (player, index, self) =>
+        player.playerId === playerId && self.findIndex((p) => p.majorId === player.majorId) === index,
+    )
+    .map((player) => {
+      const matchingPlayer = originalData.find((p) => p.majorId === player.majorId);
+      if (matchingPlayer) {
+        return {
+          majorId: player.majorId,
+          majorName: matchingPlayer.majorName,
+        };
+      }
+      return null; // or handle the case when matchingPlayer is undefined
+    })
+    .filter((player) => player !== null); // remove any null entries
 
   return (
     <>
@@ -123,6 +139,9 @@ export const HistoryPlayerTable: React.FC = () => {
                           📆 <span style={{ fontWeight: 'bold' }}>Tên sự kiện:</span>
                         </div>
                         <div>
+                          🪙 <span style={{ fontWeight: 'bold' }}>Tổng điểm:</span>
+                        </div>
+                        <div>
                           🔑 <span style={{ fontWeight: 'bold' }}>Mã tham gia:</span>
                         </div>
                       </div>
@@ -134,6 +153,12 @@ export const HistoryPlayerTable: React.FC = () => {
                           <a href={`mailto:${player.studentEmail}`}>{player.studentEmail}</a>
                         </div>
                         <div style={{ whiteSpace: 'nowrap' }}>{player.eventName}</div>
+                        <div>
+                          <span style={{ fontFamily: 'Pacifico, cursive', fontWeight: 'bold' }}>
+                            {player.totalPoint}
+                          </span>
+                          <span> (điểm nhiệm vụ + bonus)</span>
+                        </div>
                         <div>
                           {isPasscodeVisible ? player.passcode : '********'}
                           {isPasscodeVisible ? (
@@ -169,13 +194,14 @@ export const HistoryPlayerTable: React.FC = () => {
               suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
             >
               <Option value="all">Tất cả</Option>
-              {originalData
-                .filter((player) => player.playerId === playerId)
-                .map((player) => (
-                  <Option key={player.majorId} value={player.majorId}>
-                    {player.majorName}
-                  </Option>
-                ))}
+              {uniqueMajorNames.map(
+                (major) =>
+                  major && (
+                    <Option key={major.majorId} value={major.majorId}>
+                      {major.majorName}
+                    </Option>
+                  ),
+              )}
             </Select>
             <Card style={{ maxHeight: '350px', overflowY: 'auto' }}>
               <div>
@@ -255,7 +281,7 @@ export const HistoryPlayerTable: React.FC = () => {
               </div>
               {selectedMajor === 'all' && (
                 <div>
-                  🪙 Tổng điểm:{' '}
+                  🪙 Tổng điểm nhiệm vụ:{' '}
                   <span style={{ fontFamily: 'Pacifico, cursive', fontWeight: 'bold' }}>
                     {originalData
                       .filter(
