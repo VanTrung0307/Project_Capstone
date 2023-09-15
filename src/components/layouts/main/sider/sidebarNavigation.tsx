@@ -1,16 +1,10 @@
 /* eslint-disable prettier/prettier */
 import {
-  AimOutlined,
   AppstoreAddOutlined,
   DashboardOutlined,
-  FileDoneOutlined,
-  GiftOutlined,
-  QuestionCircleOutlined,
   RobotOutlined
 } from '@ant-design/icons';
 import React from 'react';
-import { IoSchoolOutline } from 'react-icons/io5';
-import { MdOutlineCategory } from 'react-icons/md';
 
 export interface SidebarNavigationItem {
   title: string;
@@ -39,40 +33,35 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
       //   icon: <CalendarOutlined />,
       // },
       {
-        title: 'Trường học',
+        title: '🏫 Trường học',
         key: 'schools',
         url: 'system/school',
-        icon: <IoSchoolOutline />,
       },
+      // {
+      //   title: 'Người chơi',
+      //   key: 'players',
+      //   url: 'system/players',
+      //   icon: <AimOutlined />,
+      // },
       {
-        title: 'Người chơi',
-        key: 'players',
-        url: 'system/players',
-        icon: <AimOutlined />,
-      },
-      {
-        title: 'Nhiệm vụ',
+        title: '🎯 Nhiệm vụ',
         key: 'task',
         url: 'system/tasks',
-        icon: <FileDoneOutlined />,
       },
       {
-        title: 'Ngành học',
+        title: '🧑‍🎓 Ngành học',
         key: 'major',
         url: 'system/majors',
-        icon: <MdOutlineCategory />,
       },
       {
-        title: 'Ngân hàng câu hỏi',
+        title: '📑 Ngân hàng câu hỏi',
         key: 'questionbanks',
         url: 'system/questionbanks',
-        icon: <QuestionCircleOutlined />,
       },
       {
-        title: 'Phần thưởng',
+        title: '🎁 Phần thưởng',
         key: 'gift',
         url: 'system/gifts',
-        icon: <GiftOutlined />,
       },
     ],
   },
@@ -82,17 +71,17 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
     icon: <RobotOutlined />,
     children: [
       {
-        title: 'Phòng & Vị trí',
+        title: '📍 Phòng & Vị trí',
         key: 'roomLocation',
         url: 'game/rooms-location',
       },
       {
-        title: 'NPCs',
+        title: '🤖 NPCs',
         key: 'npc',
         url: 'game/npcs',
       },
       {
-        title: 'Vật phẩm ảo',
+        title: '🧸 Vật phẩm ảo',
         key: 'item',
         url: '/items',
       },

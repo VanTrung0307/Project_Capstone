@@ -1,33 +1,34 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer';
 import {
   Pagination,
-  Player,
   PlayerFilter,
-  getPaginatedPlayers,
-  getPaginatedPlayersWithEventandSchool,
+  getPaginatedPlayersWithEventandSchool
 } from '@app/api/FPT_3DMAP_API/Player';
-import { User, getPaginatedUsers } from '@app/api/FPT_3DMAP_API/User';
+import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
+import { User } from '@app/api/FPT_3DMAP_API/User';
+import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
-import { Button, Form, Select, Space, message } from 'antd';
+import { Button, Form, Space, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EditableCell } from '../editableTable/EditableCell';
-import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
-import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
-import { DownOutlined } from '@ant-design/icons';
-import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer';
 import { useNavigate } from 'react-router-dom';
+import { EditableCell } from '../editableTable/EditableCell';
 
 const initialPagination: Pagination = {
   current: 1,
   pageSize: 10,
 };
 
-export const PlayerTable: React.FC = () => {
+type EventsProps = {
+  eventId?: string;
+};
+
+export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> = ({ eventId, selectedSchoolId }) => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
@@ -59,8 +60,8 @@ export const PlayerTable: React.FC = () => {
 
   const { isMounted } = useMounted();
 
-  const [eventId, setEventId] = useState<string>('');
-  const [schoolId, setSchoolId] = useState<string>('');
+  // const [eventId, setEventId] = useState<string>('');
+  // const [schoolId, setSchoolId] = useState<string>('');
 
   const fetch = useCallback(
     (pagination: Pagination) => {
@@ -74,13 +75,15 @@ export const PlayerTable: React.FC = () => {
         setSchools(paginationData.data);
       });
 
-      getPaginatedPlayersWithEventandSchool(schoolId, eventId, pagination).then((res) => {
-        if (isMounted.current) {
-          setData({ data: res.data, pagination: res.pagination, loading: false });
-        }
-      });
+      if (eventId && selectedSchoolId) {
+        getPaginatedPlayersWithEventandSchool(selectedSchoolId, eventId, pagination).then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
+      }
     },
-    [isMounted, eventId, schoolId],
+    [isMounted, eventId, selectedSchoolId],
   );
 
   useEffect(() => {
@@ -183,7 +186,7 @@ export const PlayerTable: React.FC = () => {
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
 
-      <div style={{ marginBottom: '10px' }}>
+      {/* <div style={{ marginBottom: '10px' }}>
         <Select
           value={schoolId}
           onChange={(value) => setSchoolId(value)}
@@ -213,7 +216,7 @@ export const PlayerTable: React.FC = () => {
             ))}
           </Select>
         )}
-      </div>
+      </div> */}
 
       <Table
         components={{

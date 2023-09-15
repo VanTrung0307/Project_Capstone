@@ -60,7 +60,7 @@ export const FPTHCM_DASHBOARD_PATH = '/';
 const Dashboard = withLoading(FPTHCMDashboardPage);
 const PlayerProfile = React.lazy(() => import('@app/pages/PlayerProfliePage'));
 // const User = React.lazy(() => import('@app/pages/UserPage'));
-const Player = React.lazy(() => import('@app/pages/PlayerPage'));
+// const Player = React.lazy(() => import('@app/pages/PlayerPage'));
 const RoomVsLocation = React.lazy(() => import('@app/pages/RoomAndLocationPage'));
 // const Event = React.lazy(() => import('@app/pages/EventPage'));
 const EventDetail = React.lazy(() => import('@app/pages/EventDetailPage'));
@@ -149,7 +149,7 @@ export const AppRouter: React.FC = () => {
               <Route path="items" element={<Item />} />
             </Route>
             <Route path="system">
-              <Route path="players" element={<Player />} />
+              {/* <Route path="players" element={<Player />} /> */}
               {/* <Route path="events" element={<Event />} /> */}
               <Route path="school" element={<School />} />
               <Route path="tasks" element={<Task />} />

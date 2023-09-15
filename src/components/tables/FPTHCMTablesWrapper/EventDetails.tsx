@@ -13,6 +13,7 @@ import { SchoolEventTable } from '../FPTHCMTable/SchoolEventTable';
 import { TaskEventTable } from '../FPTHCMTable/TaskEventTable';
 import * as S from './FPTHCMTables.styles';
 import './toggleSwitch.css';
+import { PlayerTable } from '../FPTHCMTable/PlayerTable';
 
 type SchoolTablesProps = {
   eventId?: string;
@@ -78,14 +79,16 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
 
     const currentPosition = container.scrollTop + container.offsetHeight / 2;
 
-    if (currentPosition < container.scrollHeight * 0.25) {
+    if (currentPosition < container.scrollHeight * 0.2) {
       setActiveTabOnScroll('#info');
-    } else if (currentPosition < container.scrollHeight * 0.5) {
+    } else if (currentPosition < container.scrollHeight * 0.4) {
       setActiveTabOnScroll('#eventschool');
-    } else if (currentPosition < container.scrollHeight * 0.75) {
+    } else if (currentPosition < container.scrollHeight * 0.6) {
       setActiveTabOnScroll('#rankstudent');
-    } else {
+    } else if (currentPosition < container.scrollHeight * 0.8) {
       setActiveTabOnScroll('#eventask');
+    } else {
+      setActiveTabOnScroll('#playerhistory');
     }
   };
 
@@ -178,6 +181,13 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
               Danh sách trường
             </S.TabLink>
             <S.TabLink
+              href="#rankstudent"
+              className={activeTabOnScroll === '#rankstudent' || activeTabOnScroll === '#rankstudent' ? 'active' : ''}
+              onClick={(event) => handleTabClick(event, '#rankstudent')}
+            >
+              Xếp hạng và Học sinh
+            </S.TabLink>
+            <S.TabLink
               href="#eventask"
               className={activeTabOnScroll === '#eventask' || activeTabOnScroll === '#eventask' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#eventask')}
@@ -185,11 +195,13 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
               Danh sách nhiệm vụ
             </S.TabLink>
             <S.TabLink
-              href="#rankstudent"
-              className={activeTabOnScroll === '#rankstudent' || activeTabOnScroll === '#rankstudent' ? 'active' : ''}
-              onClick={(event) => handleTabClick(event, '#rankstudent')}
+              href="#playerhistory"
+              className={
+                activeTabOnScroll === '#playerhistory' || activeTabOnScroll === '#playerhistory' ? 'active' : ''
+              }
+              onClick={(event) => handleTabClick(event, '#playerhistory')}
             >
-              Xếp hạng và Học sinh
+              Lịch sử người chơi
             </S.TabLink>
           </S.TabWrapper>
         </S.StickyCard>
@@ -200,8 +212,21 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         </S.Card>
 
         <div id="rankstudent" style={{ width: '100%', height: '80px' }}></div>
+
+        <span
+          style={{
+            display: 'block',
+            marginBottom: 5,
+            color: selectedSchoolId ? '#339CFD' : '#999',
+            fontStyle: selectedSchoolId ? 'normal' : 'italic',
+          }}
+        >
+          {!selectedSchoolId
+            ? '* Chọn trường để xem được xếp hạng, danh sách học sinh và lịch sử người chơi'
+            : 'Trường đã được chọn 👍'}
+        </span>
         <Select
-          style={{ width: 340, marginRight: 10, marginBottom: 10 }}
+          style={{ width: 340 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
           value={selectedSchoolId || undefined}
           placeholder="Chọn trường"
@@ -240,17 +265,14 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           </S.Card>
         )}
 
-        {/* <S.Card padding="1.25rem 1.25rem 0" title={t('Bảng xếp hạng')}>
-          <RankTable eventId={eventId} selectedSchoolId={selectedSchoolId} />
-        </S.Card>
-
-        <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách học sinh')}>
-          <StudentTable selectedSchoolId={selectedSchoolId} />
-        </S.Card> */}
-
         <div id="eventask" style={{ width: '100%', height: '60px' }}></div>
         <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách nhiệm vụ')}>
           <TaskEventTable />
+        </S.Card>
+
+        <div id="playerhistory" style={{ width: '100%', height: '60px' }}></div>
+        <S.Card padding="1.25rem 1.25rem 0" title={t('Lịch sử người chơi')}>
+          <PlayerTable eventId={eventId} selectedSchoolId={selectedSchoolId} />
         </S.Card>
       </S.FPTHCMTablesWrapper>
     </div>
