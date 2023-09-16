@@ -83,7 +83,7 @@ export const sidebarNavigation: SidebarNavigationItem[] = [
       {
         title: '🧸 Vật phẩm ảo',
         key: 'item',
-        url: '/items',
+        url: 'game/items',
       },
     ],
   },
