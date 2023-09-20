@@ -260,7 +260,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
               }
               onClick={(event) => handleTabClick(event, '#playerhistory')}
             >
-              Lịch sử người chơi
+              Người chơi
             </S.TabLink>
           </S.TabWrapper>
         </S.StickyCard>
@@ -339,7 +339,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         </S.Card>
 
         <div id="playerhistory" style={{ width: '100%', height: '60px' }}></div>
-        <S.Card padding="1.25rem 1.25rem 0" title={t('Lịch sử người chơi')}>
+        <S.Card padding="1.25rem 1.25rem 0" title={t('Người chơi')}>
           <PlayerTable eventId={eventId} selectedSchoolId={selectedSchoolId} />
         </S.Card>
       </S.FPTHCMTablesWrapper>
