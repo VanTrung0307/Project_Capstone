@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 // import { useNavigate } from 'react-router';
 import { DownOutlined } from '@ant-design/icons';
 import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
-import { Select } from 'antd';
+import { Button, Select, Spin } from 'antd';
 import { Option } from 'antd/lib/mentions';
 import { EventStudentTable } from '../FPTHCMTable/EventStudentTable';
 import { RankTable } from '../FPTHCMTable/RankTable';
@@ -14,6 +14,7 @@ import { TaskEventTable } from '../FPTHCMTable/TaskEventTable';
 import * as S from './FPTHCMTables.styles';
 import './toggleSwitch.css';
 import { PlayerTable } from '../FPTHCMTable/PlayerTable';
+import { useNavigate } from 'react-router-dom';
 
 type SchoolTablesProps = {
   eventId?: string;
@@ -24,13 +25,22 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
   const [event, setEvent] = useState<Event | undefined>(undefined);
   const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [clicked, setClicked] = useState<boolean>(false);
 
   useEffect(() => {
-    if (eventId) {
-      const pagination: Pagination = { current: 1, pageSize: 100 };
+    const fetchSchoolOptions = async () => {
+      if (eventId && clicked) {
+        setLoading(true);
 
-      Promise.all([getPaginatedEvents(pagination), getSchoolbyEventId(eventId, pagination)])
-        .then(([eventsResponse, schoolsResponse]) => {
+        try {
+          const pagination: Pagination = { current: 1, pageSize: 100 };
+
+          const [eventsResponse, schoolsResponse] = await Promise.all([
+            getPaginatedEvents(pagination),
+            getSchoolbyEventId(eventId, pagination),
+          ]);
+
           const eventData = eventsResponse.data.find((event) => event.id === eventId);
           setEvent(eventData);
 
@@ -39,12 +49,24 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
             name: school.schoolName,
           }));
           setSchoolOptions(schoolOptions);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error('Error fetching paginated events and school options:', error);
-        });
-    }
-  }, [eventId]);
+        }
+
+        setLoading(false);
+      }
+    };
+
+    fetchSchoolOptions();
+  }, [eventId, clicked]);
+
+  const handleSelectClick = () => {
+    setClicked(true);
+  };
+
+  const handleSelectBlur = () => {
+    setClicked(false);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -143,10 +165,47 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
     setActiveCard(activeCard === 'rank' ? 'student' : 'rank');
   };
 
+  const navigate = useNavigate();
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div ref={pageContainerRef} style={{ overflowY: 'auto', height: '600px' }}>
       <S.FPTHCMTablesWrapper>
         <div id="info">
+          <Button
+            onClick={() => handleGoBack()}
+            style={{
+              position: 'absolute',
+              top: '50px',
+              left: '100px',
+              fontSize: '20px',
+              zIndex: '999',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ marginRight: '5px' }}
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Trở lại</span>
+          </Button>
           <S.InfoCard>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <S.EventDate>
@@ -223,23 +282,32 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         >
           {!selectedSchoolId
             ? '* Chọn trường để xem được xếp hạng, danh sách học sinh và lịch sử người chơi'
-            : 'Trường đã được chọn 👍'}
+            : `${schoolOptions.map((schoolOption) => schoolOption.name)} đã được chọn 👍`}
         </span>
         <Select
           style={{ width: 340 }}
           suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
           value={selectedSchoolId || undefined}
           placeholder="Chọn trường"
+          onClick={handleSelectClick}
+          onBlur={handleSelectBlur}
           onChange={(value) => setSelectedSchoolId(value)}
+          loading={loading && clicked}
         >
           <Option key={undefined} value={undefined}>
             Chọn trường
           </Option>
-          {schoolOptions.map((schoolOption) => (
-            <Option key={schoolOption.id} value={schoolOption.id}>
-              {schoolOption.name}
+          {loading && clicked ? (
+            <Option disabled key="loading" value="loading">
+              <Spin size="small" />
             </Option>
-          ))}
+          ) : (
+            schoolOptions.map((schoolOption) => (
+              <Option key={schoolOption.id} value={schoolOption.id}>
+                {schoolOption.name}
+              </Option>
+            ))
+          )}
         </Select>
 
         <label className="toggle-switch">

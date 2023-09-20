@@ -3,7 +3,7 @@
 import { Event, getEventById, getPaginatedEvents, updateEvent } from '@app/api/FPT_3DMAP_API/Event';
 import logoCard from '@app/assets/logo.png';
 import { Dates } from '@app/constants/Dates';
-import { Form, Input, Modal, Select, Tooltip, message } from 'antd';
+import { Button, Form, Input, Modal, Select, Tooltip, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tag } from '../Tag/Tag';
@@ -118,12 +118,27 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         <S.EditButton onClick={handleEditClick}>📝</S.EditButton>
       </Tooltip>
 
-      <Modal title="Edit Event" visible={isModalVisible} onOk={handleModalOk} onCancel={handleModalCancel}>
+      <Modal
+        title="Chỉnh sửa sự kiện"
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button key="back" onClick={() => setIsModalVisible(false)}>
+              Huỷ
+            </Button>
+            <Button key="submit" type="primary" onClick={handleModalOk}>
+              Lưu
+            </Button>
+          </div>
+        }
+      >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Event Name" rules={[{ required: true }]}>
+          <Form.Item name="name" label="Tên sự kiện" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+          <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
             <Select>
               <Option value="ACTIVE">Active</Option>
               <Option value="INACTIVE">Inactive</Option>

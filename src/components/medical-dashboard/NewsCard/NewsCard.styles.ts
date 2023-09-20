@@ -7,7 +7,7 @@ export const Wrapper = styled.div`
   flex-wrap: wrap;
   align-items: flex-start;
   margin-bottom: 10px;
-  gap: 1.16rem;
+  gap: 1rem;
 `;
 
 export const Card = styled.div`
