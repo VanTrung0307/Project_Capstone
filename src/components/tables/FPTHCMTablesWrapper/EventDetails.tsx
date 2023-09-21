@@ -60,6 +60,28 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
     fetchSchoolOptions();
   }, [eventId, clicked]);
 
+  useEffect(() => {
+    const fetchSchoolOptions = async () => {
+      if (eventId) {
+        setLoading(true);
+
+        const pagination: Pagination = { current: 1, pageSize: 100 };
+
+        const [eventsResponse] = await Promise.all([
+          getPaginatedEvents(pagination),
+          getSchoolbyEventId(eventId, pagination),
+        ]);
+
+        const eventData = eventsResponse.data.find((event) => event.id === eventId);
+        setEvent(eventData);
+
+        setLoading(false);
+      }
+    };
+
+    fetchSchoolOptions();
+  }, [eventId]);
+
   const handleSelectClick = () => {
     setClicked(true);
   };
@@ -282,7 +304,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         >
           {!selectedSchoolId
             ? '* Chọn trường để xem được xếp hạng, danh sách học sinh và lịch sử người chơi'
-            : `${schoolOptions.map((schoolOption) => schoolOption.name)} đã được chọn 👍`}
+            : `Đã chọn ${schoolOptions.find((option) => option.id === selectedSchoolId)?.name || ''} 👍`}
         </span>
         <Select
           style={{ width: 340 }}

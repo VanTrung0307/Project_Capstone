@@ -25,6 +25,14 @@ httpApi.interceptors.response.use(undefined, (error: AxiosError) => {
   }
   if (typeof responseData === 'object' && responseData !== null) {
     const message = (responseData as ApiErrorData).message || error.message;
+    if (error.response && error.response.status === 404) {
+      throw new ApiError<ApiErrorData>('Resource Not Found: ' + message, responseData as ApiErrorData);
+    } else {
+      throw new ApiError<ApiErrorData>(message, responseData as ApiErrorData);
+    }
+  }
+  if (typeof responseData === 'object' && responseData !== null) {
+    const message = (responseData as ApiErrorData).message || error.message;
     throw new ApiError<ApiErrorData>(message, responseData as ApiErrorData);
   } else {
     throw new ApiError<ApiErrorData>(error.message, undefined);

@@ -82,7 +82,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
         getRankedPlayerPrizes(eventId, selectedSchoolId, pagination).then((res) => {
           if (isMounted.current) {
             setData({ data: res.data, pagination: res.pagination, loading: false });
-            setPlayerId(res.data[0].id);
+            setPlayerId(res.data[0]?.id);
           }
         });
       }
