@@ -14,10 +14,11 @@ export const CardWrapper = styled.div`
   display: flex;
   gap: 20px;
   overflow: auto;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid white;
 `;
 
 export const Card = styled(CommonCard)`
+  background: radial-gradient(100% 100% at 100% 0, #3e3939 0, #2c2727 100%);
   margin-bottom: 2rem;
   padding: 20px;
   border-radius: 4px;
@@ -25,6 +26,7 @@ export const Card = styled(CommonCard)`
 `;
 
 export const InfoCard = styled(CommonCard)`
+  background: radial-gradient(100% 100% at 100% 0, #3e3939 0, #2c2727 100%);
   margin-bottom: 2rem;
   padding: 20px;
   border-radius: 4px;
@@ -51,7 +53,7 @@ export const EventDate = styled.div`
 `;
 
 export const Month = styled.div`
-  background-color: #3b82f6;
+  background-color: #ff7c00;
   max-width: 120px;
   border-radius: 4px 4px 0px 0px;
   color: white;
@@ -128,13 +130,13 @@ export const StickyCard = styled.div`
 export const TabWrapper = styled.div`
   display: flex;
   gap: 10px;
-  background-color: #25284b;
+  background: radial-gradient(100% 100% at 100% 0, #3e3939 0, #2c2727 100%);
   padding: 10px;
   border-radius: 0px 0px 4px 4px;
-  border-top: 3px solid #ccc;
-  border-bottom: 0.5px solid rgb(60, 180, 250);
-  border-left: 0.5px solid rgb(60, 180, 250);
-  border-right: 0.5px solid rgb(60, 180, 250);
+  border-top: 3px solid white;
+  border-bottom: 3px solid #ff7c00;
+  border-left: 3px solid #ff7c00;
+  border-right: 3px solid #ff7c00;
 `;
 
 export const TabLink = styled.a`
@@ -153,7 +155,7 @@ export const TabLink = styled.a`
   cursor: pointer;
 
   &:hover {
-    color: rgb(60, 180, 250);
+    color: #ff7c00;
   }
 
   &:after {
@@ -166,14 +168,15 @@ export const TabLink = styled.a`
     left: 0px;
     right: 0px;
     border-radius: 3px 3px 0px 0px;
-    background: lighten(rgb(60, 180, 250), 20%);
-    box-shadow: 0px 4px 10px 3px rgba(60, 180, 250, 1);
+    background: #ff7c00;
+    background: lighten(#ff7c00, 20%);
+    box-shadow: 0px 4px 10px 3px #ff7c00;
     opacity: 1;
     transform: scale(0, 1);
   }
 
   &.active {
-    color: rgb(60, 180, 250);
+    color: #ff7c00;
 
     &:after {
       opacity: 1;

@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DownOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import {
   EventSchool,
@@ -11,8 +10,7 @@ import {
   updateEventSchool,
   updateSchoolEvent,
 } from '@app/api/FPT_3DMAP_API/EventSchool';
-import { Pagination, School, getPaginatedSchools, updateSchool } from '@app/api/FPT_3DMAP_API/School';
-import { getStudenbySchoolandEventId } from '@app/api/FPT_3DMAP_API/Student';
+import { Pagination, School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
@@ -27,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
-import { getTaskbyEventId } from '@app/api/FPT_3DMAP_API/EventTask';
+import './Select.css';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -370,7 +368,11 @@ export const SchoolEventTable: React.FC = () => {
                 >
                   Danh sách học sinh
                 </Button> */}
-                <Button danger onClick={() => handleDelete(record.id)}>
+                <Button
+                  danger
+                  onClick={() => handleDelete(record.id)}
+                  style={{ background: '#FF5252', color: 'white' }}
+                >
                   Xoá
                 </Button>
               </>
@@ -470,11 +472,12 @@ export const SchoolEventTable: React.FC = () => {
         title={'Thêm Trường'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
+        className="custom-modal"
         onCancel={() => setIsBasicModalOpen(false)}
         width={1000}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -489,7 +492,7 @@ export const SchoolEventTable: React.FC = () => {
               <div>
                 <FlexContainer>
                   <Label>{'Tên sự kiện'}</Label>
-                  <BaseForm.Item name="eventId" style={{ color: '#339CFD', fontWeight: 'bold', fontSize: '25px' }}>
+                  <BaseForm.Item name="eventId" style={{ color: '#ff7c00', fontWeight: 'bold', fontSize: '25px' }}>
                     {event?.name}
                   </BaseForm.Item>
                 </FlexContainer>
@@ -541,7 +544,12 @@ export const SchoolEventTable: React.FC = () => {
                         }),
                       ]}
                     >
-                      <Input type="datetime-local" required onChange={(e) => handleStartTimeChange(e.target.value)} />
+                      <Input
+                        type="datetime-local"
+                        required
+                        onChange={(e) => handleStartTimeChange(e.target.value)}
+                        style={{ background: '#414345' }}
+                      />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -561,7 +569,7 @@ export const SchoolEventTable: React.FC = () => {
                         },
                       ]}
                     >
-                      <Input type="datetime-local" required disabled />
+                      <Input type="datetime-local" required disabled style={{ background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -574,7 +582,7 @@ export const SchoolEventTable: React.FC = () => {
                       <Label>{'Trạng thái'}</Label>
                       <InputContainer>
                         <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                          <Input style={{ width: '100px' }} disabled={true} />
+                          <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
                         </BaseForm.Item>
                       </InputContainer>
                     </div>
@@ -587,7 +595,7 @@ export const SchoolEventTable: React.FC = () => {
                       <Label>{'Xác nhận'}</Label>
                       <InputContainer>
                         <BaseForm.Item name="approvalstatus" initialValue={'ACCEPT'}>
-                          <Input style={{ width: '100px' }} disabled={true} />
+                          <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
                         </BaseForm.Item>
                       </InputContainer>
                     </div>
@@ -614,8 +622,8 @@ export const SchoolEventTable: React.FC = () => {
                         placeholder={'Tìm kiếm và Chọn trường'}
                         onBlur={handleSchoolBlur}
                         onChange={handleSchoolChange}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
                         style={{ width: '300px' }}
+                        dropdownStyle={{ background: '#414345' }}
                         filterOption={(inputValue, option) =>
                           option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
                         }
@@ -656,7 +664,7 @@ export const SchoolEventTable: React.FC = () => {
         allowClear
         onSearch={handleSearch}
         onChange={handleSearchChange}
-        style={{ marginBottom: '16px', width: '400px', right: '0' }}
+        style={{ marginBottom: '16px', width: '400px', right: '0', backgroundColor: '#414345' }}
       />
 
       <Table

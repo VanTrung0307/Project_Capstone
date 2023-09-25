@@ -4,10 +4,15 @@ import { Table as AntdTable } from 'antd';
 import { FONT_SIZE } from '@app/styles/themes/constants';
 
 export const Table = styled(AntdTable)`
+  .ant-table {
+    background: rgba(255, 124, 0, 0.2);
+  }
+
   & thead .ant-table-cell {
     color: var(--primary-color);
     font-size: ${FONT_SIZE.xs};
     line-height: 1.25rem;
+    background: #414345;
 
     & .anticon {
       color: var(--primary-color);
@@ -18,6 +23,7 @@ export const Table = styled(AntdTable)`
     color: var(--text-main-color);
     font-size: ${FONT_SIZE.xs};
     line-height: 1.25rem;
+    background: #414345;
   }
 
   & tbody .ant-table-row-expand-icon {
@@ -45,11 +51,13 @@ export const Table = styled(AntdTable)`
     line-height: 2.0625rem;
     border-radius: 0;
     font-size: ${FONT_SIZE.xs};
+    background: #414345;
   }
 
   & .ant-pagination-prev .ant-pagination-item-link,
   .ant-pagination-next .ant-pagination-item-link {
     border-radius: 0;
+    background: #414345;
   }
 
   & .ant-checkbox-inner {

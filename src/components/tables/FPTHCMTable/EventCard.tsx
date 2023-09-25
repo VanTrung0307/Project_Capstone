@@ -129,7 +129,7 @@ export const EventCard: React.FC = () => {
             footer={
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
-                  style={{ background: 'radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%)' }}
+                  style={{ background: '#414345' }}
                   key="back"
                   onClick={() => setIsModalVisible(false)}
                 >

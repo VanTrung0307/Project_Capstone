@@ -462,6 +462,7 @@ export const EventStudentTable: React.FC<EventsProps & { selectedSchoolId: strin
 
         <Upload {...uploadProps}>
           <Button
+            type="default"
             icon={<UploadOutlined />}
             style={{ position: 'absolute', right: '0', top: '0', margin: '60px 190px' }}
           >

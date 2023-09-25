@@ -36,7 +36,7 @@
 }
 
 .toggle-switch-checkbox:checked + .toggle-switch-slider {
-  background-color: #2196f3;
+  background-color: #FF7C00;
 }
 
 .toggle-switch-checkbox:checked + .toggle-switch-slider:before {
@@ -46,7 +46,7 @@
 .toggle-switch-label {
   position: absolute;
   top: 10px;
-  color: #2196f3;
+  color: #FF7C00;
   font-size: 14px;
   font-weight: bold;
   transition: 0.4s;

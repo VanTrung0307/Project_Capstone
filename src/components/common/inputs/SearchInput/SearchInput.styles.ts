@@ -21,7 +21,7 @@ export const SearchInput = styled(Search)`
 
   & input {
     font-weight: 600;
-    background-color: var(--background-color);
+    background: #414345;
 
     @media only screen and ${media.md} {
       font-size: 1rem;
@@ -30,6 +30,10 @@ export const SearchInput = styled(Search)`
     &::placeholder {
       font-weight: 500;
     }
+  }
+
+  .ant-input-affix-wrapper {
+    background: #414345;
   }
 
   .ant-input-group-addon {

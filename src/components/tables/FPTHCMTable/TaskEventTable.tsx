@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined } from '@ant-design/icons';
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
+import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
 import {
   EventTask,
   TaskByEvent,
@@ -16,20 +17,19 @@ import { Pagination, Task, getPaginatedTasks } from '@app/api/FPT_3DMAP_API/Task
 import { BaseForm } from '@app/components/common/forms/BaseForm/BaseForm';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
-import { Col, Form, Input, Modal, Row, Select, Space, TimePicker, message } from 'antd';
+import { Col, Form, Input, Modal, Row, Select, Space, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import * as S from 'components/forms/StepForm/StepForm.styles';
+import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { TaskTableModal } from './TaskTableModal';
-import { Option } from '@app/components/common/selects/Select/Select';
-import moment from 'moment';
-import { getSchoolbyEventId } from '@app/api/FPT_3DMAP_API/EventSchool';
+import './Select.css';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -290,12 +290,12 @@ export const TaskEventTable: React.FC = () => {
           <Form.Item
             key={record.starttime}
             name={dataIndex}
-            initialValue={text} // Use the raw value here
+            initialValue={text}
             rules={[{ required: true, message: 'Hãy nhập thời gian bắt đầu' }]}
           >
             <Input
               type="time"
-              value={formattedValue} // Use the formatted value here
+              value={formattedValue}
               onChange={(e) => handleInputChange(e.target.value, record.starttime, dataIndex)}
             />
           </Form.Item>
@@ -318,12 +318,12 @@ export const TaskEventTable: React.FC = () => {
           <Form.Item
             key={record.endtime}
             name={dataIndex}
-            initialValue={text} // Use the raw value here
+            initialValue={text}
             rules={[{ required: true, message: 'Hãy nhập thời gian kết thúc' }]}
           >
             <Input
               type="time"
-              value={formattedValue} // Use the formatted value here
+              value={formattedValue}
               onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
             />
           </Form.Item>
@@ -388,7 +388,11 @@ export const TaskEventTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button danger onClick={() => handleDelete(record.eventtaskId)}>
+                <Button
+                  danger
+                  onClick={() => handleDelete(record.eventtaskId)}
+                  style={{ background: '#FF5252', color: 'white' }}
+                >
                   Xoá
                 </Button>
               </>
@@ -476,6 +480,7 @@ export const TaskEventTable: React.FC = () => {
       </Button>
       <Modal
         title={'Thêm mới Nhiệm vụ'}
+        className="custom-modal"
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
@@ -483,7 +488,7 @@ export const TaskEventTable: React.FC = () => {
         style={{ marginTop: '-100px' }}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -498,7 +503,7 @@ export const TaskEventTable: React.FC = () => {
               <div>
                 <FlexContainer>
                   <Label>{'Tên sự kiện'}</Label>
-                  <BaseForm.Item name="eventId" style={{ color: '#339CFD', fontWeight: 'bold', fontSize: '25px' }}>
+                  <BaseForm.Item name="eventId" style={{ color: '#FF7C00', fontWeight: 'bold', fontSize: '25px' }}>
                     {event?.name}
                   </BaseForm.Item>
                 </FlexContainer>
@@ -515,7 +520,12 @@ export const TaskEventTable: React.FC = () => {
                     name="startTime"
                     rules={[{ required: true, message: t('Hãy nhập thời gian bắt đầu') }]}
                   >
-                    <Input type="time" required onChange={(e) => handleStartTimeChange(e.target.value, form)} />
+                    <Input
+                      type="time"
+                      required
+                      onChange={(e) => handleStartTimeChange(e.target.value, form)}
+                      style={{ background: '#414345' }}
+                    />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -524,7 +534,13 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Thời gian kết thúc'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="endTime" rules={[{ required: true, message: t('Hãy nhập thời gian kết thúc') }]}>
-                    <Input type="time" required onChange={(e) => handleEndTimeChange(e.target.value, form)} disabled />
+                    <Input
+                      type="time"
+                      required
+                      onChange={(e) => handleEndTimeChange(e.target.value, form)}
+                      disabled
+                      style={{ background: '#414345' }}
+                    />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -533,7 +549,7 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Điểm thưởng'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="point" rules={[{ required: true, message: t('Hãy nhập điểm thưởng') }]}>
-                    <Input style={{ width: '250px' }} type="number" />
+                    <Input style={{ width: '250px', background: '#414345' }} type="number" />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -542,7 +558,7 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Trạng thái'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input style={{ width: '100px' }} disabled={true} />
+                    <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -565,6 +581,7 @@ export const TaskEventTable: React.FC = () => {
                       style={{ width: '300px' }}
                       placeholder="Chọn nhiệm vụ"
                       showSearch
+                      dropdownStyle={{ background: '#414345' }}
                       filterOption={(inputValue, option) =>
                         option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
                       }

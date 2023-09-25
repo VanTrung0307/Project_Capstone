@@ -101,7 +101,7 @@ export const HistoryPlayerTable: React.FC = () => {
       <Row gutter={16}>
         <Col span={12}>
           <div
-            style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '27px', marginTop: '10px', color: '#339cfd' }}
+            style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '27px', marginTop: '10px', color: '#FF7C00' }}
           >
             ➤ Thông tin cá nhân
           </div>
@@ -114,9 +114,10 @@ export const HistoryPlayerTable: React.FC = () => {
                   key={player.playerId}
                   style={{
                     borderRadius: '8px',
-                    boxShadow: '0 0 20px rgba(51, 156, 253, 1)',
+                    boxShadow: 'rgba(255, 124, 0, 1) 0px 14px 28px, rgba(255, 124, 0, 1) 0px 10px 10px',
                     marginBottom: '16px',
                     transition: 'box-shadow 0.3s',
+                    background: '#414345'
                   }}
                   hoverable
                 >
@@ -182,7 +183,7 @@ export const HistoryPlayerTable: React.FC = () => {
         </Col>
         <Col span={12}>
           <div
-            style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '27px', marginTop: '10px', color: '#339cfd' }}
+            style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '27px', marginTop: '10px', color: '#FF7C00' }}
           >
             ➤ Thông tin nhiệm vụ
           </div>
@@ -191,7 +192,8 @@ export const HistoryPlayerTable: React.FC = () => {
               value={selectedMajor}
               onChange={(value) => setSelectedMajor(value)}
               style={{ width: '300px', marginBottom: '10px' }}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               <Option value="all">Tất cả</Option>
               {uniqueMajorNames.map(
@@ -203,7 +205,7 @@ export const HistoryPlayerTable: React.FC = () => {
                   ),
               )}
             </Select>
-            <Card style={{ maxHeight: '350px', overflowY: 'auto' }}>
+            <Card style={{ maxHeight: '350px', overflowY: 'auto', background: '#414345' }}>
               <div>
                 {originalData
                   .filter(

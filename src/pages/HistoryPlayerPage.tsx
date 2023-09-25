@@ -20,7 +20,7 @@ const PlayerPage: React.FC = () => {
         onClick={() => handleGoBack()}
         style={{
           position: 'absolute',
-          top: '50px',
+          top: '20px',
           left: '100px',
           fontSize: '20px',
           zIndex: '999',

@@ -36,14 +36,14 @@ export const Button = styled(AntButton)<BtnProps>`
       css`
         box-shadow: none;
         text-shadow: none;
-        background: rgba(${defineColorBySeverity(props.$severity, true)}, 0.2);
+        background: linear-gradient(315deg, #f5d020 0%, #f53803 74%);
 
         border-color: ${defineColorBySeverity(props.$severity)};
 
         color: ${defineColorBySeverity(props.$severity)};
 
         &:hover {
-          background: var(--background-color);
+          background: linear-gradient(315deg, #f5d020 0%, #f53803 74%);
 
           border-color: rgba(${defineColorBySeverity(props.$severity, true)}, 0.9);
 
@@ -51,7 +51,7 @@ export const Button = styled(AntButton)<BtnProps>`
         }
 
         &:focus {
-          background: var(--background-color);
+          background: linear-gradient(315deg, #f5d020 0%, #f53803 74%);
 
           border-color: rgba(${defineColorBySeverity(props.$severity, true)}, 0.9);
 
@@ -69,21 +69,48 @@ export const Button = styled(AntButton)<BtnProps>`
 
       ${props.type === 'ghost' &&
       css`
-        &:hover {
-          color: var(--secondary-color);
+        color: white;
+        border-color: white;
 
-          border-color: var(--secondary-color);
+        &:hover {
+          background: #ff7c00;
+          color: white;
+        }
+      `}
+
+      ${props.type === 'default' &&
+      css`
+        color: white;
+        border-color: white;
+        background: #414345;
+
+        &:hover {
+          background: #ff7c00;
+          color: white;
+        }
+      `}
+
+      ${props.type === 'dashed' &&
+      css`
+        color: white;
+        border-color: white;
+        background: #414345;
+
+        &:hover {
+          color: #ff7c00;
+          border-color: #ff7c00;
+          background: #414345;
         }
       `}
 
       ${props.type === 'primary' &&
       css`
-        background: var(--primary-gradient-color);
+        background: #ff7c00;
 
         &:hover {
-          background: var(--secondary-color);
+          background: rgba(241, 102, 36, 1);
 
-          border-color: var(--secondary-color);
+          border-color: #ff7c00;
         }
       `}
 

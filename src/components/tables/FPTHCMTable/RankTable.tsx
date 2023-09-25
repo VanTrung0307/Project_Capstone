@@ -267,18 +267,19 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
         return (
           <>
             <Button type="primary" onClick={() => handleButtonClick(record.id, record.prizedId, record.prizedName)}>
-              Chi tiết
+              Gửi mail
             </Button>
 
             <Modal
               title={'Gửi đơn phần thưởng'}
               open={isModalVisible}
+              className="custom-modal"
               onCancel={() => setIsModalVisible(false)}
               mask={true}
               maskStyle={{ opacity: 1 }}
               footer={
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button key="back" onClick={() => setIsModalVisible(false)}>
+                  <Button key="back" onClick={() => setIsModalVisible(false)} style={{ background: '#414345' }}>
                     Huỷ
                   </Button>
                   <Button
@@ -295,7 +296,6 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
                 <FlexContainer>
                   <Label>{'Phần thưởng'}</Label>
                   <InputContainer>
-                    {/* <Input maxLength={100} value={selectedPrizeName || ''} disabled /> */}
                     <span style={{ fontWeight: 'bold', fontFamily: 'Oswald, sans-serif', fontSize: '20px' }}>
                       {selectedPrizeName || ''}
                     </span>
@@ -314,7 +314,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
                         },
                       ]}
                     >
-                      <Input type="datetime-local" required />
+                      <Input type="datetime-local" required style={{ background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </FlexContainer>
@@ -323,7 +323,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
                   <Label>{'Trạng thái'}</Label>
                   <InputContainer>
                     <BaseForm.Item name="status" initialValue={'RECEIVED'}>
-                      <Input disabled={true} />
+                      <Input disabled={true} style={{ background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </FlexContainer>

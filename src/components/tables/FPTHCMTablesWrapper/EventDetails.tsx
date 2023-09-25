@@ -298,8 +298,9 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           style={{
             display: 'block',
             marginBottom: 5,
-            color: selectedSchoolId ? '#339CFD' : '#999',
+            color: selectedSchoolId ? '#FF7C00' : '#000',
             fontStyle: selectedSchoolId ? 'normal' : 'italic',
+            fontWeight: selectedSchoolId ? 'bold' : ''
           }}
         >
           {!selectedSchoolId
@@ -308,7 +309,8 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         </span>
         <Select
           style={{ width: 340 }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+          suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+          dropdownStyle={{ background: '#414345' }}
           value={selectedSchoolId || undefined}
           placeholder="Chọn trường"
           onClick={handleSelectClick}

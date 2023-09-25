@@ -2,18 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer';
-import {
-  Pagination,
-  PlayerFilter,
-  getPaginatedPlayersWithEventandSchool
-} from '@app/api/FPT_3DMAP_API/Player';
+import { Pagination, PlayerFilter, getPaginatedPlayersWithEventandSchool } from '@app/api/FPT_3DMAP_API/Player';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { User } from '@app/api/FPT_3DMAP_API/User';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
 import { useMounted } from '@app/hooks/useMounted';
-import { Button, Form, Space, message } from 'antd';
+import { Form, message } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { Table } from 'components/common/Table/Table';
+import { Button } from 'components/common/buttons/Button/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -147,11 +144,9 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
       render: (text: string, record: PlayerFilter) => {
         const editable = isEditing(record);
         return (
-          <Space>
-            <Button type="ghost" onClick={() => handlePlayerClick(record.id)}>
-              Lịch sử người chơi
-            </Button>
-          </Space>
+          <Button type="ghost" onClick={() => handlePlayerClick(record.id)}>
+            Lịch sử người chơi
+          </Button>
         );
       },
     },
@@ -185,38 +180,6 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
         onChange={handleSearchChange}
         style={{ marginBottom: '16px', width: '400px', right: '0' }}
       />
-
-      {/* <div style={{ marginBottom: '10px' }}>
-        <Select
-          value={schoolId}
-          onChange={(value) => setSchoolId(value)}
-          style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-        >
-          <Select.Option value="">Chọn trường</Select.Option>
-          {schools.map((school) => (
-            <Select.Option key={school.id} value={school.id}>
-              {school.name}
-            </Select.Option>
-          ))}
-        </Select>
-
-        {schoolId && (
-          <Select
-            value={eventId}
-            onChange={(value) => setEventId(value)}
-            style={{ width: 300, marginRight: 10, marginBottom: 10 }}
-            suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
-          >
-            <Select.Option value="">Chọn sự kiện</Select.Option>
-            {events.map((event) => (
-              <Select.Option key={event.id} value={event.id}>
-                {event.name}
-              </Select.Option>
-            ))}
-          </Select>
-        )}
-      </div> */}
 
       <Table
         components={{
