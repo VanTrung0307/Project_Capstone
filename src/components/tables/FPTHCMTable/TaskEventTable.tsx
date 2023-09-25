@@ -256,7 +256,8 @@ export const TaskEventTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.taskId, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {tasks.map((tasks) => (
                 <Select.Option key={tasks.id} value={tasks.id}>
@@ -297,6 +298,7 @@ export const TaskEventTable: React.FC = () => {
               type="time"
               value={formattedValue}
               onChange={(e) => handleInputChange(e.target.value, record.starttime, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -325,6 +327,7 @@ export const TaskEventTable: React.FC = () => {
               type="time"
               value={formattedValue}
               onChange={(e) => handleInputChange(e.target.value, record.endtime, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -349,6 +352,7 @@ export const TaskEventTable: React.FC = () => {
             <Input
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.point, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (

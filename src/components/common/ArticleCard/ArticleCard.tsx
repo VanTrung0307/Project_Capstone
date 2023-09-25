@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { Tag } from '../Tag/Tag';
 import * as S from './ArticleCard.styles';
 import { Option } from 'antd/lib/mentions';
+import '@app/components/tables/FPTHCMTable/Select.css';
+import { DownOutlined } from '@ant-design/icons';
 interface ArticleCardProps {
   id: string;
   name?: string;
@@ -120,12 +122,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
       <Modal
         title="Chỉnh sửa sự kiện"
+        className="custom-modal"
         visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsModalVisible(false)}>
+            <Button key="back" onClick={() => setIsModalVisible(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -136,12 +139,15 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       >
         <Form form={form} layout="vertical">
           <Form.Item name="name" label="Tên sự kiện" rules={[{ required: true }]}>
-            <Input />
+            <Input style={{ background: '#414345' }} />
           </Form.Item>
           <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
-            <Select>
-              <Option value="ACTIVE">Active</Option>
-              <Option value="INACTIVE">Inactive</Option>
+            <Select
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
+            >
+              <Option value="ACTIVE">ACTIVE</Option>
+              <Option value="INACTIVE">INACTIVE</Option>
             </Select>
           </Form.Item>
         </Form>

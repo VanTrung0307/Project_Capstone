@@ -114,10 +114,10 @@ export const HistoryPlayerTable: React.FC = () => {
                   key={player.playerId}
                   style={{
                     borderRadius: '8px',
-                    boxShadow: 'rgba(255, 124, 0, 1) 0px 14px 28px, rgba(255, 124, 0, 1) 0px 10px 10px',
+                    boxShadow: 'rgba(255, 124, 0, 1) 0px 1px 4px, rgba(255, 124, 0, 1) 0px 0px 0px 3px',
                     marginBottom: '16px',
                     transition: 'box-shadow 0.3s',
-                    background: '#414345'
+                    background: '#414345',
                   }}
                   hoverable
                 >
@@ -205,82 +205,86 @@ export const HistoryPlayerTable: React.FC = () => {
                   ),
               )}
             </Select>
-            <Card style={{ maxHeight: '350px', overflowY: 'auto', background: '#414345' }}>
-              <div>
-                {originalData
-                  .filter(
-                    (player) =>
-                      player.playerId === playerId && (selectedMajor === 'all' || player.majorId === selectedMajor),
-                  )
-                  .map((player) => {
-                    let totalPoints = 0;
-                    return originalData
-                      .filter(
-                        (task) =>
-                          task.playerId === playerId &&
-                          task.majorId === player.majorId &&
-                          task.eventtaskId === player.eventtaskId,
-                      )
-                      .map((task) => {
-                        if (task.status === 'SUCCESS') {
-                          totalPoints += task.taskPoint;
-                        }
-                        return (
-                          <div key={task.id}>
-                            📋 <span style={{ fontStyle: 'italic', textDecoration: 'underline' }}>{task.taskName}</span>{' '}
-                            -{' '}
-                            <span style={{ fontWeight: 'bold' }}>
-                              {task.status === 'SUCCESS' ? (
-                                <>
-                                  <Tag color="green">SUCCESS</Tag>
-                                  <a>✅</a>
-                                </>
-                              ) : (
-                                <>
-                                  <Tag color="red">FAILED</Tag>
-                                  <a>❌</a>
-                                </>
-                              )}
-                            </span>
-                            <List size="small">
-                              <List.Item>
-                                <div>
-                                  <div style={{ marginBottom: '10px' }}>
-                                    ⌚ Thời gian hoàn thành:{' '}
-                                    <span style={{ fontFamily: 'Casio', fontSize: '18px' }}>
-                                      {formatTime(task.completedTime)}
-                                    </span>{' '}
-                                    - 💫 Điểm nhiệm vụ:{' '}
-                                    <span style={{ fontFamily: 'Pacifico, cursive', fontWeight: 'bold' }}>
-                                      {task.taskPoint}
+            <Card
+              style={{
+                maxHeight: '350px',
+                overflowY: 'auto',
+                background: '#414345',
+                boxShadow: 'rgba(255, 124, 0, 1) 0px 1px 4px, rgba(255, 124, 0, 1) 0px 0px 0px 3px',
+              }}
+            >
+              {originalData
+                .filter(
+                  (player) =>
+                    player.playerId === playerId && (selectedMajor === 'all' || player.majorId === selectedMajor),
+                )
+                .map((player) => {
+                  let totalPoints = 0;
+                  return originalData
+                    .filter(
+                      (task) =>
+                        task.playerId === playerId &&
+                        task.majorId === player.majorId &&
+                        task.eventtaskId === player.eventtaskId,
+                    )
+                    .map((task) => {
+                      if (task.status === 'SUCCESS') {
+                        totalPoints += task.taskPoint;
+                      }
+                      return (
+                        <div key={task.id}>
+                          📋 <span style={{ fontStyle: 'italic', textDecoration: 'underline' }}>{task.taskName}</span> -{' '}
+                          <span style={{ fontWeight: 'bold' }}>
+                            {task.status === 'SUCCESS' ? (
+                              <>
+                                <Tag color="green">SUCCESS</Tag>
+                                <a>✅</a>
+                              </>
+                            ) : (
+                              <>
+                                <Tag color="red">FAILED</Tag>
+                                <a>❌</a>
+                              </>
+                            )}
+                          </span>
+                          <List size="small">
+                            <List.Item>
+                              <div>
+                                <div style={{ marginBottom: '10px' }}>
+                                  ⌚ Thời gian hoàn thành:{' '}
+                                  <span style={{ fontFamily: 'Casio', fontSize: '18px' }}>
+                                    {formatTime(task.completedTime)}
+                                  </span>{' '}
+                                  - 💫 Điểm nhiệm vụ:{' '}
+                                  <span style={{ fontFamily: 'Pacifico, cursive', fontWeight: 'bold' }}>
+                                    {task.taskPoint}
+                                  </span>
+                                </div>
+                                {selectedMajor === 'all' && (
+                                  <div>
+                                    🎓 Ngành học:{' '}
+                                    <span style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 'bold' }}>
+                                      {task.majorName}
                                     </span>
                                   </div>
-                                  {selectedMajor === 'all' && (
-                                    <div>
-                                      🎓 Ngành học:{' '}
-                                      <span style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 'bold' }}>
-                                        {task.majorName}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <hr
-                                    style={{
-                                      display: 'block',
-                                      height: '1px',
-                                      border: '0',
-                                      borderTop: '1px solid #ccc',
-                                      margin: '1em 0',
-                                      padding: '0',
-                                    }}
-                                  />
-                                </div>
-                              </List.Item>
-                            </List>
-                          </div>
-                        );
-                      });
-                  })}
-              </div>
+                                )}
+                                <hr
+                                  style={{
+                                    display: 'block',
+                                    height: '1px',
+                                    border: '0',
+                                    borderTop: '1px solid #ccc',
+                                    margin: '1em 0',
+                                    padding: '0',
+                                  }}
+                                />
+                              </div>
+                            </List.Item>
+                          </List>
+                        </div>
+                      );
+                    });
+                })}
               {selectedMajor === 'all' && (
                 <div>
                   🪙 Tổng điểm nhiệm vụ:{' '}

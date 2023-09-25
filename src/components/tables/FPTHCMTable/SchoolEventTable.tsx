@@ -258,7 +258,7 @@ export const SchoolEventTable: React.FC = () => {
             <Form.Item name={startTimeIndex} initialValue={moment(record.startTime)}>
               <Input
                 type="datetime-local"
-                style={{ maxWidth: '200px' }}
+                style={{ maxWidth: '200px', background: '#414345' }}
                 disabled
                 onChange={(e) => handleInputChange(e.target.value, record.id, startTimeIndex)}
               />
@@ -290,7 +290,7 @@ export const SchoolEventTable: React.FC = () => {
             >
               <Input
                 type="datetime-local"
-                style={{ maxWidth: '200px' }}
+                style={{ maxWidth: '200px', background: '#414345' }}
                 onChange={(e) => handleInputChange(e.target.value, record.id, endTimeIndex)}
               />
             </Form.Item>
@@ -358,16 +358,6 @@ export const SchoolEventTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                {/* <Button
-                  type="ghost"
-                  onClick={() => {
-                    if (eventId) {
-                      handleStudentClick(record.id);
-                    }
-                  }}
-                >
-                  Danh sách học sinh
-                </Button> */}
                 <Button
                   danger
                   onClick={() => handleDelete(record.id)}
