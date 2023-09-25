@@ -192,7 +192,18 @@ export default createGlobalStyle`
   }
   
   .ant-menu-inline, .ant-menu-vertical {
+    background: radial-gradient(100% 100% at 100% 0, #3e3939 0, #2c2727 100%);
     border-right: 0;
   }
   // notifications end
+
+  .custom-modal .ant-modal-header {
+    background: radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%);
+  }
+  .custom-modal .ant-modal-body {
+    background: radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%);
+  }
+  .custom-modal .ant-modal-footer {
+    background: radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%);
+  }
 `;

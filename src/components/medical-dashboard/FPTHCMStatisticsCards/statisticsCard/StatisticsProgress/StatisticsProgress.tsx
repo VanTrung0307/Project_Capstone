@@ -9,11 +9,13 @@ interface FPTHCMStatisticsProgressProps {
   value: number;
 }
 
-export const StatisticsProgress: React.FC<FPTHCMStatisticsProgressProps> = ({ color, value, unit }) => {
+export const StatisticsProgress: React.FC<FPTHCMStatisticsProgressProps> = ({ value, unit }) => {
+  const color = '#2BFF88';
+
   return (
     <Progress
       type="circle"
-      width={70}
+      width={100}
       strokeColor={color}
       trailColor="transparent"
       percent={value}

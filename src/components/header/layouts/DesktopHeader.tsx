@@ -2,9 +2,9 @@
 import { Col, Row } from 'antd';
 import React from 'react';
 import * as S from '../Header.styles';
-import { HeaderFullscreen } from '../components/HeaderFullscreen/HeaderFullscreen';
+// import { HeaderFullscreen } from '../components/HeaderFullscreen/HeaderFullscreen';
 import { ProfileDropdown } from '../components/profileDropdown/ProfileDropdown/ProfileDropdown';
-import { SettingsDropdown } from '../components/settingsDropdown/SettingsDropdown';
+// import { SettingsDropdown } from '../components/settingsDropdown/SettingsDropdown';
 import Button from 'antd/es/button';
 import { useAppSelector } from '@app/hooks/reduxHooks';
 
@@ -37,13 +37,13 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout
         <Row align="middle" justify="end" gutter={[10, 10]}>
           <Col>
             <Row>
-              <Col>
+              {/* <Col>
                 <HeaderFullscreen />
-              </Col>
+              </Col> */}
 
-              <Col>
+              {/* <Col>
                 <SettingsDropdown />
-              </Col>
+              </Col> */}
             </Row>
           </Col>
 

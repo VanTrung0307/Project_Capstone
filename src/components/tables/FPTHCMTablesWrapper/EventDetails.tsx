@@ -201,7 +201,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
             onClick={() => handleGoBack()}
             style={{
               position: 'absolute',
-              top: '50px',
+              top: '23px',
               left: '100px',
               fontSize: '20px',
               zIndex: '999',

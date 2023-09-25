@@ -19,6 +19,7 @@ export const Title = styled(Typography.Text)`
 export const Text = styled(Typography.Text)`
   font-size: ${FONT_SIZE.xs};
   font-weight: ${FONT_WEIGHT.regular};
+  color: white;
 `;
 
 export const IconWrapper = styled.span`

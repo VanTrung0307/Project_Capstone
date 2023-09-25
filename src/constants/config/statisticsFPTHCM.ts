@@ -1,6 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { BankOutlined, ScheduleOutlined, TeamOutlined } from '@ant-design/icons';
 import { FC } from 'react';
+import { BsFillCalendar2EventFill } from 'react-icons/bs';
+import { FaSchool } from 'react-icons/fa';
+import { PiGameControllerFill } from 'react-icons/pi';
 
 export type StatisticColor = 'primary' | 'error' | 'secondary' | 'success';
 
@@ -20,7 +22,7 @@ export const fpthcm_statistics: ConfigFPTHCMStatistic[] = [
     title: 'Người chơi',
     subname: 'Tổng số người chơi đã tham gia',
     color: 'success',
-    Icon: TeamOutlined,
+    Icon: PiGameControllerFill,
   },
   {
     id: 2,
@@ -28,7 +30,7 @@ export const fpthcm_statistics: ConfigFPTHCMStatistic[] = [
     title: 'Sự kiện',
     subname: 'Tổng số sự kiện',
     color: 'error',
-    Icon: ScheduleOutlined,
+    Icon: BsFillCalendar2EventFill,
   },
   {
     id: 3,
@@ -36,6 +38,6 @@ export const fpthcm_statistics: ConfigFPTHCMStatistic[] = [
     title: 'Trường học',
     subname: 'Tổng số trường học đã tham gia',
     color: 'primary',
-    Icon: BankOutlined,
+    Icon: FaSchool,
   },
 ];

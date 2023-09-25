@@ -49,7 +49,7 @@ const chartColors = {
 };
 
 export const darkColorsTheme: ITheme = {
-  primary: '#339CFD',
+  primary: '#F26F21',
   primary1: '#7568f6',
   primaryGradient: 'linear-gradient(211.49deg, #dc88f5 15.89%, #339CFD 48.97%)',
   light: '#696969',
@@ -74,7 +74,7 @@ export const darkColorsTheme: ITheme = {
   textSecondary: '#ffffff',
   textDark: '#404040',
   textNftLight: '#797C9A',
-  textSiderPrimary: '#339CFD',
+  textSiderPrimary: '#FF7C00',
   textSiderSecondary: '#797C9A',
   subText: '#a9a9a9',
   shadow: 'rgba(0, 0, 0, 0.07)',
@@ -94,9 +94,9 @@ export const darkColorsTheme: ITheme = {
   borderBase: '#a9a9a9',
   disable: '#7e7e7e',
   disabledBg: '#1c2137',
-  layoutBodyBg: '#1e2142',
-  layoutHeaderBg: '#1e2142',
-  layoutSiderBg: '#121430',
+  layoutBodyBg: 'linear-gradient(315deg, #f3f4f7 0%, #caccd1 74%)',
+  layoutHeaderBg: 'radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%)',
+  layoutSiderBg: 'radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%)',
   inputPlaceholder: 'rgba(255, 255, 255, 0.5)',
   itemHoverBg: '#1c2137',
   backgroundColorBase: '#1c2137',

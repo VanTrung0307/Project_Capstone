@@ -17,19 +17,15 @@ export const Card = styled.div`
   position: relative;
   max-width: 20.5rem;
   max-height: 35.5rem;
-  height: 196.6px;
+  height: 192.6px;
   border: 1px solid lightblue;
-  box-shadow: var(--box-shadow);
   border-radius: ${BORDER_RADIUS};
   transition: 0.3s;
   cursor: pointer;
-
-  [data-theme='dark'] & {
-    background: var(--secondary-background-color);
-  }
+  background-image: radial-gradient(100% 100% at 100% 0, #ff9000 0, #ff7500 100%);
 
   &:hover {
-    box-shadow: var(--box-shadow-hover);
+    box-shadow: rgba(0, 0, 0, 0.4) 5px 5px, rgba(0, 0, 0, 0.3) 10px 10px;
   }
 `;
 
@@ -65,6 +61,7 @@ export const CreateText = styled.span`
 
 export const FormContent = styled.div`
   margin: 1.25rem 0.5rem;
+  background: radial-gradient(100% 100% at 100% 0, #3e3939 0, #2c2727 100%);
 `;
 
 export const FlexContainer = styled.div`

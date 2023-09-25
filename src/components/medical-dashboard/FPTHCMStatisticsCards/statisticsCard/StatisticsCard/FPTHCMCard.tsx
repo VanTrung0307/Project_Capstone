@@ -34,7 +34,7 @@ export const FPTHCMCard: React.FC<FPTHCMCardStatisticsCardProps> = ({ name, valu
           </S.IconWrapper>
         </Col>
 
-        <Col flex={1}>
+        <Col flex={1} style={{ marginLeft: '5px' }}>
           <Row justify="space-between" align="middle" wrap={false}>
             <Col>
               <StatisticsInfo name={t(name)} subname={t(subname)} />

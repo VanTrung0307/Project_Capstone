@@ -22,7 +22,7 @@ const Light = styled.div`
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(249, 105, 14, 1) 0%, rgba(255, 255, 255, 0) 70%);
   z-index: 1;
 `;
 
@@ -124,10 +124,15 @@ export const EventCard: React.FC = () => {
             title="Tạo sự kiện"
             visible={isModalVisible}
             onOk={handleModalOk}
+            className="custom-modal"
             onCancel={() => setIsModalVisible(false)}
             footer={
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button key="back" onClick={() => setIsModalVisible(false)}>
+                <Button
+                  style={{ background: 'radial-gradient(100% 100% at 100% 0,#3E3939 0,#2C2727 100%)' }}
+                  key="back"
+                  onClick={() => setIsModalVisible(false)}
+                >
                   Huỷ
                 </Button>
                 <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -154,7 +159,7 @@ export const EventCard: React.FC = () => {
                       },
                     ]}
                   >
-                    <Input maxLength={100} />
+                    <Input maxLength={100} style={{ background: '#414345' }} />
                   </BaseForm.Item>
                 </S.InputContainer>
               </S.FlexContainer>
@@ -163,7 +168,7 @@ export const EventCard: React.FC = () => {
                 <S.Label>{'Trạng thái'}</S.Label>
                 <S.InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input disabled={true} />
+                    <Input disabled={true} style={{ background: '#414345' }} />
                   </BaseForm.Item>
                 </S.InputContainer>
               </S.FlexContainer>

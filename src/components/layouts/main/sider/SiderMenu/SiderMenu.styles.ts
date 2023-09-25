@@ -39,8 +39,8 @@ export const Menu = styled(AntMenu)`
     a,
     .ant-menu-item-icon,
     .ant-menu-title-content {
-      color: var(--text-sider-primary-color);
-      fill: var(--text-sider-primary-color);
+      color: #FF7C00;
+      fill: #FF7C00;
     }
   }
 

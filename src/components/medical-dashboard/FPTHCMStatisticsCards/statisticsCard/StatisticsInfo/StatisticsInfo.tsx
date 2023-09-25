@@ -12,7 +12,7 @@ export const StatisticsInfo: React.FC<FPTHCMStatisticsInfoProps> = ({ name, subn
   return (
     <Space direction="vertical">
       <S.Title>{name}</S.Title>
-      <S.Text>{subname}</S.Text>
+      <S.Text style={{ color: 'white' }}>{subname}</S.Text>
 
       {/* {prevValue && (
         <S.Text>
