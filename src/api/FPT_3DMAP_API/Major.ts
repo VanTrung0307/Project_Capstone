@@ -29,7 +29,7 @@ export const getPaginatedMajors = async (pagination: Pagination): Promise<Pagina
   try {
     const response = await httpApi.get<MajorList>(API_BASE_URL);
     const { data } = response.data;
-    const { current = 1, pageSize = 5 } = pagination;
+    const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
 
     const startIndex = (current - 1) * pageSize;

@@ -30,6 +30,7 @@ import styled from 'styled-components';
 import { EditableCell } from '../editableTable/EditableCell';
 import { TaskTableModal } from './TaskTableModal';
 import './Select.css';
+import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -46,11 +47,8 @@ export const TaskEventTable: React.FC = () => {
     loading: false,
   });
   const [tasks, setTask] = useState<Task[]>([]);
+  const [major, setMajor] = useState<Major[]>([]);
   const { eventId } = useParams<{ eventId: string | undefined }>();
-  // const [locations, setLocations] = useState<RoomLocation[]>([]);
-  // const [npcs, setNpcs] = useState<Npc[]>([]);
-  // const [majors, setMajors] = useState<Major[]>([]);
-  // const [items, setItems] = useState<Item[]>([]);
 
   const isEditing = (record: TaskByEvent) => record.eventtaskId === editingKey;
 
@@ -146,10 +144,17 @@ export const TaskEventTable: React.FC = () => {
       }
 
       try {
-        const taskResponse = await getPaginatedTasks({ current: 1, pageSize: 10 });
+        const taskResponse = await getPaginatedTasks({ current: 1, pageSize: 100 });
         setTask(taskResponse.data);
       } catch (error) {
-        message.error('Error fetching locations');
+        // message.error('Error fetching locations');
+      }
+
+      try {
+        const majorResponse = await getPaginatedMajors({ current: 1, pageSize: 100 });
+        setMajor(majorResponse.data);
+      } catch (error) {
+        // message.error('Error fetching locations');
       }
     },
     [isMounted, eventId],
@@ -232,9 +237,9 @@ export const TaskEventTable: React.FC = () => {
           total: prevTableData.pagination.total ? prevTableData.pagination.total - 1 : prevTableData.pagination.total,
         },
       }));
-      message.success(`Xoá trường thành công`);
+      message.success(`Xoá nhiệm vụ thành công`);
     } catch (error) {
-      message.error('Xoá trường thất bại');
+      message.error('Xoá nhiệm vụ thất bại');
     }
   };
 
@@ -473,6 +478,17 @@ export const TaskEventTable: React.FC = () => {
     }
   };
 
+  const [selectedMajor, setSelectedMajor] = useState<null | Major[]>(null);
+
+  const handleMajorChange = (value: string) => {
+    const foundMajor = major.find((majorItem) => majorItem.id === value);
+    if (foundMajor) {
+      setSelectedMajor([foundMajor]);
+    } else {
+      setSelectedMajor([]);
+    }
+  };
+
   return (
     <Form form={form} component={false} initialValues={{ eventId }}>
       <Button
@@ -571,34 +587,71 @@ export const TaskEventTable: React.FC = () => {
             <Col span={19} offset={12}>
               <FlexContainer
                 style={{
-                  marginTop: '-355px',
+                  marginTop: '-380px',
                   marginLeft: '100px',
                   maxHeight: '300px',
                   overflowY: 'auto',
                 }}
               >
                 <div>
-                  <Label>{'Tên nhiệm vụ'}</Label>
-                  <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Hãy chọn nhiệm vụ') }]}>
+                  <Label>{'Tên ngành học'}</Label>
+                  <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
                     <Select
-                      mode="multiple"
                       style={{ width: '300px' }}
-                      placeholder="Chọn nhiệm vụ"
+                      placeholder="Chọn ngành học"
                       showSearch
                       dropdownStyle={{ background: '#414345' }}
                       filterOption={(inputValue, option) =>
                         option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
                       }
-                      options={tasks
+                      options={major
                         .filter((taskItem) => taskItem.status !== 'INACTIVE')
                         .map((task) => ({
                           label: task.name,
                           value: task.id,
                         }))}
+                      onChange={(value) => handleMajorChange(value)}
+                      suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
                     />
                   </BaseForm.Item>
                 </div>
               </FlexContainer>
+
+              {selectedMajor && (
+                <FlexContainer
+                  style={{
+                    marginLeft: '100px',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <div>
+                    <Label>{'Tên nhiệm vụ'}</Label>
+                    <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Hãy chọn nhiệm vụ') }]}>
+                      <Select
+                        mode="multiple"
+                        style={{ width: '300px' }}
+                        placeholder="Chọn nhiệm vụ"
+                        showSearch
+                        dropdownStyle={{ background: '#414345' }}
+                        filterOption={(inputValue, option) =>
+                          option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
+                        }
+                        options={tasks
+                          .filter(
+                            (taskItem) =>
+                              taskItem.status !== 'INACTIVE' &&
+                              selectedMajor?.some((major) => major.name === taskItem.majorName),
+                          )
+                          .map((task) => ({
+                            label: task.name,
+                            value: task.id,
+                          }))}
+                      />
+                    </BaseForm.Item>
+                  </div>
+                </FlexContainer>
+              )}
             </Col>
           </Row>
           <TaskTableModal />
