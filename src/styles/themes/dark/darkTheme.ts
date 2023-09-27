@@ -57,7 +57,7 @@ export const darkColorsTheme: ITheme = {
   error: '#FF5252',
   warning: '#FFB765',
   success: '#57D682',
-  background: '#25284B',
+  background: '#2C2727',
   secondaryBackground: '#1c2137',
   secondaryBackgroundSelected: shadeColor('#1c2137', -5),
   additionalBackground: '#1D203E',

@@ -127,6 +127,37 @@ export const getPaginatedPlayersWithEventandSchool = async (
   }
 };
 
+export const getPaginatedPlayersWithEvent = async (
+  eventId: string,
+  pagination: Pagination,
+): Promise<PaginationPlayerData> => {
+  try {
+    const response = await httpApi.get<PlayerFilterList>(
+      `${API_BASE_URL}/filterdatawithschoolandevent?eventId=${eventId}`,
+    );
+    const { data } = response.data;
+    const { current = 1, pageSize = 1000 } = pagination;
+    const total = data.length;
+
+    const startIndex = (current - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        current,
+        pageSize,
+        total,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching paginated players:', error);
+    throw error;
+  }
+};
+
 export const getRankedPlayers = async (
   eventId: string,
   schoolId: string,

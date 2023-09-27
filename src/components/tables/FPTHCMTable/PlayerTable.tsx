@@ -2,7 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, getPaginatedEvents } from '@app/api/FPT_3DMAP_API/Event';
 import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer';
-import { Pagination, PlayerFilter, getPaginatedPlayersWithEventandSchool } from '@app/api/FPT_3DMAP_API/Player';
+import {
+  Pagination,
+  PlayerFilter,
+  getPaginatedPlayersWithEvent,
+  getPaginatedPlayersWithEventandSchool,
+} from '@app/api/FPT_3DMAP_API/Player';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { User } from '@app/api/FPT_3DMAP_API/User';
 import { SearchInput } from '@app/components/common/inputs/SearchInput/SearchInput';
@@ -72,6 +77,14 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
         setSchools(paginationData.data);
       });
 
+      if (eventId) {
+        getPaginatedPlayersWithEvent(eventId, pagination).then((res) => {
+          if (isMounted.current) {
+            setData({ data: res.data, pagination: res.pagination, loading: false });
+          }
+        });
+      }
+
       if (eventId && selectedSchoolId) {
         getPaginatedPlayersWithEventandSchool(selectedSchoolId, eventId, pagination).then((res) => {
           if (isMounted.current) {
@@ -104,6 +117,12 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
     }
   };
 
+  const uniqueSchoolNames = new Set(data.data.map((record) => record.schoolName));
+  const schoolNameFilters = Array.from(uniqueSchoolNames).map((schoolName) => ({
+    text: schoolName,
+    value: schoolName,
+  }));
+
   const columns: ColumnsType<PlayerFilter> = [
     {
       title: t('Tên học sinh'),
@@ -124,6 +143,8 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
     {
       title: t('Trên trường'),
       dataIndex: 'schoolName',
+      filters: schoolNameFilters,
+      onFilter: (value, record) => record.schoolName === value,
     },
     {
       title: t('Mã tham gia'),

@@ -101,13 +101,14 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
   const createdAt = event?.createdAt;
   const [day, month, year] = createdAt ? formatDate(createdAt).split(' ') : ['', '', ''];
 
-  // const [activeTab, setActiveTab] = useState('#info');
-  const [activeTabOnScroll, setActiveTabOnScroll] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('');
+  // const [activeTabOnScroll, setActiveTabOnScroll] = useState<string>('');
   const pageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleTabClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>, tabId: string) => {
     event.preventDefault();
-    setActiveTabOnScroll(tabId);
+    setActiveTab(tabId);
+    // setActiveTabOnScroll(tabId);
     const targetElement = document.querySelector(tabId);
     if (targetElement && pageContainerRef.current) {
       const containerScrollTop = pageContainerRef.current.scrollTop;
@@ -117,37 +118,37 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
     }
   };
 
-  const handleScroll = () => {
-    const container = pageContainerRef.current;
-    if (!container) return;
+  // const handleScroll = () => {
+  //   const container = pageContainerRef.current;
+  //   if (!container) return;
 
-    const currentPosition = container.scrollTop + container.offsetHeight / 2;
+  //   const currentPosition = container.scrollTop + container.offsetHeight / 2;
 
-    if (currentPosition < container.scrollHeight * 0.2) {
-      setActiveTabOnScroll('#info');
-    } else if (currentPosition < container.scrollHeight * 0.6) {
-      setActiveTabOnScroll('#rankstudent');
-    } else if (currentPosition < container.scrollHeight * 0.72) {
-      setActiveTabOnScroll('#eventask');
-    } else if (currentPosition < container.scrollHeight * 0.8) {
-      setActiveTabOnScroll('#playerhistory');
-    } else {
-      setActiveTabOnScroll('#eventschool');
-    }
-  };
+  //   if (currentPosition < container.scrollHeight * 0.2) {
+  //     setActiveTabOnScroll('#info');
+  //   } else if (currentPosition < container.scrollHeight * 0.6) {
+  //     setActiveTabOnScroll('#rankstudent');
+  //   } else if (currentPosition < container.scrollHeight * 0.72) {
+  //     setActiveTabOnScroll('#eventask');
+  //   } else if (currentPosition < container.scrollHeight * 0.8) {
+  //     setActiveTabOnScroll('#playerhistory');
+  //   } else {
+  //     setActiveTabOnScroll('#eventschool');
+  //   }
+  // };
 
-  useEffect(() => {
-    const container = pageContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-    }
+  // useEffect(() => {
+  //   const container = pageContainerRef.current;
+  //   if (container) {
+  //     container.addEventListener('scroll', handleScroll);
+  //   }
 
-    return () => {
-      if (container) {
-        container.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, []);
+  //   return () => {
+  //     if (container) {
+  //       container.removeEventListener('scroll', handleScroll);
+  //     }
+  //   };
+  // }, []);
 
   const scrollToTargetOffset = (targetOffset: number) => {
     const container = pageContainerRef.current;
@@ -249,37 +250,35 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           <S.TabWrapper>
             <S.TabLink
               href="#info"
-              className={activeTabOnScroll === '#info' || activeTabOnScroll === '#info' ? 'active' : ''}
+              className={activeTab === '#info' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#info')}
             >
               Thông tin chung
             </S.TabLink>
             <S.TabLink
               href="#rankstudent"
-              className={activeTabOnScroll === '#rankstudent' || activeTabOnScroll === '#rankstudent' ? 'active' : ''}
+              className={activeTab === '#rankstudent' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#rankstudent')}
             >
               Bảng xếp hạng
             </S.TabLink>
             <S.TabLink
               href="#eventask"
-              className={activeTabOnScroll === '#eventask' || activeTabOnScroll === '#eventask' ? 'active' : ''}
+              className={activeTab === '#eventask' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#eventask')}
             >
               Danh sách nhiệm vụ
             </S.TabLink>
             <S.TabLink
               href="#playerhistory"
-              className={
-                activeTabOnScroll === '#playerhistory' || activeTabOnScroll === '#playerhistory' ? 'active' : ''
-              }
+              className={activeTab === '#playerhistory' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#playerhistory')}
             >
               Người chơi
             </S.TabLink>
             <S.TabLink
               href="#eventschool"
-              className={activeTabOnScroll === '#eventschool' || activeTabOnScroll === '#eventschool' ? 'active' : ''}
+              className={activeTab === '#eventschool' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#eventschool')}
             >
               Danh sách trường
