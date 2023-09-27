@@ -250,6 +250,7 @@ export const GiftTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -275,7 +276,8 @@ export const GiftTable: React.FC = () => {
               style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.eventId, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {events.map((event) => (
                 <Select.Option key={event.id} value={event.id}>
@@ -307,7 +309,8 @@ export const GiftTable: React.FC = () => {
               style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.schoolId, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {schools.map((school) => (
                 <Select.Option key={school.id} value={school.id}>
@@ -335,7 +338,7 @@ export const GiftTable: React.FC = () => {
             rules={[{ required: true, message: 'Hãy nhập số lượng phần thưởng' }]}
           >
             <Input
-              style={{ maxWidth: '150px' }}
+              style={{ maxWidth: '150px', background: '#414345' }}
               type="number"
               min={0}
               value={record[dataIndex]}
@@ -366,6 +369,7 @@ export const GiftTable: React.FC = () => {
               autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -398,7 +402,8 @@ export const GiftTable: React.FC = () => {
               style={{ maxWidth: '212.03px' }}
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -437,7 +442,11 @@ export const GiftTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button danger onClick={() => handleDelete(record.id)}>
+                <Button
+                  danger
+                  onClick={() => handleDelete(record.id)}
+                  style={{ background: '#FF5252', color: 'white' }}
+                >
                   Xoá
                 </Button>
               </>
@@ -482,12 +491,13 @@ export const GiftTable: React.FC = () => {
       <Modal
         title={'Thêm mới PHẦN QUÀ'}
         open={isBasicModalOpen}
+        className="custom-modal"
         onOk={handleModalOk}
         width={800}
         onCancel={() => setIsBasicModalOpen(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -512,7 +522,7 @@ export const GiftTable: React.FC = () => {
                       },
                     ]}
                   >
-                    <Input maxLength={100} style={{ width: '256px' }} />
+                    <Input maxLength={100} style={{ width: '256px', background: '#414345' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -531,7 +541,7 @@ export const GiftTable: React.FC = () => {
                       },
                     ]}
                   >
-                    <TextArea style={{ width: '256px' }} />
+                    <TextArea style={{ width: '256px', background: '#414345' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -543,7 +553,7 @@ export const GiftTable: React.FC = () => {
                 <Label>{'Số lượng'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="quantity" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
-                    <Input type="number" min={1} style={{ width: '256px' }} />
+                    <Input type="number" min={1} style={{ width: '256px', background: '#414345' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -555,7 +565,8 @@ export const GiftTable: React.FC = () => {
                   <BaseForm.Item name="prizeRank" rules={[{ required: true, message: t('Hãy nhập số lượng') }]}>
                     <Select
                       placeholder={'Chọn số xếp hạng'}
-                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                      dropdownStyle={{ background: '#414345' }}
                       style={{ width: '256px' }}
                     >
                       {rankNumbers.map((number) => (
@@ -578,7 +589,8 @@ export const GiftTable: React.FC = () => {
                     <Select
                       style={{ maxWidth: '256px' }}
                       placeholder={'---- Chọn sự kiện ----'}
-                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                      dropdownStyle={{ background: '#414345' }}
                     >
                       {events
                         .filter((event) => event.status === 'ACTIVE')
@@ -600,7 +612,8 @@ export const GiftTable: React.FC = () => {
                     <Select
                       style={{ maxWidth: '256px' }}
                       placeholder={'---- Chọn sự kiện ----'}
-                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                      dropdownStyle={{ background: '#414345' }}
                     >
                       {schools
                         .filter((school) => school.status === 'ACTIVE')
@@ -631,7 +644,7 @@ export const GiftTable: React.FC = () => {
                 <Label>{'Trạng thái'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input disabled={true} style={{ width: '80px' }} />
+                    <Input disabled={true} style={{ width: '80px', background: '#1D1C1A' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>

@@ -291,6 +291,7 @@ export const ItemTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -317,6 +318,7 @@ export const ItemTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.type, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -343,6 +345,7 @@ export const ItemTable: React.FC = () => {
               min={0}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.price, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -372,7 +375,8 @@ export const ItemTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value?.toString(), record.limitExchange.toString(), dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {selectOptions.map((option) => (
                 <Option key={option.value.toString()} value={option.value}>
@@ -427,6 +431,7 @@ export const ItemTable: React.FC = () => {
                     autoSize={{ maxRows: 6 }}
                     value={record[dataIndex]}
                     onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+                    style={{ background: '#414345' }}
                   />
                 </Form.Item>
               ) : (
@@ -438,6 +443,7 @@ export const ItemTable: React.FC = () => {
             <Modal
               title={t('Mô tả chi tiết')}
               visible={descriptionModalVisible}
+              className="custom-modal"
               onCancel={() => setDescriptionModalVisible(false)}
               footer={null}
               mask={true}
@@ -473,7 +479,8 @@ export const ItemTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -619,11 +626,12 @@ export const ItemTable: React.FC = () => {
       <Modal
         title={'Tạo mới Vật phẩm'}
         open={isBasicModalOpen}
+        className="custom-modal"
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -650,7 +658,7 @@ export const ItemTable: React.FC = () => {
                         },
                       ]}
                     >
-                      <Input maxLength={100} style={{ width: '300px' }} />
+                      <Input maxLength={100} style={{ width: '300px', background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -664,8 +672,9 @@ export const ItemTable: React.FC = () => {
                       <Select
                         style={{ width: '300px' }}
                         placeholder={'---- Chọn loại vật phẩm ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
                         onChange={handleItemTypeChange}
+                        dropdownStyle={{ background: '#414345' }}
                       >
                         {Object.values(ItemType).map((type) => (
                           <Option key={type} value={type}>
@@ -698,7 +707,7 @@ export const ItemTable: React.FC = () => {
                         },
                       ]}
                     >
-                      <Input type="number" min={100} style={{ width: '100px' }} />
+                      <Input type="number" min={100} style={{ width: '100px', background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -715,7 +724,8 @@ export const ItemTable: React.FC = () => {
                       <Select
                         style={{ width: '300px', maxWidth: '300px' }}
                         placeholder={'---- Chọn giới hạn ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                        dropdownStyle={{ background: '#414345' }}
                       >
                         <Option value="true">{'Có giới hạn'}</Option>
                         <Option value="false">{'Không giới hạn'}</Option>
@@ -734,7 +744,7 @@ export const ItemTable: React.FC = () => {
                   <Label>{'Mô tả'}</Label>
                   <InputContainer>
                     <BaseForm.Item name="description" rules={[{ required: true, message: t('Hãy nhập mô tả') }]}>
-                      <TextArea style={{ width: '300px' }} />
+                      <TextArea style={{ width: '300px', background: '#414345' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -745,7 +755,7 @@ export const ItemTable: React.FC = () => {
                   <Label>{'Trạng thái'}</Label>
                   <InputContainer>
                     <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                      <Input style={{ width: '100px' }} disabled={true} />
+                      <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -758,7 +768,7 @@ export const ItemTable: React.FC = () => {
                   <Label>{'Hình ảnh'}</Label>
                   <InputContainer>
                     <Upload {...uploadAddProps}>
-                      <Button style={{ width: '300px' }} icon={<UploadOutlined />}>
+                      <Button style={{ width: '300px', background: '#414345' }} icon={<UploadOutlined />}>
                         Hình ảnh vật phẩm
                       </Button>
                     </Upload>

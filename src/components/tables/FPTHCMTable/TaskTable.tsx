@@ -301,6 +301,7 @@ export const TaskTable: React.FC = () => {
             <Input
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -324,7 +325,8 @@ export const TaskTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.locationName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              dropdownStyle={{ background: '#414345' }}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
             >
               {locations
                 // .filter((locationItem) => locationItem.status !== 'INACTIVE')
@@ -358,7 +360,8 @@ export const TaskTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.npcName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              dropdownStyle={{ background: '#414345' }}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
             >
               {npcs.map((npc) => (
                 <Select.Option key={npc.id} value={npc.name}>
@@ -391,7 +394,8 @@ export const TaskTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.majorName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              dropdownStyle={{ background: '#414345' }}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
             >
               {majors.map((major) => (
                 <Select.Option key={major.id} value={major.name}>
@@ -424,7 +428,8 @@ export const TaskTable: React.FC = () => {
               style={{ minWidth: '200px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.type, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              dropdownStyle={{ background: '#414345' }}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
             >
               {Object.values(TaskType).map((type) => (
                 <Option key={type} value={type}>
@@ -454,7 +459,8 @@ export const TaskTable: React.FC = () => {
             <Select
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.itemName, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
               style={{ minWidth: '100px' }}
             >
               {items.map((item) => (
@@ -493,7 +499,8 @@ export const TaskTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -532,7 +539,11 @@ export const TaskTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button danger onClick={() => handleDelete(record.id)}>
+                <Button
+                  danger
+                  onClick={() => handleDelete(record.id)}
+                  style={{ background: '#FF5252', color: 'white' }}
+                >
                   Xoá
                 </Button>
               </>
@@ -592,13 +603,14 @@ export const TaskTable: React.FC = () => {
       <Modal
         title={'Thêm mới NHIỆM VỤ'}
         open={isBasicModalOpen}
+        className="custom-modal"
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
         width={800}
         style={{ marginTop: '-50px' }}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -624,7 +636,7 @@ export const TaskTable: React.FC = () => {
                         },
                       ]}
                     >
-                      <Input style={{ width: '300px' }} placeholder="Nhập tên nhiệm vụ" />
+                      <Input style={{ width: '300px', background: '#414345' }} placeholder="Nhập tên nhiệm vụ" />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -637,7 +649,8 @@ export const TaskTable: React.FC = () => {
                     <BaseForm.Item name="locationId" rules={[{ required: true, message: t('Hãy chọn địa điểm') }]}>
                       <Select
                         placeholder={'---- Chọn tọa độ ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                        dropdownStyle={{ background: '#414345' }}
                         style={{ width: '300px' }}
                       >
                         {locations
@@ -663,7 +676,8 @@ export const TaskTable: React.FC = () => {
                       <Select
                         style={{ width: '300px' }}
                         placeholder={'---- Chọn loại nhiệm vụ ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                        dropdownStyle={{ background: '#414345' }}
                         onChange={handleTaskTypeChange}
                       >
                         {Object.values(TaskType).map((type) => (
@@ -690,7 +704,8 @@ export const TaskTable: React.FC = () => {
                       <BaseForm.Item name="itemId">
                         <Select
                           placeholder={'---- Chọn vật phẩm ----'}
-                          suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                          suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                          dropdownStyle={{ background: '#414345' }}
                           style={{ width: '300px' }}
                         >
                           {items.map((item) => (
@@ -716,7 +731,8 @@ export const TaskTable: React.FC = () => {
                     <BaseForm.Item name="npcId" rules={[{ required: true, message: t('Hãy chọn NPC') }]}>
                       <Select
                         placeholder={'---- Chọn NPC ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                        dropdownStyle={{ background: '#414345' }}
                         style={{ width: '300px' }}
                       >
                         {npcs.map((npc) => (
@@ -738,7 +754,8 @@ export const TaskTable: React.FC = () => {
                       <Select
                         style={{ width: '300px' }}
                         placeholder={'---- Chọn ngành ----'}
-                        suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                        suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                        dropdownStyle={{ background: '#414345' }}
                       >
                         {majors.map((major) => (
                           <Option key={major.id} value={major.id}>
@@ -758,7 +775,7 @@ export const TaskTable: React.FC = () => {
                   <Label>{'Trạng thái'}</Label>
                   <InputContainer>
                     <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                      <Input style={{ width: '100px' }} disabled={true} />
+                      <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>

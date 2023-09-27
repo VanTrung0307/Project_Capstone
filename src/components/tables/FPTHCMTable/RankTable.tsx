@@ -323,7 +323,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
                   <Label>{'Trạng thái'}</Label>
                   <InputContainer>
                     <BaseForm.Item name="status" initialValue={'RECEIVED'}>
-                      <Input disabled={true} style={{ background: '#414345' }} />
+                      <Input disabled={true} style={{ background: '#1D1C1A' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </FlexContainer>

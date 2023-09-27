@@ -22,8 +22,11 @@ export const FPTHCMCard = styled(DashboardCard)<StatisticsProps>`
   line-height: 1;
   overflow: hidden;
   background-image: radial-gradient(100% 100% at 100% 0, #ff9000 0, #ff7500 100%);
-  box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
-  
+
+  &:hover {
+    box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+  }
+
   ${Text} {
     color: ${(props) => `var(--${props.$color}-color)`};
   }

@@ -243,6 +243,7 @@ export const QuestionBankTable: React.FC = () => {
               autoSize={{ maxRows: 6 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -269,7 +270,8 @@ export const QuestionBankTable: React.FC = () => {
               style={{ maxWidth: '212.03px' }}
               value={record[dataIndex]}
               onChange={(value) => handleInputChange(value, record.id, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {majors.map((major) => (
                 <Select.Option key={major.id} value={major.id}>
@@ -331,7 +333,7 @@ export const QuestionBankTable: React.FC = () => {
                       initialValue={answer.answerName}
                     >
                       <Input
-                        style={{ maxWidth: '212.03px', marginLeft: '8px' }}
+                        style={{ maxWidth: '212.03px', marginLeft: '8px', background: '#414345' }}
                         value={text}
                         onChange={(e) => handleInputChange(e.target.value, answer.id, 'answers')}
                       />
@@ -384,7 +386,8 @@ export const QuestionBankTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -532,12 +535,13 @@ export const QuestionBankTable: React.FC = () => {
       <Modal
         title={'Tạo mới CÂU HỎI'}
         open={isBasicModalOpen}
+        className="custom-modal"
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
         width={1000}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -559,7 +563,7 @@ export const QuestionBankTable: React.FC = () => {
                       { max: 100, message: t('Tên câu hỏi không được vượt quá 100 ký tự') },
                     ]}
                   >
-                    <TextArea style={{ width: '256px' }} />
+                    <TextArea style={{ width: '256px', background: '#414345' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -571,7 +575,8 @@ export const QuestionBankTable: React.FC = () => {
                     <Select
                       style={{ maxWidth: '256px' }}
                       placeholder={'---- Chọn ngành ----'}
-                      suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+                      suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+                      dropdownStyle={{ background: '#414345' }}
                     >
                       {majors.map((major) => (
                         <Option key={major.id} value={major.id}>
@@ -587,7 +592,7 @@ export const QuestionBankTable: React.FC = () => {
                 <Label>{'Trạng thái'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input disabled={true} style={{ width: '80px' }} />
+                    <Input disabled={true} style={{ width: '80px', background: '#1D1C1A' }} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>
@@ -596,7 +601,7 @@ export const QuestionBankTable: React.FC = () => {
             <Col span={19} offset={12}>
               <FlexContainer style={{ marginTop: '-305px' }}>
                 <Label>{'Câu trả lời'}</Label>
-                <h1 style={{ fontSize: '14px', color: '#FF6961' }}>* Hãy nhập 4 câu trả lời</h1>
+                <h1 style={{ fontSize: '14px', color: '#FF073A' }}>* Hãy nhập 4 câu trả lời</h1>
                 <InputContainer>
                   {/* Always show the first input with the placeholder "Câu trả lời đúng" */}
                   <div>
@@ -617,7 +622,10 @@ export const QuestionBankTable: React.FC = () => {
                         }),
                       ]}
                     >
-                      <Input style={{ maxWidth: '256px', marginBottom: '8px' }} placeholder={'Câu trả lời đúng'} />
+                      <Input
+                        style={{ maxWidth: '256px', marginBottom: '8px', background: '#414345' }}
+                        placeholder={'Câu trả lời đúng'}
+                      />
                     </BaseForm.Item>
                   </div>
                   {/* Render the remaining inputs */}
@@ -641,7 +649,7 @@ export const QuestionBankTable: React.FC = () => {
                         ]}
                       >
                         <Input
-                          style={{ maxWidth: '256px', marginBottom: '8px' }}
+                          style={{ maxWidth: '256px', marginBottom: '8px', background: '#414345' }}
                           placeholder={'Nhập câu trả lời sai'}
                         />
                       </BaseForm.Item>
@@ -657,14 +665,16 @@ export const QuestionBankTable: React.FC = () => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginRight: '8px',
+                        background: 'white',
                       }}
                       onClick={removeLastAnswerInput}
                     >
-                      <MinusOutlined />
+                      <MinusOutlined style={{ color: '#FF7C00' }} />
                     </Button>
                   )}
                   {answerInputs.length < maxInputs && (
                     <Button
+                      type="primary"
                       style={{
                         width: '32px',
                         height: '32px',
@@ -696,7 +706,10 @@ export const QuestionBankTable: React.FC = () => {
       </Button>
 
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 125px' }}>
+        <Button
+          icon={<UploadOutlined />}
+          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 125px', background: '#414345' }}
+        >
           Nhập Excel
         </Button>
       </Upload>

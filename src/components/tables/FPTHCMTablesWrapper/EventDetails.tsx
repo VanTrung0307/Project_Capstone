@@ -125,14 +125,14 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
 
     if (currentPosition < container.scrollHeight * 0.2) {
       setActiveTabOnScroll('#info');
-    } else if (currentPosition < container.scrollHeight * 0.4) {
-      setActiveTabOnScroll('#eventschool');
     } else if (currentPosition < container.scrollHeight * 0.6) {
       setActiveTabOnScroll('#rankstudent');
-    } else if (currentPosition < container.scrollHeight * 0.8) {
+    } else if (currentPosition < container.scrollHeight * 0.72) {
       setActiveTabOnScroll('#eventask');
-    } else {
+    } else if (currentPosition < container.scrollHeight * 0.8) {
       setActiveTabOnScroll('#playerhistory');
+    } else {
+      setActiveTabOnScroll('#eventschool');
     }
   };
 
@@ -190,7 +190,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/');
   };
 
   return (
@@ -252,21 +252,14 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
               className={activeTabOnScroll === '#info' || activeTabOnScroll === '#info' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#info')}
             >
-              Thông tin
-            </S.TabLink>
-            <S.TabLink
-              href="#eventschool"
-              className={activeTabOnScroll === '#eventschool' || activeTabOnScroll === '#eventschool' ? 'active' : ''}
-              onClick={(event) => handleTabClick(event, '#eventschool')}
-            >
-              Danh sách trường
+              Thông tin chung
             </S.TabLink>
             <S.TabLink
               href="#rankstudent"
               className={activeTabOnScroll === '#rankstudent' || activeTabOnScroll === '#rankstudent' ? 'active' : ''}
               onClick={(event) => handleTabClick(event, '#rankstudent')}
             >
-              Xếp hạng và Học sinh
+              Bảng xếp hạng
             </S.TabLink>
             <S.TabLink
               href="#eventask"
@@ -284,23 +277,24 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
             >
               Người chơi
             </S.TabLink>
+            <S.TabLink
+              href="#eventschool"
+              className={activeTabOnScroll === '#eventschool' || activeTabOnScroll === '#eventschool' ? 'active' : ''}
+              onClick={(event) => handleTabClick(event, '#eventschool')}
+            >
+              Danh sách trường
+            </S.TabLink>
           </S.TabWrapper>
         </S.StickyCard>
 
-        <div id="eventschool" style={{ width: '100%', height: '60px' }}></div>
-        <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách trường')}>
-          <SchoolEventTable />
-        </S.Card>
-
         <div id="rankstudent" style={{ width: '100%', height: '80px' }}></div>
-
         <span
           style={{
             display: 'block',
             marginBottom: 5,
             color: selectedSchoolId ? '#FF7C00' : '#000',
             fontStyle: selectedSchoolId ? 'normal' : 'italic',
-            fontWeight: selectedSchoolId ? 'bold' : ''
+            fontWeight: selectedSchoolId ? 'bold' : '',
           }}
         >
           {!selectedSchoolId
@@ -357,7 +351,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           </S.Card>
         )}
 
-        <div id="eventask" style={{ width: '100%', height: '60px' }}></div>
+        <div id="eventask" style={{ width: '100%', height: '81px' }}></div>
         <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách nhiệm vụ')}>
           <TaskEventTable />
         </S.Card>
@@ -365,6 +359,11 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         <div id="playerhistory" style={{ width: '100%', height: '60px' }}></div>
         <S.Card padding="1.25rem 1.25rem 0" title={t('Người chơi')}>
           <PlayerTable eventId={eventId} selectedSchoolId={selectedSchoolId} />
+        </S.Card>
+
+        <div id="eventschool" style={{ width: '100%', height: '60px' }}></div>
+        <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách trường')}>
+          <SchoolEventTable />
         </S.Card>
       </S.FPTHCMTablesWrapper>
     </div>

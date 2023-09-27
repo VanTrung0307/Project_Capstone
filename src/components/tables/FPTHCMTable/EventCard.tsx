@@ -168,7 +168,7 @@ export const EventCard: React.FC = () => {
                 <S.Label>{'Trạng thái'}</S.Label>
                 <S.InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input disabled={true} style={{ background: '#414345' }} />
+                    <Input disabled={true} style={{ background: '#1D1C1A' }} />
                   </BaseForm.Item>
                 </S.InputContainer>
               </S.FlexContainer>

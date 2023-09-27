@@ -30,6 +30,7 @@ export const CollapseButton = styled(Button)<{ $isCollapsed: boolean }>`
   transition: all 0.2s ease;
   position: absolute;
   left: 240px;
+  background: #ff7c00;
 
   ${(props) =>
     props.$isCollapsed &&
@@ -39,15 +40,9 @@ export const CollapseButton = styled(Button)<{ $isCollapsed: boolean }>`
 
   color: var(--text-secondary-color);
 
-  &:hover {
-    color: var(--text-secondary-color);
-    background: #FF7C00;
-    border: 1px solid var(--border-color);
-  }
-
   &:focus {
     color: var(--text-secondary-color);
-    background: #FF7C00;
+    background: #ff7c00;
     border: 1px solid var(--border-color);
   }
 `;

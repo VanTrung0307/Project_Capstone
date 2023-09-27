@@ -559,7 +559,7 @@ export const TaskEventTable: React.FC = () => {
                       required
                       onChange={(e) => handleEndTimeChange(e.target.value, form)}
                       disabled
-                      style={{ background: '#414345' }}
+                      style={{ background: '#1D1C1A' }}
                     />
                   </BaseForm.Item>
                 </InputContainer>
@@ -578,7 +578,7 @@ export const TaskEventTable: React.FC = () => {
                 <Label>{'Trạng thái'}</Label>
                 <InputContainer>
                   <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                    <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
+                    <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
                   </BaseForm.Item>
                 </InputContainer>
               </FlexContainer>

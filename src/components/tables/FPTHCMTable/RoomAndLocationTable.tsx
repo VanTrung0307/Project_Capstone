@@ -238,7 +238,8 @@ export const RoomAndLocationTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>

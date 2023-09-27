@@ -258,7 +258,7 @@ export const SchoolEventTable: React.FC = () => {
             <Form.Item name={startTimeIndex} initialValue={moment(record.startTime)}>
               <Input
                 type="datetime-local"
-                style={{ maxWidth: '200px', background: '#414345' }}
+                style={{ maxWidth: '200px', background: '#1D1C1A' }}
                 disabled
                 onChange={(e) => handleInputChange(e.target.value, record.id, startTimeIndex)}
               />
@@ -559,7 +559,7 @@ export const SchoolEventTable: React.FC = () => {
                         },
                       ]}
                     >
-                      <Input type="datetime-local" required disabled style={{ background: '#414345' }} />
+                      <Input type="datetime-local" required disabled style={{ background: '#1D1C1A' }} />
                     </BaseForm.Item>
                   </InputContainer>
                 </div>
@@ -572,7 +572,7 @@ export const SchoolEventTable: React.FC = () => {
                       <Label>{'Trạng thái'}</Label>
                       <InputContainer>
                         <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                          <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
+                          <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
                         </BaseForm.Item>
                       </InputContainer>
                     </div>
@@ -585,7 +585,7 @@ export const SchoolEventTable: React.FC = () => {
                       <Label>{'Xác nhận'}</Label>
                       <InputContainer>
                         <BaseForm.Item name="approvalstatus" initialValue={'ACCEPT'}>
-                          <Input style={{ width: '100px', background: '#414345' }} disabled={true} />
+                          <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
                         </BaseForm.Item>
                       </InputContainer>
                     </div>

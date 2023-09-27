@@ -27,7 +27,7 @@ export const Menu = styled(AntMenu)`
   a,
   .ant-menu-item,
   .ant-menu-submenu {
-    color: var(--text-sider-secondary-color);
+    color: white;
     fill: var(--text-sider-secondary-color);
   }
 

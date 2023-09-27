@@ -195,6 +195,7 @@ export const MajorTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -243,6 +244,7 @@ export const MajorTable: React.FC = () => {
                     autoSize={{ maxRows: 6 }}
                     value={record[dataIndex]}
                     onChange={(e) => handleInputChange(e.target.value, record.description, dataIndex)}
+                    style={{ background: '#414345' }}
                   />
                 </Form.Item>
               ) : (
@@ -254,6 +256,7 @@ export const MajorTable: React.FC = () => {
             <Modal
               title={t('Mô tả')}
               visible={descriptionModalVisible}
+              className="custom-modal"
               onCancel={() => setDescriptionModalVisible(false)}
               footer={null}
               mask={true}
@@ -289,7 +292,8 @@ export const MajorTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -424,10 +428,11 @@ export const MajorTable: React.FC = () => {
         title={'Tạo mới Ngành học'}
         open={isBasicModalOpen}
         onOk={handleModalOk}
+        className="custom-modal"
         onCancel={() => setIsBasicModalOpen(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -441,7 +446,7 @@ export const MajorTable: React.FC = () => {
             <Label>{'Tên ngành học'}</Label>
             <InputContainer>
               <BaseForm.Item name="name" rules={[{ required: true, message: t('Hãy nhập tên ngành học') }]}>
-                <Input maxLength={100} />
+                <Input maxLength={100} style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -450,7 +455,7 @@ export const MajorTable: React.FC = () => {
             <Label>{'Mô tả'}</Label>
             <InputContainer>
               <BaseForm.Item name="description" rules={[{ required: true, message: t('Hãy nhập mô tả ngành học') }]}>
-                <TextArea autoSize={{ maxRows: 6 }} />
+                <TextArea autoSize={{ maxRows: 6 }} style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -459,7 +464,7 @@ export const MajorTable: React.FC = () => {
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                <Input style={{ width: '100px' }} disabled={true} />
+                <Input style={{ width: '100px', background: '#1D1C1A' }} disabled={true} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -476,7 +481,10 @@ export const MajorTable: React.FC = () => {
       </Button>
 
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} style={{ position: 'absolute', top: '0', right: '0', margin: '15px 123px' }}>
+        <Button
+          icon={<UploadOutlined />}
+          style={{ position: 'absolute', top: '0', right: '0', margin: '15px 123px', background: '#414345' }}
+        >
           Nhập Excel
         </Button>
       </Upload>

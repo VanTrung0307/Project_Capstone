@@ -180,6 +180,7 @@ export const NPCTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -223,6 +224,7 @@ export const NPCTable: React.FC = () => {
                     autoSize={{ maxRows: 6 }}
                     value={record[dataIndex]}
                     onChange={(e) => handleInputChange(e.target.value, record.introduce, dataIndex)}
+                    style={{ background: '#414345' }}
                   />
                 </Form.Item>
               ) : (
@@ -234,6 +236,7 @@ export const NPCTable: React.FC = () => {
             <Modal
               title={t('Mô tả')}
               visible={dialogueModalVisible}
+              className="custom-modal"
               onCancel={() => setDialogueModalVisible(false)}
               footer={null}
               mask={true}
@@ -269,7 +272,8 @@ export const NPCTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>

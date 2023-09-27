@@ -238,6 +238,7 @@ export const SchoolTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.name, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -270,7 +271,7 @@ export const SchoolTable: React.FC = () => {
               maxLength={100}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.email, dataIndex)}
-              style={{ maxWidth: '350px' }}
+              style={{ maxWidth: '350px', background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -294,6 +295,7 @@ export const SchoolTable: React.FC = () => {
               autoSize={{ maxRows: 3 }}
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.address, dataIndex)}
+              style={{ background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -318,7 +320,7 @@ export const SchoolTable: React.FC = () => {
               type="tel"
               value={record[dataIndex]}
               onChange={(e) => handleInputChange(e.target.value, record.phoneNumber, dataIndex)}
-              style={{ maxWidth: '120px' }}
+              style={{ maxWidth: '120px', background: '#414345' }}
             />
           </Form.Item>
         ) : (
@@ -351,7 +353,8 @@ export const SchoolTable: React.FC = () => {
             <Select
               value={text}
               onChange={(value) => handleInputChange(value, record.status, dataIndex)}
-              suffixIcon={<DownOutlined style={{ color: '#339CFD' }} />}
+              suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
+              dropdownStyle={{ background: '#414345' }}
             >
               {statusOptions.map((option) => (
                 <Select.Option key={option} value={option}>
@@ -390,7 +393,11 @@ export const SchoolTable: React.FC = () => {
                 >
                   Chỉnh sửa
                 </Button>
-                <Button danger onClick={() => handleDeleteSchool(record.id)}>
+                <Button
+                  danger
+                  onClick={() => handleDeleteSchool(record.id)}
+                  style={{ background: '#FF5252', color: 'white' }}
+                >
                   Xoá
                 </Button>
               </>
@@ -449,12 +456,13 @@ export const SchoolTable: React.FC = () => {
       </Button>
       <Modal
         title={'Thêm TRƯỜNG'}
+        className="custom-modal"
         open={isBasicModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsBasicModalOpen(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button key="back" onClick={() => setIsBasicModalOpen(false)}>
+            <Button key="back" onClick={() => setIsBasicModalOpen(false)} style={{ background: '#414345' }}>
               Huỷ
             </Button>
             <Button key="submit" type="primary" onClick={handleModalOk}>
@@ -482,7 +490,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <Input />
+                <Input style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -504,7 +512,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <Input placeholder="Ví dụ: name@gmail.com" />
+                <Input placeholder="Ví dụ: name@gmail.com" style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -522,7 +530,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <Input type="tel" placeholder="10 hoặc 11 số" />
+                <Input type="tel" placeholder="10 hoặc 11 số" style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -540,7 +548,7 @@ export const SchoolTable: React.FC = () => {
                   },
                 ]}
               >
-                <TextArea />
+                <TextArea style={{ background: '#414345' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>
@@ -549,7 +557,7 @@ export const SchoolTable: React.FC = () => {
             <Label>{'Trạng thái'}</Label>
             <InputContainer>
               <BaseForm.Item name="status" initialValue={'ACTIVE'}>
-                <Input disabled={true} />
+                <Input disabled={true} style={{ background: '#1D1C1A' }} />
               </BaseForm.Item>
             </InputContainer>
           </FlexContainer>

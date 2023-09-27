@@ -22,7 +22,7 @@ export const Card = styled(CommonCard)`
   margin-bottom: 2rem;
   padding: 20px;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: rgba(0, 0, 0, 0.6) 0px 19px 38px, rgba(0, 0, 0, 0.44) 0px 15px 12px;
 `;
 
 export const InfoCard = styled(CommonCard)`
