@@ -55,6 +55,7 @@ export const FormWrapper = styled.div`
 
 export const FormTitle = styled.div`
   color: var(--primary-color);
+  font-family: 'Be Vietnam Pro', sans-serif;
 
   @media only screen and ${media.xs} {
     margin-bottom: 0.625rem;

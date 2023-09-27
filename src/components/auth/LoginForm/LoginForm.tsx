@@ -19,8 +19,8 @@ interface LoginFormData {
 }
 
 export const initValues: LoginFormData = {
-  username: 'admin',
-  password: 'admin@@',
+  username: '',
+  password: '',
 };
 
 export const LoginForm: React.FC = () => {
@@ -64,7 +64,7 @@ export const LoginForm: React.FC = () => {
         notificationController.error({ message: 'Tài khoản hoặc mật khẩu sai' });
       }
     } catch (err) {
-      notificationController.error({ message: 'Tài khoản không thuộc hệ thống' });
+      notificationController.error({ message: 'Tài khoản hoặc mật khẩu sai' });
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export const LoginForm: React.FC = () => {
         <S.LoginDescription>{t('login.loginInfo')}</S.LoginDescription>
         <Auth.FormItem
           name="username"
-          label={'Username'}
+          label={t('common.username')}
           rules={[{ required: true, message: t('common.requiredField') }]}
         >
           <Auth.FormInput placeholder={t('common.username')} />

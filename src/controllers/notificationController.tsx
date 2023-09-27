@@ -1,9 +1,10 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
 import { notification } from 'antd';
-import styled from 'styled-components';
-import { CheckCircleFilled, ExclamationCircleFilled, InfoCircleFilled, StopFilled } from '@ant-design/icons';
 import { ArgsProps } from 'antd/lib/notification';
+import { AiFillCheckCircle, AiFillWarning } from "react-icons/ai";
+import { BiSolidErrorCircle } from "react-icons/bi";
+import { FaCircleInfo } from "react-icons/fa6";
+import styled from 'styled-components';
 
 interface IconWrapperProps {
   $isOnlyTitle: boolean;
@@ -25,7 +26,7 @@ const openSuccessNotification = (config: NotificationProps): void => {
     ...config,
     icon: (
       <IconWrapper $isOnlyTitle={!config.description}>
-        <CheckCircleFilled className="success-icon" />
+        <AiFillCheckCircle className="success-icon" />
       </IconWrapper>
     ),
     message: <div className={`title ${!config.description && `title-only`}`}>{config.message}</div>,
@@ -39,7 +40,7 @@ const openInfoNotification = (config: NotificationProps): void => {
     ...config,
     icon: (
       <IconWrapper $isOnlyTitle={!config.description}>
-        <InfoCircleFilled className="info-icon" />
+        <FaCircleInfo className="info-icon" />
       </IconWrapper>
     ),
     message: <div className={`title ${!config.description && `title-only`}`}>{config.message}</div>,
@@ -53,7 +54,7 @@ const openWarningNotification = (config: NotificationProps): void => {
     ...config,
     icon: (
       <IconWrapper $isOnlyTitle={!config.description}>
-        <ExclamationCircleFilled className="warning-icon" />
+        <AiFillWarning className="warning-icon" />
       </IconWrapper>
     ),
     message: <div className={`title ${!config.description && `title-only`}`}>{config.message}</div>,
@@ -67,7 +68,7 @@ const openErrorNotification = (config: NotificationProps): void => {
     ...config,
     icon: (
       <IconWrapper $isOnlyTitle={!config.description}>
-        <StopFilled className="error-icon" />
+        <BiSolidErrorCircle className="error-icon" />
       </IconWrapper>
     ),
     message: <div className={`title ${!config.description && `title-only`}`}>{config.message}</div>,
