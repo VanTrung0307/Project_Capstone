@@ -611,7 +611,7 @@ export const GiftTable: React.FC = () => {
                   <BaseForm.Item name="schoolId" rules={[{ required: true, message: t('Hãy chọn tên trường') }]}>
                     <Select
                       style={{ maxWidth: '256px' }}
-                      placeholder={'---- Chọn sự kiện ----'}
+                      placeholder={'---- Chọn trường ----'}
                       suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
                       dropdownStyle={{ background: '#414345' }}
                     >
