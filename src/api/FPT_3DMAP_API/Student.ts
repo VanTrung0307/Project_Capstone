@@ -94,7 +94,7 @@ export const getPaginatedStudent = async (pagination: Pagination): Promise<Pagin
 
 export const getStudenbySchoolById = async (schoolId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await httpApi.get<StudentList>(`${API_BASE_URL}/GetStudentBySchoolId/${schoolId}`);
+    const response = await httpApi.get<StudentList>(`${API_BASE_URL}/getstudentbyeventschoolId/${schoolId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 100 } = pagination;
     const total = data.length;
@@ -211,7 +211,7 @@ export const exportStudentExcel = async (schoolId: string): Promise<void> => {
     });
     const downloadLink = document.createElement('a');
     downloadLink.href = window.URL.createObjectURL(blob);
-    downloadLink.download = 'student_export.xlsx';
+    downloadLink.download = 'Danh sách học sinh.xlsx';
     downloadLink.click();
   } catch (error) {
     console.error('Error exporting student data:', error);

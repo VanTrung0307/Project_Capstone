@@ -26,11 +26,7 @@ const initialPagination: Pagination = {
   pageSize: 10,
 };
 
-type EventsProps = {
-  eventId?: string;
-};
-
-export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = ({ eventId, selectedSchoolId }) => {
+export const RankTable: React.FC<{ selectedSchoolId: string }> = ({ selectedSchoolId }) => {
   const { t } = useTranslation();
 
   const [editingKey, setEditingKey] = useState<number | string>('');
@@ -78,8 +74,8 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
         setSchools(paginationData.data);
       });
 
-      if (eventId && selectedSchoolId) {
-        getRankedPlayerPrizes(eventId, selectedSchoolId, pagination).then((res) => {
+      if (selectedSchoolId) {
+        getRankedPlayerPrizes(selectedSchoolId, pagination).then((res) => {
           if (isMounted.current) {
             setData({ data: res.data, pagination: res.pagination, loading: false });
             setPlayerId(res.data[0]?.id);
@@ -87,7 +83,7 @@ export const RankTable: React.FC<EventsProps & { selectedSchoolId: string }> = (
         });
       }
     },
-    [isMounted, eventId, selectedSchoolId],
+    [isMounted, selectedSchoolId],
   );
 
   useEffect(() => {

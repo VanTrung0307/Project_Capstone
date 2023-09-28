@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownOutlined, DownloadOutlined, UploadOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
+import { EventSchool, getPaginatedEventSchools } from '@app/api/FPT_3DMAP_API/EventSchool';
 import { createPlayer } from '@app/api/FPT_3DMAP_API/Player';
-import { Pagination, School, updateSchool } from '@app/api/FPT_3DMAP_API/School';
+import { Pagination } from '@app/api/FPT_3DMAP_API/School';
 import {
   EventStudent,
   exportStudentExcel,
   getExcelTemplateStudent,
-  getStudenbySchoolById,
-  getStudenbySchoolandEventId,
+  getStudenbySchoolById
 } from '@app/api/FPT_3DMAP_API/Student';
 import { httpApi } from '@app/api/http.api';
 import { Upload } from '@app/components/common/Upload/Upload';
@@ -21,9 +21,7 @@ import { Table } from 'components/common/Table/Table';
 import { Button } from 'components/common/buttons/Button/Button';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import { EditableCell } from '../editableTable/EditableCell';
-import { EventSchool, getPaginatedEventSchools } from '@app/api/FPT_3DMAP_API/EventSchool';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -361,7 +359,7 @@ export const EventStudentTable: React.FC<EventsProps & { selectedSchoolId: strin
 
       try {
         const response = await httpApi.post(
-          `https://anhkiet-001-site1.htempurl.com/api/Students/uploadfileexcelstudentwithschoolId?schoolId=${selectedSchoolId}`,
+          `https://anhkiet-001-site1.htempurl.com/api/Students/uploadfileexcelstudent?schooleventId=${selectedSchoolId}`,
           formData,
           {
             headers: {
@@ -448,8 +446,8 @@ export const EventStudentTable: React.FC<EventsProps & { selectedSchoolId: strin
         <Button
           type="default"
           onClick={() => {
-            if (school && school.schoolId) {
-              exportStudentExcel(school.schoolId);
+            if (selectedSchoolId) {
+              exportStudentExcel(selectedSchoolId);
             } else {
               console.error('schoolId is undefined');
             }

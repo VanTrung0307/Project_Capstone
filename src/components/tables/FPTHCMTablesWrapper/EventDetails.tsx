@@ -45,7 +45,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
           setEvent(eventData);
 
           const schoolOptions = schoolsResponse.data.map((school) => ({
-            id: school.schoolId,
+            id: school.id,
             name: school.schoolName,
           }));
           setSchoolOptions(schoolOptions);
@@ -342,7 +342,7 @@ export const EventDetails: React.FC<SchoolTablesProps> = ({ eventId }) => {
         </label>
         {activeCard === 'rank' ? (
           <S.Card padding="1.25rem 1.25rem 0" title={t('Bảng xếp hạng')}>
-            <RankTable eventId={eventId} selectedSchoolId={selectedSchoolId} />
+            <RankTable selectedSchoolId={selectedSchoolId} />
           </S.Card>
         ) : (
           <S.Card padding="1.25rem 1.25rem 0" title={t('Danh sách học sinh')}>

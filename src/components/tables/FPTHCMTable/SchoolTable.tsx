@@ -525,7 +525,7 @@ export const SchoolTable: React.FC = () => {
                 rules={[
                   { required: true, message: t('Hãy nhập số điện thoại của trường') },
                   {
-                    pattern: /^[0][0-9]{9,11}$/,
+                    pattern: /^[0][0-9]{9,10}$/,
                     message: 'Số điện thoại không hợp lệ',
                   },
                 ]}

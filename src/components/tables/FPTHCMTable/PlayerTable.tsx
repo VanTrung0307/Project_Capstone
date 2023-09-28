@@ -5,8 +5,7 @@ import { getHistoryPaginatedPlayers } from '@app/api/FPT_3DMAP_API/HistoryPlayer
 import {
   Pagination,
   PlayerFilter,
-  getPaginatedPlayersWithEvent,
-  getPaginatedPlayersWithEventandSchool,
+  getPaginatedPlayersWithEvent
 } from '@app/api/FPT_3DMAP_API/Player';
 import { School, getPaginatedSchools } from '@app/api/FPT_3DMAP_API/School';
 import { User } from '@app/api/FPT_3DMAP_API/User';
@@ -85,15 +84,15 @@ export const PlayerTable: React.FC<EventsProps & { selectedSchoolId: string }> =
         });
       }
 
-      if (eventId && selectedSchoolId) {
-        getPaginatedPlayersWithEventandSchool(selectedSchoolId, eventId, pagination).then((res) => {
-          if (isMounted.current) {
-            setData({ data: res.data, pagination: res.pagination, loading: false });
-          }
-        });
-      }
+      // if (eventId && selectedSchoolId) {
+      //   getPaginatedPlayersWithEventandSchool(selectedSchoolId, eventId, pagination).then((res) => {
+      //     if (isMounted.current) {
+      //       setData({ data: res.data, pagination: res.pagination, loading: false });
+      //     }
+      //   });
+      // }
     },
-    [isMounted, eventId, selectedSchoolId],
+    [isMounted, eventId],
   );
 
   useEffect(() => {

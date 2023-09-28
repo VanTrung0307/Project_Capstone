@@ -595,7 +595,7 @@ export const TaskEventTable: React.FC = () => {
               >
                 <div>
                   <Label>{'Tên ngành học'}</Label>
-                  <BaseForm.Item name="majorId" rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
+                  <BaseForm.Item rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
                     <Select
                       style={{ width: '300px' }}
                       placeholder="Chọn ngành học"

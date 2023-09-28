@@ -42,13 +42,9 @@ export interface PaginationData {
   pagination: Pagination;
 }
 
-export const getRankedPlayerPrizes = async (
-  eventId: string,
-  schoolId: string,
-  pagination: Pagination,
-): Promise<PaginationData> => {
+export const getRankedPlayerPrizes = async (schoolId: string, pagination: Pagination): Promise<PaginationData> => {
   try {
-    const response = await httpApi.get<PlayerList>(`${API_BASE_URL}/GetRankedPlayer/${eventId}/${schoolId}`);
+    const response = await httpApi.get<PlayerList>(`${API_BASE_URL}/GetRankedPlayer/${schoolId}`);
     const { data } = response.data;
     const { current = 1, pageSize = 1000 } = pagination;
     const total = data.length;
