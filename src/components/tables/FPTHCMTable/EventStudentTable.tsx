@@ -372,6 +372,7 @@ export const EventStudentTable: React.FC<EventsProps & { selectedSchoolId: strin
           fetch(data.pagination);
           message.success('Tải lên thành công');
           setTimeout(() => message.destroy(), 3000);
+          fetch(data.pagination);
         } else {
           message.error('Tải lên thất bại');
         }
