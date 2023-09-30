@@ -31,6 +31,7 @@ import { EditableCell } from '../editableTable/EditableCell';
 import { TaskTableModal } from './TaskTableModal';
 import './Select.css';
 import { Major, getPaginatedMajors } from '@app/api/FPT_3DMAP_API/Major';
+import { Option } from 'antd/lib/mentions';
 
 const initialPagination: Pagination = {
   current: 1,
@@ -186,7 +187,7 @@ export const TaskEventTable: React.FC = () => {
 
   const [isBasicModalOpen, setIsBasicModalOpen] = useState(false);
 
-  const [eventTask, setEventTask] = useState<EventTask[]>([]);
+  const [eventTask, setEventTask] = useState<{ data: EventTask[] }>({ data: [] });
 
   const handleModalOk = async () => {
     try {
@@ -208,7 +209,7 @@ export const TaskEventTable: React.FC = () => {
 
         setEventTask((prevData) => ({
           ...prevData,
-          data: [...prevData, createdEventTask],
+          data: [...prevData.data, createdEventTask],
           loading: false,
         }));
 
@@ -222,6 +223,7 @@ export const TaskEventTable: React.FC = () => {
       }
     } catch (error) {
       message.error('Lỗi hệ thống');
+      console.error(error); // Log the error for debugging purposes
     }
   };
 
@@ -597,37 +599,36 @@ export const TaskEventTable: React.FC = () => {
                   <Label>{'Tên ngành học'}</Label>
                   <BaseForm.Item rules={[{ required: true, message: t('Hãy chọn ngành học') }]}>
                     <Select
-                      style={{ width: '300px' }}
-                      placeholder="Chọn ngành học"
-                      showSearch
-                      dropdownStyle={{ background: '#414345' }}
-                      filterOption={(inputValue, option) =>
-                        option?.label.toLowerCase().includes(inputValue.toLowerCase()) ?? false
-                      }
-                      options={major
-                        .filter((taskItem) => taskItem.status !== 'INACTIVE')
-                        .map((task) => ({
-                          label: task.name,
-                          value: task.id,
-                        }))}
-                      onChange={(value) => handleMajorChange(value)}
+                      style={{ width: '300px', marginBottom: '16px' }}
+                      value={selectedMajor && selectedMajor.length > 0 ? selectedMajor[0].id : undefined}
+                      onChange={handleMajorChange}
                       suffixIcon={<DownOutlined style={{ color: '#FF7C00' }} />}
-                    />
+                    >
+                      <Option value="">Chọn ngành học</Option>
+                      {/* Generate options dynamically from the 'major' array */}
+                      {major
+                        .filter((taskItem) => taskItem.status !== 'INACTIVE')
+                        .map((task) => (
+                          <Option key={task.id} value={task.id}>
+                            {task.name}
+                          </Option>
+                        ))}
+                    </Select>
                   </BaseForm.Item>
                 </div>
               </FlexContainer>
 
-              {selectedMajor && (
-                <FlexContainer
-                  style={{
-                    marginLeft: '100px',
-                    maxHeight: '300px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  <div>
-                    <Label>{'Tên nhiệm vụ'}</Label>
-                    <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Hãy chọn nhiệm vụ') }]}>
+              <FlexContainer
+                style={{
+                  marginLeft: '100px',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                }}
+              >
+                <div>
+                  <Label>{'Tên nhiệm vụ'}</Label>
+                  <BaseForm.Item name="taskId" rules={[{ required: true, message: t('Hãy chọn nhiệm vụ') }]}>
+                    {selectedMajor && (
                       <Select
                         mode="multiple"
                         style={{ width: '300px' }}
@@ -648,10 +649,10 @@ export const TaskEventTable: React.FC = () => {
                             value: task.id,
                           }))}
                       />
-                    </BaseForm.Item>
-                  </div>
-                </FlexContainer>
-              )}
+                    )}
+                  </BaseForm.Item>
+                </div>
+              </FlexContainer>
             </Col>
           </Row>
           <TaskTableModal />
