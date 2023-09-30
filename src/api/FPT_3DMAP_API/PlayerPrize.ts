@@ -68,9 +68,16 @@ export const getRankedPlayerPrizes = async (schoolId: string, pagination: Pagina
   }
 };
 
-export const createPlayerPrize = async (send: PlayerPrizeSend, playerId: string): Promise<PlayerPrizeSend> => {
+export const createPlayerPrize = async (
+  send: PlayerPrizeSend,
+  eventschoolId: string,
+  playerId: string,
+): Promise<PlayerPrizeSend> => {
   try {
-    const response = await httpApi.post<PlayerPrizeSend>(`${API_BASE_URL}/CreatePlayerPrize/${playerId}`, send);
+    const response = await httpApi.post<PlayerPrizeSend>(
+      `${API_BASE_URL}/CreatePlayerPrize/${eventschoolId}/${playerId}`,
+      send,
+    );
     return response.data;
   } catch (error) {
     console.error('Error creating gift:', error);

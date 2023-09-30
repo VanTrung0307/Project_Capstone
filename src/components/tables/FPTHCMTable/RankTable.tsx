@@ -108,7 +108,7 @@ export const RankTable: React.FC<{ selectedSchoolId: string }> = ({ selectedScho
       setData((prevData) => ({ ...prevData, loading: true }));
 
       try {
-        await createPlayerPrize(newData, selectedId);
+        await createPlayerPrize(newData, selectedSchoolId, selectedId);
         message.success('Gửi đơn thành công');
         fetch(data.pagination);
         form.resetFields();
